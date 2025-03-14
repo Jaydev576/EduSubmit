@@ -1,0 +1,56 @@
+﻿@model IEnumerable<EduSubmit.Models.Organization>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h2 class="mb-3">Dashboard Overview</h2>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card p-3 shadow-sm">
+            <h5>Total Students</h5>
+            <p class="h4">@(Model)</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 shadow-sm">
+            <h5>Active Teachers</h5>
+            <p class="h4">@(Model)</p>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Users Section -->
+<div class="mt-4">
+    <h4>Recent Users</h4>
+    <div class="card p-3 shadow-sm">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Role</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null) {
+                    foreach (var student in Model) {
+                        <tr>
+                            <td>FirstName</td>
+                            <td>Student</td>
+                        </tr>
+                    }
+                }
+
+                @if (Model != null) {
+                    foreach (var instructor in Model) {
+                        <tr>
+                            <td>FirstName</td>
+                            <td>Instructor</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
