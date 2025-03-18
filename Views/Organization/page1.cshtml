@@ -1,0 +1,118 @@
+﻿@model List<EduSubmit.Models.Student>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Manage Students</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .sidebar {
+            height: 100vh;
+            background-color: #fff;
+            padding: 20px;
+        }
+
+            .sidebar a {
+                font-weight: 500;
+                color: #6c757d;
+            }
+
+                .sidebar a.active {
+                    color: #6610f2;
+                    background-color: #e9ecef;
+                }
+
+        .table th, .table td {
+            vertical-align: middle;
+        }
+
+        .status-active {
+            color: green;
+        }
+
+        .status-inactive {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            @* <nav class="col-md-3 sidebar"> *@
+            @*     <h4>Admin Panel</h4> *@
+            @*     <ul class="nav flex-column"> *@
+            @*         <li class="nav-item"><a href="/Admin/Dashboard" class="nav-link">Dashboard</a></li> *@
+            @*         <li class="nav-item"><a href="/Admin/ManageStudents" class="nav-link active">Manage Students</a></li> *@
+            @*         <li class="nav-item"><a href="/Admin/Classes" class="nav-link">Manage Classes</a></li> *@
+            @*         <li class="nav-item"><a href="/Admin/Organizations" class="nav-link">Manage Organizations</a></li> *@
+            @*     </ul> *@
+            @* </nav> *@
+
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <div class="d-flex justify-content-between align-items-center my-3">
+                    <h3>Manage Students</h3>
+                    <a href="/Admin/AddStudent" class="btn btn-primary">Add New Student</a>
+                </div>
+
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="Search students by name or email...">
+                </div>
+
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Date of Birth</th>
+                            <th>Class</th>
+                            <th>Organization</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var student in Model)
+                        {
+                            <tr>
+                                <td>@student.StudentId</td>
+                                <td>@student.FirstName @student.LastName</td>
+                                <td>@student.EmailAddress</td>
+                                <td>@student.DateOfBirth.ToShortDateString()</td>
+                                <td>@(student.Class != null ? student.Class.ClassId.ToString() : "N/A")</td>
+                                <td>@(student.Organization != null ? student.Organization.OrganizationId.ToString() : "N/A")</td>
+                                <td>
+                                    <a href="/Admin/EditStudent/@student.StudentId" class="btn btn-sm btn-warning">Edit</a>
+                                    <a href="/Admin/DeleteStudent/@student.StudentId" class="btn btn-sm btn-danger">Delete</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <div class="d-flex justify-content-between">
+                    <span>Showing @Model.Count students</span>
+                    <div>
+                        <button class="btn btn-secondary">Previous</button>
+                        <button class="btn btn-secondary">Next</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

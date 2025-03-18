@@ -1,0 +1,33 @@
+﻿@{
+    Layout = "~/Views/Shared/_InstructorLayout.cshtml";
+}
+@model IEnumerable<EduSubmit.Models.Submission>
+
+@if (Model == null || !Model.Any())
+{
+    <p>No pending submissions.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Student Name</th>
+                <th>Assignment Title</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var submission in Model)
+            {
+                <tr>
+                    <td>@submission.Student?.FirstName</td> <!-- ✅ Handle possible null values -->
+                    <td>@submission.Assignment?.Title</td>
+                    <td>
+                        <a asp-action="GradeAssignment" asp-route-studentId="@submission.StudentId" asp-route-assignmentId="@submission.AssignmentId" class="btn btn-primary">Assign Grade</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

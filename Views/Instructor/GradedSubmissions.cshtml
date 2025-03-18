@@ -1,0 +1,33 @@
+﻿@{
+    Layout = "~/Views/Shared/_InstructorLayout.cshtml";
+}
+@model IEnumerable<EduSubmit.Models.Grade>
+
+<div class="container">
+    <h3 class="mb-4">Grade Submissions</h3>
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Student</th>
+                <th>Assignment</th>
+                <th>Score</th>
+                <th>Remarks</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var grade in Model)
+            {
+                <tr>
+                    <td>@grade.Student.FirstName @grade.Student.LastName</td>
+                    <td>@grade.Assignment.Title</td>
+                    <td>@(grade.Score == 0 ? "Pending" : grade.Score.ToString() + "%")</td>
+                    <td>@(string.IsNullOrEmpty(grade.Remarks) ? "No remarks" : grade.Remarks)</td>
+                    <td>
+                        <a href="@Url.Action("GradeAssignment", "Instructor", new { studentId = grade.StudentId, assignmentId = grade.AssignmentId })" class="text-primary"><button class="btn btn-primary">Edit Grade</button></a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

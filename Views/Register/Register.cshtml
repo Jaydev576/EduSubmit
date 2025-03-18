@@ -1,0 +1,134 @@
+﻿@{
+    ViewData["Title"] = "Register";
+    Layout = "~/Views/Shared/_RegisterLayout.cshtml";
+}
+
+<div class="container mt-5">
+    <h2 class="text-center">Register</h2>
+
+    <!-- Role Selection -->
+    <div class="btn-group d-flex mb-3" role="group">
+        <button type="button" class="btn btn-primary active" id="studentBtn">Student</button>
+        <button type="button" class="btn btn-secondary" id="instructorBtn">Instructor</button>
+        <button type="button" class="btn btn-secondary" id="adminBtn">Admin</button>
+    </div>
+
+    <!-- Student Form -->
+    <div id="studentForm">
+        <form asp-action="RegisterStudent" asp-controller="Register" method="post">
+            <div class="mb-3">
+                <label class="form-label">First Name</label>
+                <input type="text" class="form-control" name="FirstName" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Last Name</label>
+                <input type="text" class="form-control" name="LastName" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" name="EmailAddress" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-control" name="Password" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Date of Birth</label>
+                <input type="date" class="form-control" name="DateOfBirth" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Organization ID</label>
+                <input type="number" class="form-control" name="OrganizationId" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Class ID</label>
+                <input type="number" class="form-control" name="ClassId" required>
+            </div>
+            <button type="submit" class="btn btn-success">Register as Student</button>
+        </form>
+    </div>
+
+    <!-- Instructor Form -->
+    <div id="instructorForm" class="d-none">
+        <form asp-action="RegisterInstructor" asp-controller="Register" method="post">
+            <div class="mb-3">
+                <label class="form-label">First Name</label>
+                <input type="text" class="form-control" name="FirstName" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Last Name</label>
+                <input type="text" class="form-control" name="LastName" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" name="EmailAddress" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-control" name="Password" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Organization ID</label>
+                <input type="number" class="form-control" name="OrganizationId" required>
+            </div>
+            <button type="submit" class="btn btn-success">Register as Instructor</button>
+        </form>
+    </div>
+
+    <!-- Admin Form -->
+    <div id="adminForm" class="d-none">
+        <form asp-action="RegisterAdmin" asp-controller="Register" method="post">
+            <div class="mb-3">
+                <label class="form-label">Organization Name</label>
+                <input type="text" class="form-control" name="OrganizationName" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                <input type="text" class="form-control" name="Username" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-control" name="Password" required>
+            </div>
+            <button type="submit" class="btn btn-success">Register as Admin</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const studentBtn = document.getElementById("studentBtn");
+            const instructorBtn = document.getElementById("instructorBtn");
+            const adminBtn = document.getElementById("adminBtn");
+
+            const studentForm = document.getElementById("studentForm");
+            const instructorForm = document.getElementById("instructorForm");
+            const adminForm = document.getElementById("adminForm");
+
+            function showForm(selectedBtn, formToShow) {
+                studentBtn.classList.remove("btn-primary");
+                studentBtn.classList.add("btn-secondary");
+                instructorBtn.classList.remove("btn-primary");
+                instructorBtn.classList.add("btn-secondary");
+
+
+                adminBtn.classList.remove("btn-primary");
+                adminBtn.classList.add("btn-secondary");
+
+                selectedBtn.classList.remove("btn-secondary");
+                selectedBtn.classList.add("btn-primary");
+
+                studentForm.classList.add("d-none");
+                instructorForm.classLis t.add("d-none");
+                adminForm.classList.add("d-none");
+
+                formToShow.classList.remove("d-none");
+            }
+
+            studentBtn.addEventListener("click", () => showForm(studentBtn, studentForm));
+            instructorBtn.addEventListener("click", () => showForm(instructorBtn, instructorForm));
+            adminBtn.addEventListener("click", () => showForm(adminBtn, adminForm));
+        });
+    </script>
+}

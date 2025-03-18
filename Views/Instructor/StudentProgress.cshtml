@@ -1,0 +1,42 @@
+﻿@{
+    Layout = "~/Views/Shared/_InstructorLayout.cshtml";
+}
+@{
+    ViewData["Title"] = "Student Progress";
+}
+
+<div class="container">
+    <h2 class="text-primary">Student Progress</h2>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Class Overview</h5>
+                    <p>Average Grade: <strong>@ViewBag.AverageGrade%</strong></p>
+                    <p>Average Submission Completion: <strong>@ViewBag.AverageSubmissionCompletion%</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="text-primary">Individual Progress</h4>
+    <div class="row" id="studentList">
+        @foreach (var student in Model)
+        {
+            <div class="col-md-4 student-card">
+                <div class="card">
+                    <div class="card-body d-flex align-items-center">
+                        @* <img src="@student.ProfileImage" alt="Profile" class="rounded-circle me-2" width="50"> *@
+                        <div>
+                            <h6>@student.Name</h6>
+                            <p>Submittion Date: @(student.LastActive?.ToString("yyyy-MM-dd") ?? "N/A")</p>
+                            <p>Completion: <strong>@student.SubmissionCompletionRate%</strong></p>
+                            <p>Grade: <strong>@student.AverageGrade%</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

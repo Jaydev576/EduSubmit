@@ -1,0 +1,40 @@
+﻿@{
+     Layout = "~/Views/Shared/_InstructorLayout.cshtml";
+}
+
+<div class="container mt-4"> 
+     <h3 class="mb-3">Dashboard</h3>
+
+     <div class="row">
+         <!-- Active Assignments -->
+         <div class="col-md-6">
+             <div class="card">
+                 <div class="card-header">Active Assignments</div>
+                 <div class="card-body">
+                     <ul class="list-group">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Algebra Quiz #3
+                            <span>
+                                <a href="#" class="text-primary me-2"><i class="bi bi-pencil"></i></a>
+                                <a href="#" class="text-danger"><i class="bi bi-trash"></i></a>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Class Performance -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Class Performance</div>
+                <div class="card-body">
+                    <p><strong>Average Grade:</strong> <span class="text-success">87%</span></p>
+                    <p><strong>Students:</strong> <span class="text-primary">32</span></p>
+                    <p><strong>Submission Rate:</strong> <span class="text-success">92%</span></p>
+                    <p><strong>Avg. Rating:</strong> <span class="text-warning">4.8</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

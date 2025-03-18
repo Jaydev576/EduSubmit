@@ -1,0 +1,132 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/css/admin-style.css" />
+    <style>
+        /* Sidebar Styling */
+        #sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: #343a40;
+            color: white;
+            transition: 0.3s ease-in-out;
+            padding-top: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+            #sidebar h3 {
+                font-size: 24px;
+                font-weight: bold;
+                text-align: center;
+                padding-bottom: 20px;
+            }
+
+            #sidebar ul {
+                padding-left: 0;
+                list-style: none;
+            }
+
+                #sidebar ul li {
+                    padding: 15px 20px;
+                    transition: 0.3s;
+                }
+
+                    #sidebar ul li a {
+                        color: white;
+                        text-decoration: none;
+                        font-size: 16px;
+                        display: flex;
+                        align-items: center;
+                    }
+
+                        #sidebar ul li a:hover, .active a {
+                            background: #007bff;
+                            border-radius: 5px;
+                            padding-left: 15px;
+                        }
+
+        /* Page Content */
+        #content {
+            margin-left: 260px;
+            transition: 0.3s ease-in-out;
+            padding: 20px;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 10px 20px;
+        }
+
+            .navbar .search-bar {
+                max-width: 300px;
+                border-radius: 20px;
+                padding: 8px 15px;
+                border: 1px solid #ced4da;
+            }
+
+        .btn-group button {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            text-align: center;
+            line-height: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="d-flex" id="wrapper">
+        <div id="sidebar">
+            <h3>Admin Panel</h3>
+            <ul>
+                <li><a href="/Organization/index">📊 Dashboard</a></li>
+                <li><a href="/Organization/Page1">👥 Manage Users</a></li>
+                <li><a href="/Organization/Page2">📚 Manage Classes</a></li>
+            </ul>
+        </div>
+
+        <div id="content" class="container-fluid">
+            <nav class="navbar navbar-expand-lg justify-content-end">
+                @* <span> *@
+                @*     🔍 <input type="text" placeholder="Search..." class="form-control search-bar"> *@
+                @* </span> *@
+                <div class="d-flex align-items-center justify-content-end">
+                    <div class="user-info text-end me-3">
+                        <span class="d-block fw-bold">Welcome, @User.Identity.Name</span>
+                        @* <span class="d-block">Welcome, @ViewBag.OrganizationId</span> *@
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary rounded-circle p-0 d-flex align-items-center justify-content-center"
+                                style="width: 45px; height: 45px; font-size: 16px;"
+                                data-bs-toggle="dropdown">
+                            AU
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/Account/Logout">Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+
+
+            </nav>
+
+            <div>
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

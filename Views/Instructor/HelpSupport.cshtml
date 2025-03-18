@@ -1,0 +1,111 @@
+﻿@{
+    Layout = "~/Views/Shared/_InstructorLayout.cshtml";
+}
+@{
+    ViewData["Title"] = "Help & Support";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">Help & Support</h2>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-book"></i> Documentation</h5>
+                    <p class="card-text">Browse our comprehensive guides and documentation.</p>
+                    <a href="#" class="btn btn-primary">Learn More</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-camera-video"></i> Video Tutorials</h5>
+                    <p class="card-text">Watch step-by-step video guides.</p>
+                    <a href="#" class="btn btn-primary">Learn More</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-people"></i> Community Forum</h5>
+                    <p class="card-text">Connect with other instructors and share experiences.</p>
+                    <a href="#" class="btn btn-primary">Learn More</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-envelope"></i> Contact Support</h5>
+                    <p class="card-text">Get help from our support team.</p>
+                    <a href="#" class="btn btn-primary">Learn More</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="mt-5 text-center">Frequently Asked Questions</h3>
+    <div class="accordion" id="faqAccordion">
+        @for (int i = 1; i <= 10; i++)
+        {
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="faq@(i)">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqContent@(i)">
+                        @GetFaqQuestion(i)
+                    </button>
+                </h2>
+                <div id="faqContent@(i)" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        @GetFaqAnswer(i)
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@functions {
+    string GetFaqQuestion(int index)
+    {
+        var questions = new[]
+        {
+            "How do I create a new assignment?",
+            "How do I grade an assignment?",
+            "Can I upload multiple files for an assignment?",
+            "How do I reset my password?",
+            "How do I add a new course?",
+            "How can I view submitted assignments?",
+            "What file formats are supported for uploads?",
+            "How do I enable notifications?",
+            "How do I contact a student?",
+            "How do I delete an assignment?"
+        };
+        return questions[index - 1];
+    }
+
+    string GetFaqAnswer(int index)
+    {
+        var answers = new[]
+        {
+            "Go to the Assignments section, click 'New Assignment' and fill in the details.",
+            "Navigate to 'Assignments', open the submission, and assign a grade.",
+            "Yes, you can upload multiple files in PDF, DOCX, and ZIP formats.",
+            "Click 'Forgot Password' on the login page and follow the steps.",
+            "Go to the 'Courses' tab, click 'Add Course' and enter course details.",
+            "Under the 'Assignments' section, you can view all submitted assignments.",
+            "Supported file formats include PDF, DOCX, PPTX, and ZIP.",
+            "Go to 'Settings' and enable email or push notifications.",
+            "You can contact students via the 'Messages' section.",
+            "Click on an assignment, go to options, and select 'Delete'."
+        };
+        return answers[index - 1];
+    }
+}

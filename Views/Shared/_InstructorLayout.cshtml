@@ -1,0 +1,44 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>EduSubmit - Instructor Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-TzFt5N1he0Dw59/z4yY2Z1k4Hn8y4h+G+Xv9D3N9hCw5+gN6j6Vcz4UicG0aOBal1" crossorigin="anonymous">
+
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <div class="bg-light border-end vh-100 p-3" id="sidebar-wrapper">
+            <div class="sidebar-heading text-primary fw-bold">EduSubmit</div>
+            <div class="list-group list-group-flush">
+                <a href="@Url.Action("Index", "Instructor")" class="list-group-item list-group-item-action">Dashboard</a>
+                <a href="@Url.Action("Assignments", "Instructor")" class="list-group-item list-group-item-action">Assignments</a>
+
+                <a href="@Url.Action("Submissions", "Instructor")" class="list-group-item list-group-item-action">Student Submissions</a>
+                <a href="@Url.Action("GradedSubmissions", "Instructor")" class="list-group-item list-group-item-action">Graded Submissions</a>
+
+
+                <a href="@Url.Action("StudentProgress", "Instructor")" class="list-group-item list-group-item-action">Student Progress</a>
+                @* <a href="@Url.Action("Announcements", "Instructor")" class="list-group-item list-group-item-action">Announcements</a> *@
+                @* <a href="@Url.Action("Messages", "Instructor")" class="list-group-item list-group-item-action">Messages</a> *@
+                @* <a href="@Url.Action("ReportsAnalytics", "Instructor")" class="list-group-item list-group-item-action">Reports & Analytics</a> *@
+                @* <a href="@Url.Action("Settings", "Instructor")" class="list-group-item list-group-item-action">Settings</a> *@
+                <a href="@Url.Action("HelpSupport", "Instructor")" class="list-group-item list-group-item-action">Help & Support</a>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="container-fluid p-4">
+            @RenderBody()
+        </div>
+    </div>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

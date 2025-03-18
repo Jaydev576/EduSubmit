@@ -1,0 +1,60 @@
+﻿@{
+    Layout = "~/Views/Shared/_InstructorLayout.cshtml";
+}
+@model EduSubmit.Models.Assignment
+
+@{
+    ViewData["Title"] = "Create Assignment";
+}
+
+<div class="container mt-4">
+    <h2>Create Assignment</h2>
+    <hr />
+
+    <form asp-action="CreateAssignment" method="post">
+        <div class="mb-3">
+            <label asp-for="Title" class="form-label">Title</label>
+            <input asp-for="Title" class="form-control" placeholder="Enter assignment title" />
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label">Description</label>
+            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Enter assignment details"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="DueDate" class="form-label">Due Date</label>
+            <input asp-for="DueDate" type="date" class="form-control" />
+            <span asp-validation-for="DueDate" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Points" class="form-label">Points</label>
+            <input asp-for="Points" type="number" class="form-control" placeholder="Enter points" />
+            <span asp-validation-for="Points" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="SubjectName" class="form-label">Subject Name</label>
+            <input asp-for="SubjectName" class="form-control" placeholder="Enter subject" />
+            <span asp-validation-for="SubjectName" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="ClassId" class="form-label">Class</label>
+            <select asp-for="ClassId" class="form-select" asp-items="ViewBag.Classes">
+                <option value="">-- Select Class --</option>
+            </select>
+            <span asp-validation-for="ClassId" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create</button>
+        <a asp-action="Assignments" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
