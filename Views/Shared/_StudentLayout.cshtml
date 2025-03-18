@@ -7,24 +7,49 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/EduSubmit.styles.css" asp-append-version="true" />
+    <style>
+        .nav-link {
+            color: #000;
+            transition: background-color 0.3s ease;
+        }
+
+            .nav-link:hover {
+                background-color: #e0e0e0;
+            }
+
+            .nav-link.active {
+                background-color: #007bff !important;
+                color: white !important;
+            }
+    </style>
 </head>
 <body>
+    <!-- Header Section -->
+    <header class="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-4">
+        <a class="navbar-brand" href="#">EduSubmit</a>
+        <div class="ms-auto d-flex align-items-center">
+            <span class="me-2">Hello, @User.Identity?.Name</span>
+            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-weight: bold;">
+                @User.Identity?.Name?.Substring(0, 1).ToUpper()
+            </div>
+        </div>
+    </header>
+
     <div class="d-flex">
         <!-- Sidebar -->
         <nav class="bg-light p-3 vh-100" style="width: 250px;">
-            <h4>EduSubmit</h4>
             <ul class="nav flex-column">
-                <li class="nav-item"><a href="#" class="nav-link">Dashboard</a></li>
-                <li class="nav-item"><a href="#" class="nav-link">Assignments</a></li>
-                <li class="nav-item"><a href="#" class="nav-link">Submissions</a></li>
-                <li class="nav-item"><a href="#" class="nav-link">Grades</a></li>
-                <li class="nav-item"><a href="#" class="nav-link">Calendar</a></li>
+                <li class="nav-item"><a href="@Url.Action("Index", "Student")" class="nav-link @(ViewData["ActivePage"] == "Dashboard" ? "active" : "")">Dashboard</a></li>
+                <li class="nav-item"><a href="@Url.Action("Assignments", "Student")" class="nav-link @(ViewData["ActivePage"] == "Assignments" ? "active" : "")">Assignments</a></li>
+                <li class="nav-item"><a href="@Url.Action("Submissions", "Student")" class="nav-link @(ViewData["ActivePage"] == "Submissions" ? "active" : "")">Submissions</a></li>
+                <li class="nav-item"><a href="@Url.Action("Grades", "Student")" class="nav-link @(ViewData["ActivePage"] == "Grades" ? "active" : "")">Grades</a></li>
+                <li class="nav-item"><a href="@Url.Action("Calendar", "Student")" class="nav-link @(ViewData["ActivePage"] == "Calendar" ? "active" : "")">Calendar</a></li>
             </ul>
         </nav>
 
         <!-- Main Content -->
         <div class="flex-grow-1 p-4">
-            @RenderBody()  @* This is where Index.cshtml content will be injected *@
+            @RenderBody()
         </div>
     </div>
 

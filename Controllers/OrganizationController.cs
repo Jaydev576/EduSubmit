@@ -9,6 +9,11 @@ using EduSubmit.Data;
 using EduSubmit.Models;
 using System.Security.Cryptography;
 using System.Text;
+using OfficeOpenXml;
+using System.IO;
+using Microsoft.AspNetCore.Http;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace EduSubmit.Controllers
 {
@@ -190,9 +195,49 @@ namespace EduSubmit.Controllers
             return View();
         }
 
-      
+        [HttpPost]
+        public async Task<IActionResult> UploadStudents(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("Please upload a valid Excel file.");
+            }
 
+            var students = new List<Student>();
 
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                using (var package = new ExcelPackage(stream))
+                {
+                    var worksheet = package.Workbook.Worksheets[0]; // First sheet
+                    int rowCount = worksheet.Dimension.Rows;
+
+                    for (int row = 2; row <= rowCount; row++) // Start from row 2 (assuming row 1 has headers)
+                    {
+                        var student = new Student
+                        {
+                            FirstName = worksheet.Cells[row, 1].Text,
+                            LastName = worksheet.Cells[row, 2].Text,
+                            EmailAddress = worksheet.Cells[row, 3].Text,
+                            DateOfBirth = DateTime.Parse(worksheet.Cells[row, 4].Text),
+                            Password = HashPassword(worksheet.Cells[row, 5].Text),
+                            OrganizationId = int.Parse(worksheet.Cells[row, 6].Text),
+                            ClassId = int.Parse(worksheet.Cells[row, 7].Text)
+                        };
+
+                        students.Add(student);
+                    }
+                }
+            }
+
+            // Save students to database
+            await _context.Students.AddRangeAsync(students);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Dashboard)); // Redirect after upload
+        }
     }
 }

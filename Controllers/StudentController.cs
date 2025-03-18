@@ -168,5 +168,32 @@ namespace EduSubmit.Controllers
         {
             return _context.Students.Any(e => e.StudentId == id);
         }
+
+        // GET: Assignments
+        public async Task<IActionResult> Assignments()
+        {
+            var assignments = await _context.Assignments.Include(a => a.Class).ToListAsync();
+            return View(assignments);
+        }
+
+        // GET: Submissions
+        public async Task<IActionResult> Submissions()
+        {
+            var submissions = await _context.Submissions.Include(s => s.Assignment).Include(s => s.Student).ToListAsync();
+            return View(submissions);
+        }
+
+        // GET: Grades
+        public async Task<IActionResult> Grades()
+        {
+            var grades = await _context.Grades.Include(g => g.Student).Include(g => g.Assignment).ToListAsync();
+            return View(grades);
+        }
+
+        // GET: Calendar
+        public IActionResult Calendar()
+        {
+            return View();
+        }
     }
 }

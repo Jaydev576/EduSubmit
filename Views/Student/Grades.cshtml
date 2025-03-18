@@ -1,0 +1,33 @@
+﻿@model IEnumerable<EduSubmit.Models.Grade>
+
+@{
+    ViewData["Title"] = "Grades";
+    ViewData["ActivePage"] = "Grades";
+    Layout = "~/Views/Shared/_StudentLayout.cshtml";
+}
+
+<h2>Grades</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.First().Assignment.Title)</th>
+            <th>@Html.DisplayNameFor(model => model.Student.FirstName)</th>
+            <th>@Html.DisplayNameFor(model => model.Score)</th>
+            <th>@Html.DisplayNameFor(model => model.Remarks)</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var grade in Model) {
+            <tr>
+                <td>@grade.Assignment?.Title</td>
+                <td>@grade.Student?.FirstName @grade.Student?.LastName</td>
+                <td>@grade.Score</td>
+                <td>@grade.Remarks</td>
+                <td>
+                    <a asp-action="Details" asp-route-studentId="@grade.StudentId" asp-route-assignmentId="@grade.AssignmentId" class="btn btn-info btn-sm">Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
