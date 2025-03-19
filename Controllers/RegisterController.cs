@@ -3,6 +3,8 @@ using EduSubmit.Data;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace EduSubmit.Controllers
 {
@@ -15,10 +17,14 @@ namespace EduSubmit.Controllers
             _context = context;
         }
 
-        public IActionResult Register()
+        public async Task<IActionResult> Register()
         {
-            return View("~/Views/Shared/Register.cshtml");
+            ViewBag.Organizations = new SelectList(await _context.Organizations.ToListAsync(), "OrganizationId", "OrganizationName");
+            ViewBag.Classes = new SelectList(await _context.Classes.ToListAsync(), "ClassId", "ClassName");
+
+            return View();
         }
+
 
         // Register Student
         [HttpPost]

@@ -4,6 +4,7 @@ using EduSubmit.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EduSubmit.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250319171931_Third")]
+    partial class Third
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -124,7 +127,7 @@ namespace EduSubmit.Migrations
 
                     b.Property<string>("EmailAddress")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -144,9 +147,6 @@ namespace EduSubmit.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("InstructorId");
-
-                    b.HasIndex("EmailAddress")
-                        .IsUnique();
 
                     b.HasIndex("OrganizationId");
 
@@ -177,9 +177,6 @@ namespace EduSubmit.Migrations
 
                     b.HasKey("OrganizationId");
 
-                    b.HasIndex("Username")
-                        .IsUnique();
-
                     b.ToTable("Organizations");
                 });
 
@@ -199,7 +196,7 @@ namespace EduSubmit.Migrations
 
                     b.Property<string>("EmailAddress")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -221,9 +218,6 @@ namespace EduSubmit.Migrations
                     b.HasKey("StudentId");
 
                     b.HasIndex("ClassId");
-
-                    b.HasIndex("EmailAddress")
-                        .IsUnique();
 
                     b.HasIndex("OrganizationId");
 

@@ -44,8 +44,9 @@ namespace EduSubmit.Controllers
         }
 
         // GET: Classes/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            ViewBag.Organizations = new SelectList(await _context.Organizations.ToListAsync(), "OrganizationId", "OrganizationName");
             return View();
         }
 
@@ -54,7 +55,7 @@ namespace EduSubmit.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ClassId,ClassName")] Class @class)
+        public async Task<IActionResult> Create([Bind("ClassId,ClassName,OrganizationId")] Class @class)
         {
             if (ModelState.IsValid)
             {

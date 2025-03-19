@@ -21,5 +21,6 @@ namespace EduSubmit.Models
         // Navigation property
         public ICollection<Instructor>? Instructors { get; set; }
         public ICollection<Student>? Students { get; set; }
+        public ICollection<Class>? Classes { get; set; }
     }
 }

@@ -12,6 +12,10 @@ namespace EduSubmit.Models
         [Required, StringLength(50, ErrorMessage = "Class name must be less than 50 characters long.")]
         public string ClassName { get; set; }
 
+        [ForeignKey("Organization")]
+        public int OrganizationId { get; set; }
+        public Organization? Organization { get; set; }
+
         // Navigation property
         public ICollection<Assignment>? Assignments { get; set; }
         public ICollection<Student>? Students { get; set; }

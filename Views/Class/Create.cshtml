@@ -12,11 +12,23 @@
     <div class="col-md-4">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <!-- Class Name Input -->
             <div class="form-group">
                 <label asp-for="ClassName" class="control-label"></label>
                 <input asp-for="ClassName" class="form-control" />
                 <span asp-validation-for="ClassName" class="text-danger"></span>
             </div>
+
+            <!-- Organization Dropdown -->
+            <div class="form-group">
+                <label asp-for="OrganizationId" class="control-label"></label>
+                <select asp-for="OrganizationId" class="form-control" asp-items="ViewBag.Organizations">
+                    <option value="">-- Select Organization --</option>
+                </select>
+                <span asp-validation-for="OrganizationId" class="text-danger"></span>
+            </div>
+
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>
@@ -29,5 +41,7 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

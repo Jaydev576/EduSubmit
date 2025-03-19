@@ -36,13 +36,19 @@
                 <label class="form-label">Date of Birth</label>
                 <input type="date" class="form-control" name="DateOfBirth" required>
             </div>
-            <div class="mb-3">
-                <label class="form-label">Organization ID</label>
-                <input type="number" class="form-control" name="OrganizationId" required>
+            <div class="form-group">
+                <label for="OrganizationId" class="control-label">Organization</label>
+                <select name="OrganizationId" id="OrganizationId" class="form-control" asp-items="ViewBag.Organizations">
+                    <option value="">-- Select Organization --</option>
+                </select>
+                <span name="OrganizationId" class="text-danger"></span>
             </div>
-            <div class="mb-3">
-                <label class="form-label">Class ID</label>
-                <input type="number" class="form-control" name="ClassId" required>
+            <div class="form-group">
+                <label for="ClassId" class="control-label">Class</label>
+                <select name="ClassId" id="ClassId" class="form-control" asp-items="ViewBag.Classes">
+                    <option value="">-- Select Class --</option>
+                </select>
+                <span name="ClassId" class="text-danger"></span>
             </div>
             <button type="submit" class="btn btn-success">Register as Student</button>
         </form>
@@ -67,9 +73,12 @@
                 <label class="form-label">Password</label>
                 <input type="password" class="form-control" name="Password" required>
             </div>
-            <div class="mb-3">
-                <label class="form-label">Organization ID</label>
-                <input type="number" class="form-control" name="OrganizationId" required>
+            <div class="form-group">
+                <label for="OrganizationId" class="control-label">Organization</label>
+                <select name="OrganizationId" id="OrganizationId" class="form-control" asp-items="ViewBag.Organizations">
+                    <option value="">-- Select Organization --</option>
+                </select>
+                <span name="OrganizationId" class="text-danger"></span>
             </div>
             <button type="submit" class="btn btn-success">Register as Instructor</button>
         </form>
@@ -120,7 +129,7 @@
                 selectedBtn.classList.add("btn-primary");
 
                 studentForm.classList.add("d-none");
-                instructorForm.classLis t.add("d-none");
+                instructorForm.classList.add("d-none");
                 adminForm.classList.add("d-none");
 
                 formToShow.classList.remove("d-none");
