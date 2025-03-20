@@ -77,6 +77,11 @@ namespace EduSubmit.Controllers
                     ModelState.AddModelError("Username", "Username is already taken.");
                     return View("Register");
                 }
+                if(_context.Organizations.Any(a => a.EmailAddress == admin.EmailAddress))
+                {
+                    ModelState.AddModelError("EmailAddress", "Account with this Email already exists.");
+                    return View("Register");
+                }
 
                 admin.Password = HashPassword(admin.Password);
                 _context.Organizations.Add(admin);

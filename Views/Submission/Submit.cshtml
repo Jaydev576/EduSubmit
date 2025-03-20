@@ -1,0 +1,15 @@
+﻿@model EduSubmit.Models.Submission
+
+<h2>Submit Assignment</h2>
+
+<form asp-controller="Submission" asp-action="Submit" method="post" enctype="multipart/form-data">
+    <input type="hidden" asp-for="AssignmentId" />
+    <input type="hidden" asp-for="StudentId" />
+
+    <div class="form-group">
+        <label for="file">Upload File:</label>
+        <input type="file" name="file" class="form-control" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Upload</button>
+</form>

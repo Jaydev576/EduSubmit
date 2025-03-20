@@ -2,44 +2,49 @@
 
 @{
     ViewData["Title"] = "Edit";
+    Layout = "~/Views/Shared/_StudentLayout.cshtml";
 }
 
-<h1>Edit</h1>
+<h2>Edit Submission</h2>
 
-<h4>Submission</h4>
-<hr />
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="StudentId" />
+    <div class="col-md-6">
+        <form asp-action="Edit" enctype="multipart/form-data">
             <input type="hidden" asp-for="AssignmentId" />
+            <input type="hidden" asp-for="StudentId" />
+
             <div class="form-group">
-                <label asp-for="SubmissionDate" class="control-label"></label>
-                <input asp-for="SubmissionDate" class="form-control" />
-                <span asp-validation-for="SubmissionDate" class="text-danger"></span>
+                <label asp-for="Assignment.Title" class="control-label">Assignment</label>
+                <input type="text" class="form-control" value="@Model.Assignment?.Title" readonly />
             </div>
+
             <div class="form-group">
-                <label asp-for="FilePath" class="control-label"></label>
-                <input asp-for="FilePath" class="form-control" />
-                <span asp-validation-for="FilePath" class="text-danger"></span>
+                <label asp-for="SubmissionDate" class="control-label">Submission Date</label>
+                <input asp-for="SubmissionDate" class="form-control" readonly />
             </div>
+
             <div class="form-group">
-                <label asp-for="ClassId" class="control-label"></label>
-                <select asp-for="ClassId" class="form-control" asp-items="ViewBag.ClassId"></select>
-                <span asp-validation-for="ClassId" class="text-danger"></span>
+                <label class="control-label">Current File</label>
+                @if (!string.IsNullOrEmpty(Model.FilePath)) {
+                    <div>
+                        <a href="@Model.FilePath" target="_blank" class="btn btn-info btn-sm">View Current File</a>
+                    </div>
+                }
+                else {
+                    <p class="text-muted">No file uploaded.</p>
+                }
             </div>
+
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <label class="control-label">Upload New File (Optional)</label>
+                <input type="file" name="newFile" class="form-control" />
+                <small class="text-muted">Uploading a new file will replace the current one.</small>
+            </div>
+
+            <div class="form-group mt-3">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
 </div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}

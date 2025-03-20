@@ -35,7 +35,7 @@ namespace EduSubmit.Data
                 .HasOne(s => s.Assignment)
                 .WithMany(a => a.Submissions)
                 .HasForeignKey(s => s.AssignmentId)
-                .OnDelete(DeleteBehavior.NoAction);  // Avoid cascading delete
+                .OnDelete(DeleteBehavior.Cascade);  // Avoid cascading delete
 
             modelBuilder.Entity<Submission>()
                 .HasOne(s => s.Class)
@@ -98,6 +98,10 @@ namespace EduSubmit.Data
 
             modelBuilder.Entity<Organization>()
                 .HasIndex(u => u.Username)
+                .IsUnique();
+
+            modelBuilder.Entity<Organization>()
+                .HasIndex(u => u.EmailAddress)
                 .IsUnique();
 
             // Foreign Key Relationships for Student entity

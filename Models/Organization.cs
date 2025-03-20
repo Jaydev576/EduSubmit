@@ -15,6 +15,9 @@ namespace EduSubmit.Models
         [Required, StringLength(50, ErrorMessage = "Username name must be less than 50 characters long.")]
         public string Username { get; set; }
 
+        [Required, EmailAddress]
+        public string EmailAddress { get; set; }
+
         [Required, DataType(DataType.Password)]
         public string Password { get; set; }
 

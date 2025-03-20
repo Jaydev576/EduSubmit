@@ -8,28 +8,35 @@
 
 <h2>Assignments</h2>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>@Html.DisplayNameFor(model => model.First().Title)</th>
-            <th>@Html.DisplayNameFor(model => model.Description)</th>
-            <th>@Html.DisplayNameFor(model => model.DueDate)</th>
-            <th>@Html.DisplayNameFor(model => model.Class.ClassName)</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var assignment in Model) {
+@if (Model.Any())  // ✅ Ensure there are assignments to display
+{
+    <table class="table table-striped">
+        <thead>
             <tr>
-                <td>@assignment.Title</td>
-                <td>@assignment.Description</td>
-                <td>@assignment.DueDate.ToString("yyyy-MM-dd HH:mm")</td>
-                <td>@assignment.Class?.ClassName</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@assignment.AssignmentId" class="btn btn-warning btn-sm">Edit</a>
-                    <a asp-action="Submit" asp-route-id="@assignment.AssignmentId" class="btn btn-info btn-sm">Submit</a>
-                </td>
+                <th>@Html.DisplayNameFor(model => model.First().Title)</th>
+                <th>@Html.DisplayNameFor(model => model.Description)</th>
+                <th>@Html.DisplayNameFor(model => model.DueDate)</th>
+                <th>@Html.DisplayNameFor(model => model.Class.ClassName)</th>
+                <th>Actions</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var assignment in Model.Where(a => !a.IsSubmitted))  // ✅ Filter unsubmitted assignments
+            {
+                <tr>
+                    <td>@assignment.Title</td>
+                    <td>@assignment.Description</td>
+                    <td>@assignment.DueDate.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@assignment.Class?.ClassName</td>
+                    <td>
+                        <a asp-controller="Submission" asp-action="Submit" asp-route-id="@assignment.AssignmentId" class="btn btn-info btn-sm">Submit</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p class="text-muted">No pending assignments. 🎉</p>
+}

@@ -7,24 +7,46 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using EduSubmit.Data;
 using EduSubmit.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Hosting;
+using System.Security.Claims;
 
 namespace EduSubmit.Controllers
 {
     public class SubmissionController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public SubmissionController(AppDbContext context)
+        public SubmissionController(AppDbContext context, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: Submission
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var appDbContext = _context.Submissions.Include(s => s.Assignment).Include(s => s.Class).Include(s => s.Student);
-            return View(await appDbContext.ToListAsync());
+            var userEmail = User.FindFirstValue(ClaimTypes.Email)
+                          ?? User.FindFirstValue("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name");
+
+            var student = _context.Students.FirstOrDefault(s => s.EmailAddress == userEmail);
+
+            if (student == null)
+            {
+                return NotFound();
+            }
+
+            // 🔹 Show only submitted assignments
+            var submittedAssignments = _context.Assignments
+                                               .Include(a => a.Class)
+                                               .Where(a => a.IsSubmitted == true)
+                                               .ToList();
+
+            return View(submittedAssignments);
         }
+
+
 
         // GET: Submission/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -75,62 +97,100 @@ namespace EduSubmit.Controllers
             return View(submission);
         }
 
-        // GET: Submission/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        // GET: Submission/Edit
+        public async Task<IActionResult> Edit(int assignmentId, int studentId)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var submission = await _context.Submissions
+                .Include(s => s.Assignment)
+                .Include(s => s.Student)
+                .FirstOrDefaultAsync(s => s.AssignmentId == assignmentId && s.StudentId == studentId);
 
-            var submission = await _context.Submissions.FindAsync(id);
             if (submission == null)
             {
                 return NotFound();
             }
-            ViewData["AssignmentId"] = new SelectList(_context.Assignments, "AssignmentId", "Description", submission.AssignmentId);
+
+            // Populate dropdowns if needed (only if these are necessary for selection)
+            ViewData["AssignmentId"] = new SelectList(_context.Assignments, "AssignmentId", "Title", submission.AssignmentId);
             ViewData["ClassId"] = new SelectList(_context.Classes, "ClassId", "ClassName", submission.ClassId);
             ViewData["StudentId"] = new SelectList(_context.Students, "StudentId", "EmailAddress", submission.StudentId);
+
             return View(submission);
         }
 
-        // POST: Submission/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: Submission/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("StudentId,AssignmentId,SubmissionDate,FilePath,ClassId")] Submission submission)
+        public async Task<IActionResult> Edit(int assignmentId, int studentId, IFormFile newFile)
         {
-            if (id != submission.StudentId)
+            var existingSubmission = await _context.Submissions
+                .FirstOrDefaultAsync(s => s.AssignmentId == assignmentId && s.StudentId == studentId);
+
+            if (existingSubmission == null)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            if (newFile != null && newFile.Length > 0)
             {
-                try
+                // Define the upload directory
+                string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
+                if (!Directory.Exists(uploadsFolder))
                 {
-                    _context.Update(submission);
-                    await _context.SaveChangesAsync();
+                    Directory.CreateDirectory(uploadsFolder);
                 }
-                catch (DbUpdateConcurrencyException)
+
+                // Keep the same file name but allow different file types
+                string newFileName = $"{studentId}_{assignmentId}{Path.GetExtension(newFile.FileName)}";
+                string filePath = Path.Combine(uploadsFolder, newFileName);
+
+                // Delete old file if it exists
+                if (System.IO.File.Exists(filePath))
                 {
-                    if (!SubmissionExists(submission.StudentId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    System.IO.File.Delete(filePath);
                 }
-                return RedirectToAction(nameof(Index));
+
+                // Save the new file
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await newFile.CopyToAsync(stream);
+                }
+
+                // Update the file path
+                existingSubmission.FilePath = $"/uploads/{newFileName}";
             }
-            ViewData["AssignmentId"] = new SelectList(_context.Assignments, "AssignmentId", "Description", submission.AssignmentId);
-            ViewData["ClassId"] = new SelectList(_context.Classes, "ClassId", "ClassName", submission.ClassId);
-            ViewData["StudentId"] = new SelectList(_context.Students, "StudentId", "EmailAddress", submission.StudentId);
-            return View(submission);
+
+            // Update other fields (without overriding the entire object)
+            existingSubmission.SubmissionDate = DateTime.Now; // Update submission time
+
+            try
+            {
+                _context.Update(existingSubmission);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!SubmissionExists(assignmentId, studentId))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return RedirectToAction(nameof(Index));
         }
+
+        // Helper Method
+        private bool SubmissionExists(int assignmentId, int studentId)
+        {
+            return _context.Submissions.Any(s => s.AssignmentId == assignmentId && s.StudentId == studentId);
+        }
+
+
+
 
         // GET: Submission/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -168,9 +228,105 @@ namespace EduSubmit.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private bool SubmissionExists(int id)
+        // GET: Submission/Submit/{id}
+        public IActionResult Submit(int id)
         {
-            return _context.Submissions.Any(e => e.StudentId == id);
+            var assignment = _context.Assignments.Find(id);
+            if (assignment == null)
+            {
+                return NotFound();
+            }
+
+            var submission = new Submission
+            {
+                AssignmentId = id,
+                SubmissionDate = DateTime.Now // Default submission time
+            };
+
+            return View(submission); // Show a submission form
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Submit(Submission submission, IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    ModelState.AddModelError("File", "Please upload a file.");
+                    return View(submission);
+                }
+
+                var assignment = _context.Assignments
+                                         .Include(a => a.Class)
+                                         .FirstOrDefault(a => a.AssignmentId == submission.AssignmentId);
+
+                if (assignment == null || assignment.Class == null)
+                {
+                    ModelState.AddModelError("File", "Invalid assignment or class.");
+                    return View(submission);
+                }
+
+                var userEmail = User.FindFirstValue(ClaimTypes.Email)
+                              ?? User.FindFirstValue("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name");
+
+                var student = _context.Students.FirstOrDefault(s => s.EmailAddress == userEmail);
+                if (student == null)
+                {
+                    ModelState.AddModelError("File", "Student record not found.");
+                    return View(submission);
+                }
+
+                submission.StudentId = student.StudentId;
+                submission.ClassId = assignment.Class.ClassId;
+
+                // ✅ Check if submission already exists
+                var existingSubmission = _context.Submissions
+                    .FirstOrDefault(s => s.AssignmentId == submission.AssignmentId && s.StudentId == student.StudentId);
+
+                if (existingSubmission != null)
+                {
+                    ModelState.AddModelError("File", "You have already submitted this assignment.");
+                    return View(submission);
+                }
+
+                // 🔹 File upload logic
+                string sanitizedClassName = string.Concat(assignment.Class.ClassName.Split(Path.GetInvalidFileNameChars()));
+                string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", sanitizedClassName);
+
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(file.FileName);
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    file.CopyTo(fileStream);
+                }
+
+                submission.FilePath = $"/uploads/{sanitizedClassName}/{uniqueFileName}";
+                submission.SubmissionDate = DateTime.Now;
+
+                // ✅ Mark assignment as submitted
+                assignment.IsSubmitted = true;
+
+                _context.Submissions.Add(submission);
+                _context.SaveChanges();
+
+                return RedirectToAction("Submit", "Student");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("File", "An error occurred: " + ex.Message);
+                return View(submission);
+            }
+        }
+
+
+
     }
 }

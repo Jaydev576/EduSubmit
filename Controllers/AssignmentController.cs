@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using EduSubmit.Data;
 using EduSubmit.Models;
+using System.Security.Claims;
 
 namespace EduSubmit.Controllers
 {
@@ -20,11 +21,28 @@ namespace EduSubmit.Controllers
         }
 
         // GET: Assignments
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var appDbContext = _context.Assignments.Include(a => a.Class);
-            return View(await appDbContext.ToListAsync());
+            var userEmail = User.FindFirstValue(ClaimTypes.Email)
+                          ?? User.FindFirstValue("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name");
+
+            var student = _context.Students.FirstOrDefault(s => s.EmailAddress == userEmail);
+
+            if (student == null)
+            {
+                return NotFound();
+            }
+
+            // 🔹 Show only unsubmitted assignments
+            var assignments = _context.Assignments
+                                      .Include(a => a.Class)
+                                      .Where(a => a.IsSubmitted == false)
+                                      .ToList();
+
+            return View(assignments);
         }
+
+
 
         // GET: Assignments/Details/5
         public async Task<IActionResult> Details(int? id)

@@ -31,5 +31,9 @@ namespace EduSubmit.Models
         // Navigation property
         public ICollection<Grade>? Grades { get; set; }
         public ICollection<Submission>? Submissions { get; set; }
+
+
+        // Add a status field to track submission
+        public bool IsSubmitted { get; set; } = false;
     }
 }
