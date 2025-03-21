@@ -29,8 +29,13 @@
         <a class="navbar-brand" href="@Url.Action("Index","Home")">EduSubmit</a>
         <div class="ms-auto d-flex align-items-center">
             <span class="me-2">Hello, @User.Identity?.Name</span>
-            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-weight: bold;">
-                @User.Identity?.Name?.Substring(0, 1).ToUpper()
+            <div class="btn-group">
+                <button type="button" class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-weight: bold;" data-bs-toggle="dropdown">
+                    @User.Identity?.Name?.Substring(0, 1).ToUpper()
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="/Account/Logout">Logout</a></li>
+                </ul>
             </div>
         </div>
     </header>

@@ -18,6 +18,7 @@ using System.Collections.Generic;
 namespace EduSubmit.Controllers
 {
     [Authorize(Roles = "Organization")] // Restrict access to admins
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public class OrganizationController : Controller
     {
         private readonly AppDbContext _context;
