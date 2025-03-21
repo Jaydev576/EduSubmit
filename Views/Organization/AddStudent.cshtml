@@ -1,0 +1,48 @@
+﻿@model Student
+
+<h2>Add New Student</h2>
+
+<form asp-action="AddStudent" method="post">
+    <div class="form-group">
+        <label>First Name</label>
+        <input asp-for="FirstName" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label>Last Name</label>
+        <input asp-for="LastName" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label>Email</label>
+        <input asp-for="EmailAddress" type="email" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label>Date of Birth</label>
+        <input asp-for="DateOfBirth" type="date" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label for="ClassId" class="control-label">Class</label>
+        <select name="ClassId" id="ClassId" class="form-control" asp-items="ViewBag.Classes">
+            <option value="">-- Select Class --</option>
+        </select>
+        <span name="ClassId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label for="OrganizationId" class="control-label">Organization</label>
+        <select name="OrganizationId" id="OrganizationId" class="form-control" asp-items="ViewBag.Organizations">
+            <option value="">-- Select Organization --</option>
+        </select>
+        <span name="OrganizationId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label>Password</label>
+        <input asp-for="Password" class="form-control" required />
+    </div>
+
+    <button type="submit" class="btn btn-success">Save Student</button>
+</form>

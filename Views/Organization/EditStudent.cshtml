@@ -1,0 +1,65 @@
+﻿
+
+@model EduSubmit.Models.Student
+
+@{
+    ViewData["Title"] = "Edit Student";
+}
+
+<h2>Edit Student</h2>
+
+<form asp-action="EditStudent" method="post">
+    <input type="hidden" asp-for="StudentId" />
+
+    <div class="form-group">
+        <label asp-for="FirstName" class="control-label"></label>
+        <input asp-for="FirstName" class="form-control" />
+        <span asp-validation-for="FirstName" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="LastName" class="control-label"></label>
+        <input asp-for="LastName" class="form-control" />
+        <span asp-validation-for="LastName" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="EmailAddress" class="control-label"></label>
+        <input asp-for="EmailAddress" class="form-control" type="email" />
+        <span asp-validation-for="EmailAddress" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="DateOfBirth" class="control-label"></label>
+        <input asp-for="DateOfBirth" class="form-control" type="date" />
+        <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Password" class="control-label"></label>
+        <input asp-for="Password" class="form-control" type="password" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="OrganizationId" class="control-label">Organization</label>
+        <select asp-for="OrganizationId" class="form-control" asp-items="@(new SelectList(ViewBag.Organizations, "OrganizationId", "OrganizationName"))">
+            <option value="">-- Select Organization --</option>
+        </select>
+        <span asp-validation-for="OrganizationId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ClassId" class="control-label">Class</label>
+        <select asp-for="ClassId" class="form-control" asp-items="@(new SelectList(ViewBag.Classes, "ClassId", "ClassName"))">
+            <option value="">-- Select Class --</option>
+        </select>
+        <span asp-validation-for="ClassId" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="Page1" class="btn btn-secondary">Cancel</a>
+</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

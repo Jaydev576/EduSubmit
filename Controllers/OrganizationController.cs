@@ -14,6 +14,8 @@ using System.IO;
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using AspNetCoreGeneratedDocument;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace EduSubmit.Controllers
 {
@@ -30,6 +32,7 @@ namespace EduSubmit.Controllers
         // GET: Organization
         public async Task<IActionResult> Index()
         {
+            LoadDashboard(); // Call the method to set ViewBag values
             return View(await _context.Organizations.ToListAsync());
         }
 
@@ -120,83 +123,20 @@ namespace EduSubmit.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Organization/Dashboard
-        public IActionResult Dashboard()
-        {
-            var username = User.Identity.Name;
-            if (username != null)
-            {
-                var admin = _context.Organizations.FirstOrDefault(a => a.Username == username);
-                if (admin != null)
-                {
-                    ViewBag.AdminId = admin.OrganizationId;
-                    ViewBag.AdminName = admin.OrganizationName;
-
-                    // Fetch students belonging to the same organization
-                    var students = _context.Students
-                        .Where(s => s.OrganizationId == admin.OrganizationId)
-                        .Select(s => new
-                        {
-                            FullName = s.FirstName + " " + s.LastName,
-                            s.EmailAddress,
-                            ClassName = s.Class.ClassName,
-                            s.Organization.OrganizationName,
-                            Status = "Active" // Assuming you have an active/inactive status field
-                        })
-                        .ToList();
-
-                    ViewBag.Students = students;
-                    ViewBag.StudentCount = students.Count();
-                    ViewBag.TotalStudents = _context.Students.Count();
-                }
-            }
-            return View();
-        }
 
 
 
-        // Utility: Hash Password
-        private string HashPassword(string password)
-        {
-            using (SHA256 sha256 = SHA256.Create())
-            {
-                byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-                StringBuilder builder = new StringBuilder();
-                foreach (byte b in bytes) builder.Append(b.ToString("x2"));
-                return builder.ToString();
-            }
-        }
-
-        private bool OrganizationExists(int id)
-        {
-            return _context.Organizations.Any(e => e.OrganizationId == id);
-        }
-
-        public IActionResult Page1()
-        {
-            var students = _context.Students.Include(s => s.Class).Include(s => s.Organization).ToList();
-
-            if (students == null)
-            {
-                students = new List<Student>(); // Ensure Model is never null
-            }
-
-            return View(students);
-        }
 
 
-        public IActionResult Page2()
+        public IActionResult UploadXL()
         {
             return View();
         }
 
-        public IActionResult Page3()
-        {
-            return View();
-        }
+
 
         [HttpPost]
-        public async Task<IActionResult> UploadStudents(IFormFile file)
+        public async Task<IActionResult> UploadXL(IFormFile file)
         {
             if (file == null || file.Length == 0)
             {
@@ -239,5 +179,365 @@ namespace EduSubmit.Controllers
 
             return RedirectToAction(nameof(Dashboard)); // Redirect after upload
         }
+
+
+        //////////////////////////////////////////////////////////////
+   
+
+
+
+        // GET: Organization/Dashboard
+        [HttpGet]
+        public IActionResult Dashboard()
+        {
+            return LoadDashboard();
+        }
+
+        // POST: Organization/Dashboard
+        [HttpPost]
+        //[ValidateAntiForgeryToken] // Uncomment this for security
+        public IActionResult DashboardPost()
+        {
+            return LoadDashboard();
+        }
+
+        // Common method to avoid duplicate code
+        private IActionResult LoadDashboard()
+        {
+            var username = User.Identity.Name;
+            if (username != null)
+            {
+                var admin = _context.Organizations.FirstOrDefault(a => a.Username == username);
+                if (admin != null)
+                {
+                    ViewBag.AdminId = admin.OrganizationId;
+                    ViewBag.AdminName = admin.OrganizationName;
+
+                    // Fetching counts dynamically from the database
+                    ViewBag.TotalStudents = _context.Students.Count(s => s.OrganizationId == admin.OrganizationId);
+                    ViewBag.ActiveTeachers = _context.Instructors.Count(t => t.OrganizationId == admin.OrganizationId);
+                    ViewBag.TotalClasses = _context.Classes.Count(c => c.OrganizationId == admin.OrganizationId);
+                    // ViewBag.Submissions = _context.Submissions.Count(s => s.OrganizationId == admin.OrganizationId);
+
+                    return View("Index"); // Ensure you return the correct view
+                }
+            }
+
+            return RedirectToAction("Login"); // Redirect to login if no admin is found
+        }
+
+
+        // Utility: Hash Password
+        private string HashPassword(string password)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+                StringBuilder builder = new StringBuilder();
+                foreach (byte b in bytes) builder.Append(b.ToString("x2"));
+                return builder.ToString();
+            }
+        }
+
+        private bool OrganizationExists(int id)
+        {
+            return _context.Organizations.Any(e => e.OrganizationId == id);
+        }
+
+        public IActionResult ManageUsers()
+        {
+            var students = _context.Students.Include(s => s.Class).Include(s => s.Organization).ToList();
+
+            if (students == null)
+            {
+                students = new List<Student>(); // Ensure Model is never null
+            }
+
+            return View(students);
+        }
+
+
+        public IActionResult ManageClasses()
+        {
+            var organizationId = GetLoggedInOrganizationId();
+            if (organizationId == 0) return NotFound("Organization not found.");
+
+            var classes = _context.Classes
+                .Where(c => c.OrganizationId == organizationId)
+                .Include(c => c.Students) // Include Students for counting
+                .Select(c => new
+                {
+                    ClassId = c.ClassId,
+                    ClassName = c.ClassName,
+                    TotalStudents = c.Students.Count()
+                })
+                .ToList();
+
+            ViewBag.Classes = classes;
+            return View();
+        }
+
+
+        public IActionResult Page3()
+        {
+            return View();
+        }
+
+        
+
+
+
+
+
+
+
+        private int GetLoggedInOrganizationId()
+        {
+            var username = User.Identity.Name; // Get logged-in organization's username
+            var organization = _context.Organizations.FirstOrDefault(o => o.Username == username);
+
+            return organization?.OrganizationId ?? 0; // Return OrganizationId or 0 if not found
+        }
+
+
+
+
+        ///////////////////////////////////////////////////////////
+
+
+        [HttpGet("Organization/EditStudent/{studentId}")]
+        public async Task<IActionResult> EditStudent(int studentId)
+        {
+            var student = await _context.Students
+                .Include(s => s.Organization)
+                .Include(s => s.Class)
+                .FirstOrDefaultAsync(s => s.StudentId == studentId);
+
+            if (student == null)
+            {
+                return NotFound();
+            }
+            ViewBag.Organizations = _context.Organizations.ToList();
+            ViewBag.Classes = _context.Classes.ToList();
+            return View(student);
+        }
+
+        // POST: Organization/EditStudent/{studentId}
+        [HttpPost, ActionName("EditStudent")]
+
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditStudent(int studentId, [Bind("StudentId,FirstName,LastName,EmailAddress,DateOfBirth,Password,OrganizationId,ClassId")] Student student)
+        {
+            if (studentId != student.StudentId)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(student);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!_context.Students.Any(e => e.StudentId == studentId))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction("ManageUsers"); // Redirect to student list page
+            }
+            return View(student);
+        }
+
+
+        [HttpGet("Organization/DeletetStudent/{studentId}")]
+        public IActionResult DeleteStudent(int studentId)
+        {
+            var orgId = GetLoggedInOrganizationId();
+            var student = _context.Students.FirstOrDefault(s => s.StudentId == studentId && s.OrganizationId == orgId);
+
+            if (student == null)
+            {
+                return NotFound();
+            }
+
+            return View(student);
+        }
+
+        [HttpPost, ActionName("DeleteStudentConfirmed")]
+        public IActionResult DeleteStudentConfirmed(Student student)
+        {
+            var orgId = GetLoggedInOrganizationId();
+            var existingStudent = _context.Students.FirstOrDefault(s => s.StudentId == student.StudentId && s.OrganizationId == orgId);
+
+            if (existingStudent == null)
+            {
+                return Unauthorized();
+            }
+
+            _context.Students.Remove(existingStudent);
+            _context.SaveChanges();
+
+            return RedirectToAction("ManageUsers");
+        }
+
+
+         public IActionResult AddStudent()
+        {
+            return View();
+        }
+
+
+
+        [HttpPost]
+        public IActionResult AddStudent(Student student)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Students.Add(student);
+                _context.SaveChanges();
+                return RedirectToAction("Index"); // Redirect to student list
+            }
+            return View(student);
+        }
+
+
+
+
+
+        [HttpPost]
+        public IActionResult ClassList()
+        {
+            var organizationId = GetLoggedInOrganizationId();
+            if (organizationId == 0) return NotFound("Organization not found.");
+
+            var classes = _context.Classes
+                .Where(c => c.OrganizationId == organizationId)
+                .Select(c => new
+                {
+                    ClassId = c.ClassId,
+                    ClassName = c.ClassName,
+                    TotalStudents = _context.Students.Count(s => s.ClassId == c.ClassId) // Count students for each class
+                })
+                .ToList();
+
+            ViewBag.Classes = classes; // Store in ViewBag
+            return View();
+        }
+
+
+
+
+
+
+        public IActionResult CreateClass()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+
+        public async Task<IActionResult> CreateClass([Bind("ClassId,ClassName,OrganizationId")] Class @class)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Add(@class);
+                _context.SaveChangesAsync();
+                return RedirectToAction("ManageClasses");
+            }
+            return View();
+        }
+
+
+
+
+        // GET: Class/Edit/5
+        public async Task<IActionResult> EditClass(int id)
+        {
+            var cls = await _context.Classes.Include(c => c.Organization).FirstOrDefaultAsync(c => c.ClassId == id);
+            if (cls == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.OrganizationName = cls.Organization.OrganizationName; // Pass Organization Name to View
+
+            return View(cls);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditClass(int id, [Bind("ClassId,ClassName")] Class cls) // Removed OrganizationId from binding
+        {
+            if (id != cls.ClassId)
+            {
+                return NotFound();
+            }
+
+            var existingClass = await _context.Classes.FindAsync(id);
+            if (existingClass == null)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    existingClass.ClassName = cls.ClassName; // Only update ClassName, not OrganizationId
+                    _context.Update(existingClass);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction("ManageClasses");
+                }
+                catch (DbUpdateException)
+                {
+                    ModelState.AddModelError("", "Error updating data.");
+                }
+            }
+
+            return View(cls);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [HttpPost]
+
+        public async Task<IActionResult> DeleteClass(int id)
+        {
+            var cls = await _context.Classes.FindAsync(id);
+            if (cls == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                _context.Classes.Remove(cls);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                TempData["ErrorMessage"] = "Cannot delete this class because it has related records.";
+            }
+
+            return RedirectToAction("ManageClasses");
+        }
+
+
+
+
+
+
+
     }
 }
