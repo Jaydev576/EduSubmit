@@ -12,6 +12,53 @@
     <hr />
 
     <form asp-action="CreateAssignment" method="post">
+        <div class="form-group">
+            <label asp-for="Title"></label>
+            <input asp-for="Title" class="form-control" />
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Description"></label>
+            <textarea asp-for="Description" class="form-control"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="DueDate"></label>
+            <input asp-for="DueDate" type="date" class="form-control" />
+            <span asp-validation-for="DueDate" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Points"></label>
+            <input asp-for="Points" type="number" class="form-control" />
+            <span asp-validation-for="Points" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="SubjectName"></label>
+            <input asp-for="SubjectName" class="form-control" />
+            <span asp-validation-for="SubjectName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="ClassId">Class</label>
+            <select asp-for="ClassId" asp-items="ViewBag.Classes" class="form-control"></select>
+            <span asp-validation-for="ClassId" class="text-danger"></span>
+        </div>
+
+        <!-- Hidden field to store InstructorId -->
+        <input type="hidden" asp-for="InstructorId" value="@ViewBag.InstructorId" />
+
+        <button type="submit" class="btn btn-primary">Create</button>
+        <a asp-action="Assignments" class="btn btn-secondary">Cancel</a>
+    </form>
+
+
+
+    @*
+    <form asp-action="CreateAssignment" method="post">
         <div class="mb-3">
             <label asp-for="Title" class="form-label">Title</label>
             <input asp-for="Title" class="form-control" placeholder="Enter assignment title" />
@@ -53,6 +100,8 @@
         <button type="submit" class="btn btn-primary">Create</button>
         <a asp-action="Assignments" class="btn btn-secondary">Cancel</a>
     </form>
+    *@
+
 </div>
 
 @section Scripts {

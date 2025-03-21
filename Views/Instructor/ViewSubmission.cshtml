@@ -1,0 +1,27 @@
+﻿@model EduSubmit.Models.Submission
+
+@{
+    Layout = "~/Views/Shared/_InstructorLayout.cshtml";
+}
+
+<h2>View Submission</h2>
+
+<div class="card">
+    <div class="card-body">
+        <h5>Student: @Model.Student.FirstName @Model.Student.LastName</h5>
+        <h5>Assignment: @Model.Assignment.Title</h5>
+        <h6>Submitted On: @Model.SubmissionDate.ToString("yyyy-MM-dd HH:mm")</h6>
+
+        <hr />
+
+
+        @if (!string.IsNullOrEmpty(Model.FilePath))
+        {
+            <h6>Attached File:</h6>
+            <a href="@Model.FilePath" target="_blank" class="btn btn-outline-primary btn-sm">📂 View File</a>
+        }
+
+        <a asp-action="GradeAssignment" asp-route-studentId="@Model.StudentId" asp-route-assignmentId="@Model.AssignmentId"
+           class="btn btn-success mt-3">Back to Grading</a>
+    </div>
+</div>

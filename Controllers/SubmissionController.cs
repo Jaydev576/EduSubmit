@@ -231,7 +231,7 @@ namespace EduSubmit.Controllers
         // GET: Submission/Submit/{id}
         public IActionResult Submit(int id)
         {
-            var assignment = _context.Assignments.Find(id);
+            var assignment = _context.Assignments.FirstOrDefault(a => a.AssignmentId == id);
             if (assignment == null)
             {
                 return NotFound();
@@ -317,7 +317,7 @@ namespace EduSubmit.Controllers
                 _context.Submissions.Add(submission);
                 _context.SaveChanges();
 
-                return RedirectToAction("Submit", "Student");
+                return RedirectToAction("Submissions", "Student");
             }
             catch (Exception ex)
             {

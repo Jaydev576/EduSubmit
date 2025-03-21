@@ -1,5 +1,8 @@
-﻿@{
+﻿
+@{
     Layout = "~/Views/Shared/_InstructorLayout.cshtml";
+    ViewData["Title"] = "Student Submissions";
+    ViewData["ActivePage"] = "Submissions";
 }
 @model IEnumerable<EduSubmit.Models.Submission>
 
@@ -31,3 +34,5 @@ else
         </tbody>
     </table>
 }
+
+

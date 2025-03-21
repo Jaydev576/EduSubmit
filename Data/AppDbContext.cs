@@ -65,6 +65,12 @@ namespace EduSubmit.Data
                 .HasForeignKey(g => g.InstructorId)
                 .OnDelete(DeleteBehavior.NoAction);  // Avoid cascading delete
 
+            modelBuilder.Entity<Grade>()
+                .HasOne(g => g.Submission)
+                .WithOne()
+                .HasForeignKey<Grade>(g => new { g.StudentId, g.AssignmentId })
+                .OnDelete(DeleteBehavior.Cascade); // or Restrict based on your requirement
+
             // Foreign Key Relationships for Assignment entity
             modelBuilder.Entity<Assignment>()
                 .HasOne(a => a.Class)

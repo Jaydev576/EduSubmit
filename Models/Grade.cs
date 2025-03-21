@@ -24,5 +24,9 @@ namespace EduSubmit.Models
         [ForeignKey("Instructor")]
         public int InstructorId { get; set; }
         public Instructor? Instructor { get; set; }
+
+        // Composite Foreign Key
+        [ForeignKey(nameof(StudentId) + "," + nameof(AssignmentId))]
+        public Submission? Submission { get; set; }
     }
 }

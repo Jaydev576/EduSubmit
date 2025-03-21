@@ -1,4 +1,5 @@
-﻿@{
+﻿@*
+@{
      Layout = "~/Views/Shared/_InstructorLayout.cshtml";
 }
 
@@ -38,3 +39,94 @@
         </div>
     </div>
 </div>
+*@
+
+
+
+
+
+@{
+    Layout = "~/Views/Shared/_InstructorLayout.cshtml";
+    ViewData["Title"] = "Dashboard";
+    ViewData["ActivePage"] = "Index";
+}
+@{
+    ViewData["Title"] = "Dashboard";
+    var activeAssignments = ViewData["ActiveAssignments"] as List<Assignment> ?? new List<Assignment>();
+    var studentCount = ViewData["StudentCount"] as int? ?? 0;
+    var submissionRate = ViewData["SubmissionRate"] as double? ?? 0;
+    var avgGrade = ViewData["AvgGrade"] as double? ?? 0;
+    var recentMessages = ViewData["RecentMessages"] as List<dynamic> ?? new List<dynamic>();
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Active Assignments -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Active Assignments</h5>
+                </div>
+                <div class="card-body">
+                    @if (activeAssignments.Any())
+                    {
+                        @foreach (var assignment in activeAssignments)
+                        {
+                            <div class="d-flex justify-content-between border-bottom py-2">
+                                <span>@assignment.Title</span>
+                                <small class="text-muted">@assignment.DueDate.ToShortDateString()</small>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No active assignments.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Class Performance -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Class Performance</h5>
+                </div>
+                <div class="card-body text-center">
+                    <h4 class="text-success">@avgGrade%</h4>
+                    <p>Average Grade</p>
+                    <h5>@studentCount Students</h5>
+                    <p>Enrolled</p>
+                    <h5 class="text-primary">@submissionRate%</h5>
+                    <p>Submission Rate</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Messages -->
+        @*<div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Recent Messages</h5>
+                </div>
+                <div class="card-body">
+                    @if (recentMessages.Any())
+                    {
+                        @foreach (var message in recentMessages)
+                        {
+                            <div class="d-flex justify-content-between border-bottom py-2">
+                                <span>@message.Name</span>
+                                <small class="text-muted">@message.Message</small>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No messages found.</p>
+                    }
+                </div>
+            </div>
+        </div>*@
+    </div>
+</div>
+
