@@ -27,5 +27,6 @@ namespace EduSubmit.Models
 
         // Navigation property
         public ICollection<Grade>? Grades { get; set; }
+        public ICollection<Assignment>? Assignments { get; set; }
     }
 }

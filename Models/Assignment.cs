@@ -28,6 +28,10 @@ namespace EduSubmit.Models
         public int ClassId { get; set; }
         public Class? Class { get; set; }
 
+        [ForeignKey("Instructor")]
+        public int InstructorId { get; set; }
+        public Instructor? Instructor { get; set; }
+
         // Navigation property
         public ICollection<Grade>? Grades { get; set; }
         public ICollection<Submission>? Submissions { get; set; }
