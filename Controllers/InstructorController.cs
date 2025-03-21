@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace EduSubmit.Controllers
 {
     [Authorize(Roles = "Instructor")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public class InstructorController : Controller
     {
         private readonly AppDbContext _context;

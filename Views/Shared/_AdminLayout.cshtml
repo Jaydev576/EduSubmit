@@ -106,10 +106,9 @@
                         @* <span class="d-block">Welcome, @ViewBag.OrganizationId</span> *@
                     </div>
                     <div class="btn-group">
-                        <button type="button" class="btn btn-secondary rounded-circle p-0 d-flex align-items-center justify-content-center"
-                                style="width: 45px; height: 45px; font-size: 16px;"
+                        <button type="button" class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-weight: bold;"
                                 data-bs-toggle="dropdown">
-                            AU
+                            @User.Identity?.Name?.Substring(0, 1).ToUpper()
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="/Account/Logout">Logout</a></li>
