@@ -231,7 +231,7 @@ namespace EduSubmit.Controllers
         // GET: Submission/Submit/{id}
         public IActionResult Submit(int id)
         {
-            var assignment = _context.Assignments.Find(id);
+            var assignment = _context.Assignments.FirstOrDefault(a => a.AssignmentId == id);
             if (assignment == null)
             {
                 return NotFound();
@@ -281,7 +281,7 @@ namespace EduSubmit.Controllers
                 submission.StudentId = student.StudentId;
                 submission.ClassId = assignment.Class.ClassId;
 
-                // ✅ Check if submission already exists
+                // Check if submission already exists
                 var existingSubmission = _context.Submissions
                     .FirstOrDefault(s => s.AssignmentId == submission.AssignmentId && s.StudentId == student.StudentId);
 
@@ -291,7 +291,7 @@ namespace EduSubmit.Controllers
                     return View(submission);
                 }
 
-                // 🔹 File upload logic
+                // File upload logic
                 string sanitizedClassName = string.Concat(assignment.Class.ClassName.Split(Path.GetInvalidFileNameChars()));
                 string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", sanitizedClassName);
 
@@ -311,13 +311,13 @@ namespace EduSubmit.Controllers
                 submission.FilePath = $"/uploads/{sanitizedClassName}/{uniqueFileName}";
                 submission.SubmissionDate = DateTime.Now;
 
-                // ✅ Mark assignment as submitted
+                // Mark assignment as submitted
                 assignment.IsSubmitted = true;
 
                 _context.Submissions.Add(submission);
                 _context.SaveChanges();
 
-                return RedirectToAction("Submit", "Student");
+                return RedirectToAction("Submissions", "Student");
             }
             catch (Exception ex)
             {

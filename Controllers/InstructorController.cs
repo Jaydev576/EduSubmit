@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace EduSubmit.Controllers
 {
     [Authorize(Roles = "Instructor")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public class InstructorController : Controller
     {
         private readonly AppDbContext _context;
@@ -165,48 +166,143 @@ namespace EduSubmit.Controllers
         }
 
 
-        // ✅ 1️⃣ Create Assignment (GET)
+
+        // index method of dashboard
+
+        // Instructor Dashboard 
+        public IActionResult Index()
+        {
+            ViewData["ActiveAssignments"] = _context.Assignments
+                                            .Where(a => a.DueDate >= DateTime.Now) // Filter for active assignments
+                                            .OrderBy(a => a.DueDate)
+                                            .Take(3)
+                                            .ToList() ?? new List<Assignment>();
+
+
+            int totalStudents = _context.Students.Count();
+
+
+            ViewData["StudentCount"] = totalStudents;
+
+            int totalAssignments = _context.Assignments.Count();
+            int totalSubmissions = _context.Submissions.Count();
+
+            int totalExpectedSubmissions = totalStudents * totalAssignments; // Expected submissions
+
+            ViewData["SubmissionRate"] = totalExpectedSubmissions > 0
+                                         ? Math.Round(((double)totalSubmissions / totalExpectedSubmissions) * 100, 2) // Round to 2 decimal places
+                                         : 0;
+
+            var grades = _context.Grades.AsNoTracking().ToList();
+            ViewData["AvgGrade"] = grades.Any()
+                                   ? Math.Round(grades.Average(g => (double)g.Score), 2) // Round to 2 decimal places
+                                   : 0;
+
+            return View("index");
+        }
+
+
+        // Create Assignment (GET)
         public async Task<IActionResult> CreateAssignment()
         {
+            var userEmail = User.Identity?.Name;
+            var instructor = await _context.Instructors.FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
+
+            if (instructor == null)
+            {
+                return Unauthorized("Instructor profile not found.");
+            }
+
+            ViewBag.InstructorId = instructor.InstructorId; // Pass InstructorId to View
             ViewBag.Classes = new SelectList(await _context.Classes.ToListAsync(), "ClassId", "ClassName");
+
             return View();
         }
 
-        // ✅ 2️⃣ Create Assignment (POST)
+
+        // Create Assignment (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateAssignment(Assignment assignment)
         {
+            var userEmail = User.Identity?.Name;
+            var instructor = await _context.Instructors.FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
+
+            if (instructor == null)
+            {
+                return Unauthorized("Instructor profile not found.");
+            }
+
+            assignment.InstructorId = instructor.InstructorId; // Assign InstructorId
+
             if (ModelState.IsValid)
             {
                 _context.Assignments.Add(assignment);
                 await _context.SaveChangesAsync();
-                return RedirectToAction("Assignments"); // Redirect to assignments list
+                return RedirectToAction("Assignments");
             }
+
             ViewBag.Classes = new SelectList(await _context.Classes.ToListAsync(), "ClassId", "ClassName");
             return View(assignment);
         }
 
-        // ✅ 3️⃣ Edit Assignment (GET)
+        //Edit Assignment (GET)
         public async Task<IActionResult> EditAssignment(int id)
         {
+            var userEmail = User.Identity?.Name;
+            var instructor = await _context.Instructors.FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
+
+            if (instructor == null)
+            {
+                return Unauthorized("Instructor profile not found.");
+            }
+
             var assignment = await _context.Assignments.FindAsync(id);
+
             if (assignment == null) return NotFound();
+
+            // Ensure that only the instructor who created this assignment can edit it
+            if (assignment.InstructorId != instructor.InstructorId)
+            {
+                return Unauthorized("You are not allowed to edit this assignment.");
+            }
 
             ViewBag.Classes = new SelectList(await _context.Classes.ToListAsync(), "ClassId", "ClassName", assignment.ClassId);
             return View(assignment);
         }
 
-        // ✅ 4️⃣ Edit Assignment (POST)
+
+        //Edit Assignment (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditAssignment(int id, Assignment assignment)
         {
             if (id != assignment.AssignmentId) return NotFound();
 
+            var userEmail = User.Identity?.Name;
+            var instructor = await _context.Instructors.FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
+
+            if (instructor == null)
+            {
+                return Unauthorized("Instructor profile not found.");
+            }
+
+            var existingAssignment = await _context.Assignments.FindAsync(id);
+
+            if (existingAssignment == null) return NotFound();
+
+            // Ensure that only the instructor who created this assignment can edit it
+            if (existingAssignment.InstructorId != instructor.InstructorId)
+            {
+                return Unauthorized("You are not allowed to edit this assignment.");
+            }
+
             if (ModelState.IsValid)
             {
-                _context.Update(assignment);
+                // Keep the original InstructorId
+                assignment.InstructorId = existingAssignment.InstructorId;
+
+                _context.Entry(existingAssignment).CurrentValues.SetValues(assignment);
                 await _context.SaveChangesAsync();
                 return RedirectToAction("Assignments");
             }
@@ -215,7 +311,9 @@ namespace EduSubmit.Controllers
             return View(assignment);
         }
 
-        // ✅ 5️⃣ Delete Assignment (GET Confirmation)
+
+
+        //Delete Assignment (GET Confirmation)
         //public async Task<IActionResult> DeleteAssignment(int id)
         //{
         //    var assignment = await _context.Assignments.FindAsync(id);
@@ -224,6 +322,7 @@ namespace EduSubmit.Controllers
         //    return View(assignment);
         //}
 
+        /*
         [HttpGet]
         public async Task<IActionResult> DeleteAssignment(int id)
         {
@@ -243,7 +342,7 @@ namespace EduSubmit.Controllers
         }
 
 
-        // ✅ POST: Delete Assignment
+        //POST: Delete Assignment
         [HttpPost, ActionName("DeleteAssignment")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -256,14 +355,125 @@ namespace EduSubmit.Controllers
 
             return RedirectToAction("Assignments");
         }
+        */
+
+
+        //Delete Assignment (GET Confirmation)
+        [HttpGet]
+        public async Task<IActionResult> DeleteAssignment(int id)
+        {
+            var userEmail = User.Identity?.Name;
+            var instructor = await _context.Instructors.FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
+
+            if (instructor == null)
+            {
+                return Unauthorized("Instructor profile not found.");
+            }
+
+            var assignment = await _context.Assignments
+                .Include(a => a.Class)
+                .Include(a => a.Submissions) // Include submissions to check if it has student submissions
+                .FirstOrDefaultAsync(a => a.AssignmentId == id);
+
+            if (assignment == null) return NotFound();
+
+            // Ensure that only the instructor who created this assignment can delete it
+            if (assignment.InstructorId != instructor.InstructorId)
+            {
+                return Unauthorized("You are not allowed to delete this assignment.");
+            }
+
+            // Prevent deletion if there are submissions
+            if (assignment.Submissions != null && assignment.Submissions.Count > 0)
+            {
+                return BadRequest("Cannot delete this assignment as students have already submitted work.");
+            }
+
+            return View(assignment);
+        }
+
+        //post
+        [HttpPost, ActionName("DeleteAssignment")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var userEmail = User.Identity?.Name;
+            var instructor = await _context.Instructors.FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
+
+            if (instructor == null)
+            {
+                return Unauthorized("Instructor profile not found.");
+            }
+
+            var assignment = await _context.Assignments
+                .Include(a => a.Submissions) // Include submissions to prevent deletion if students have submitted
+                .FirstOrDefaultAsync(a => a.AssignmentId == id);
+
+            if (assignment == null) return NotFound();
+
+            // Ensure that only the instructor who created this assignment can delete it
+            if (assignment.InstructorId != instructor.InstructorId)
+            {
+                return Unauthorized("You are not allowed to delete this assignment.");
+            }
+
+            // Prevent deletion if there are submissions
+            if (assignment.Submissions != null && assignment.Submissions.Count > 0)
+            {
+                return BadRequest("Cannot delete this assignment as students have already submitted work.");
+            }
+
+            _context.Assignments.Remove(assignment);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Assignments");
+        }
+
 
 
         // ✅ 7️⃣ List Assignments
-        public async Task<IActionResult> Assignments()
+        /*
+         public async Task<IActionResult> Assignments()
+         {
+             var assignments = await _context.Assignments.Include(a => a.Class).ToListAsync();
+             return View(assignments);
+         }
+        */
+
+        [HttpGet]
+        public async Task<IActionResult> Assignments(int? classId, string subject, DateTime? dueDate, int? minPoints, int? maxPoints)
         {
-            var assignments = await _context.Assignments.Include(a => a.Class).ToListAsync();
+            var query = _context.Assignments
+                .Include(a => a.Class)
+                .Include(a => a.Submissions) // Ensure submissions are loaded
+                .AsQueryable();
+
+            // 🔹 Apply Filters
+            if (classId.HasValue)
+                query = query.Where(a => a.ClassId == classId.Value);
+
+            if (!string.IsNullOrEmpty(subject))
+            {
+                query = query.Where(a => a.SubjectName.Contains(subject));
+            }
+            if (dueDate.HasValue)
+                query = query.Where(a => a.DueDate.Date == dueDate.Value.Date);
+
+            if (minPoints.HasValue)
+                query = query.Where(a => a.Points >= minPoints.Value);
+
+            if (maxPoints.HasValue)
+                query = query.Where(a => a.Points <= maxPoints.Value);
+
+            // Fetch the filtered assignments
+            var assignments = await query.ToListAsync();
+
+            // Load Class dropdown for filtering
+            ViewBag.Classes = new SelectList(await _context.Classes.ToListAsync(), "ClassId", "ClassName");
+
             return View(assignments);
         }
+
 
 
 
@@ -357,6 +567,7 @@ namespace EduSubmit.Controllers
 
 
         // ✅ Save the assigned grade
+        /*
         [HttpPost]
         public async Task<IActionResult> GradeAssignment(int studentId, int assignmentId, float score, string remarks)
         {
@@ -371,9 +582,53 @@ namespace EduSubmit.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(GradedSubmissions)); // ✅ Redirect after grading
         }
+        */
+        [HttpPost]
+        public async Task<IActionResult> GradeAssignment(int studentId, int assignmentId, float score, string remarks)
+        {
+            var grade = await _context.Grades
+                .Include(g => g.Assignment)
+                .FirstOrDefaultAsync(g => g.StudentId == studentId && g.AssignmentId == assignmentId);
+
+            if (grade == null) return NotFound();
+
+            // ✅ Ensure score is within range 0 to assignment's max points
+            if (score < 0 || score > grade.Assignment.Points)
+            {
+                ModelState.AddModelError("Score", $"Score must be between 0 and {grade.Assignment.Points}.");
+                return View(grade); // Show error message
+            }
+
+            grade.Score = score;
+            grade.Remarks = remarks;
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(GradedSubmissions)); // ✅ Redirect after grading
+        }
 
 
 
+
+        //view submission
+        public async Task<IActionResult> ViewSubmission(int studentId, int assignmentId)
+        {
+            var submission = await _context.Submissions
+                .Include(s => s.Student)
+                .Include(s => s.Assignment)
+                .FirstOrDefaultAsync(s => s.StudentId == studentId && s.AssignmentId == assignmentId);
+
+            if (submission == null)
+            {
+                return NotFound("Submission not found.");
+            }
+
+            return View(submission); // Pass the submission to a new view
+        }
+
+
+
+
+        //student progress
         public async Task<IActionResult> StudentProgress(string sortBy = "completion", bool filterLow = false)
         {
             var totalAssignments = await _context.Assignments.CountAsync(); // Total available assignments
@@ -563,9 +818,6 @@ namespace EduSubmit.Controllers
             return View();
         }
 
-        public IActionResult Index()
-        {
-            return View();
-        }
+        
     }
 }

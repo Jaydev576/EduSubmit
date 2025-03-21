@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using EduSubmit.Data;
 using EduSubmit.Models;
@@ -12,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 namespace EduSubmit.Controllers
 {
     [Authorize(Roles = "Student")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public class StudentController : Controller
     {
         private readonly AppDbContext _context;
@@ -24,12 +26,18 @@ namespace EduSubmit.Controllers
         // GET: Student
         public IActionResult Index()
         {
-            var studentId = 1; // Replace with actual logged-in student ID from authentication
+            // Get the logged-in user's email from claims
+            var userEmail = User.FindFirst(ClaimTypes.Name)?.Value;
 
-            // Get the ClassId of the logged-in student
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Unauthorized(); // Ensure the user is authenticated
+            }
+
+            // Fetch the StudentId using the email
             var student = _context.Students
-                .Where(s => s.StudentId == studentId)
-                .Select(s => new { s.ClassId })
+                .Where(s => s.EmailAddress == userEmail)
+                .Select(s => new { s.StudentId, s.ClassId })
                 .FirstOrDefault();
 
             if (student == null)
@@ -37,6 +45,7 @@ namespace EduSubmit.Controllers
                 return NotFound("Student not found");
             }
 
+            int studentId = student.StudentId;
             int classId = student.ClassId;
 
             // Fetch assignments for the student's class

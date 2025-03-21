@@ -1,4 +1,5 @@
-﻿@{
+﻿@*
+@{
     Layout = "~/Views/Shared/_InstructorLayout.cshtml";
 }
 @model List<EduSubmit.Models.Assignment>
@@ -32,11 +33,11 @@
                             <i class="fas fa-calendar-alt"></i> Due: @assignment.DueDate.ToString("yyyy-MM-dd")
                         </p>
                         <p><i class="fas fa-trophy"></i> @assignment.Points points</p>
-                        <p><i class="fas fa-users"></i> Submissions: @(assignment.Submissions?.Count ?? 0)</p>
+                        <p><i class="fas fa-users"></i> Submissions: @(assignment.Submissions != null ? assignment.Submissions.Count() : 0)</p>
 
                         <div class="d-flex justify-content-between mt-3">
                             <a asp-controller="Instructor" asp-action="EditAssignment" asp-route-id="@assignment.AssignmentId" class="text-primary">
-                                @* <i class="fas fa-edit"></i> *@
+                                
                                 <button class="btn btn-success">
                                     <i class="fas fa-trash"></i> Edit
                                 </button>
@@ -57,4 +58,115 @@
 
 <!-- FontAwesome Icons (If not already included) -->
 <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+*@
+
+
+
+
+@{
+    Layout = "~/Views/Shared/_InstructorLayout.cshtml";
+    ViewData["Title"] = "Assignments";
+    ViewData["ActivePage"] = "Assignments";
+}
+@model List<EduSubmit.Models.Assignment>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Assignments</h2>
+        <a asp-controller="Instructor" asp-action="CreateAssignment" class="btn btn-primary">
+            + Create Assignment
+        </a>
+    </div>
+
+
+    <form method="get" asp-action="Assignments">
+        <div class="row">
+            <!-- Class Filter -->
+            <div class="col-md-3">
+                <label>Class</label>
+                <select name="classId" class="form-control">
+                    <option value="">All Classes</option>
+                    @foreach (var cls in ViewBag.Classes)
+                    {
+                        <option value="@cls.Value">@cls.Text</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Subject Name Filter (Uses SubjectName column from Assignments table) -->
+            <div class="col-md-3">
+                <label>Subject Name</label>
+                <input type="text" name="subject" class="form-control" placeholder="Enter subject">
+            </div>
+
+            <!-- Due Date Filter -->
+            <div class="col-md-3">
+                <label>Due Date</label>
+                <input type="date" name="dueDate" class="form-control">
+            </div>
+
+            <!-- Points Range Filter -->
+            <div class="col-md-3">
+                <label>Min Points</label>
+                <input type="number" name="minPoints" class="form-control" placeholder="Min">
+            </div>
+
+            <div class="col-md-3">
+                <label>Max Points</label>
+                <input type="number" name="maxPoints" class="form-control" placeholder="Max">
+            </div>
+
+            <!-- Submit Button -->
+            <div class="col-md-3">
+                <label>&nbsp;</label>
+                <button type="submit" class="btn btn-primary form-control">Filter</button>
+            </div>
+        </div>
+    </form>
+
+
+
+    <div class="row">
+        @foreach (var assignment in Model)
+        {
+            <div class="col-md-4">
+                <div class="card shadow-sm p-3 mb-4 bg-white rounded">
+                    <div class="card-body">
+                        <h5 class="card-title">@assignment.Title</h5>
+                        <p class="text-muted">
+                            <i class="fas fa-book"></i> Subject: @assignment.SubjectName
+                        </p>
+                        <p class="text-muted">
+                            <i class="fas fa-users"></i> Class: @assignment.Class?.ClassName
+                        </p>
+                        <p class="text-muted">
+                            <i class="fas fa-calendar-alt"></i> Due: @assignment.DueDate.ToString("yyyy-MM-dd")
+                        </p>
+                        <p><i class="fas fa-trophy"></i> @assignment.Points points</p>
+                        <p><i class="fas fa-users"></i> Submissions: @(assignment.Submissions != null ? assignment.Submissions.Count() : 0)</p>
+
+
+                        <div class="d-flex justify-content-between mt-3">
+                            <a asp-controller="Instructor" asp-action="EditAssignment" asp-route-id="@assignment.AssignmentId" class="text-primary">
+                                @* <i class="fas fa-edit"></i> *@
+                                <button class="btn btn-success">
+                                    <i class="fas fa-trash"></i> Edit
+                                </button>
+                            </a>
+
+                            <a asp-controller="Instructor" asp-action="DeleteAssignment" asp-route-id="@assignment.AssignmentId" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Delete
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- FontAwesome Icons (If not already included) -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
 

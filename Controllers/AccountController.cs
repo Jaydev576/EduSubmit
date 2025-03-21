@@ -32,7 +32,7 @@ namespace EduSubmit.Controllers
             // Check if user exists
             var student = _context.Students.FirstOrDefault(s => s.EmailAddress == email && s.Password == hashedPassword);
             var instructor = _context.Instructors.FirstOrDefault(i => i.EmailAddress == email && i.Password == hashedPassword);
-            var admin = _context.Organizations.FirstOrDefault(a => a.Username == email && a.Password == hashedPassword);
+            var admin = _context.Organizations.FirstOrDefault(a => a.EmailAddress == email && a.Password == hashedPassword);
 
             if (student != null)
                 return AuthenticateUser(student.EmailAddress, "Student", "Student", "Index");
@@ -41,7 +41,7 @@ namespace EduSubmit.Controllers
                 return AuthenticateUser(instructor.EmailAddress, "Instructor", "Instructor", "Index");
 
             if (admin != null)
-                return AuthenticateUser(admin.Username, "Organization", "Organization", "Index");
+                return AuthenticateUser(admin.EmailAddress, "Organization", "Organization", "Index");
 
             ViewBag.Error = "Invalid email or password.";
             return View();

@@ -1,11 +1,12 @@
 ﻿@{
     Layout = "~/Views/Shared/_InstructorLayout.cshtml";
-}
-@{
     ViewData["Title"] = "Help & Support";
+    ViewData["ActivePage"] = "HelpSupport";
 }
 
+
 <div class="container mt-4">
+    @*
     <h2 class="mb-4 text-center">Help & Support</h2>
 
     <div class="row">
@@ -51,7 +52,7 @@
             </div>
         </div>
     </div>
-
+    *@
     <h3 class="mt-5 text-center">Frequently Asked Questions</h3>
     <div class="accordion" id="faqAccordion">
         @for (int i = 1; i <= 10; i++)
