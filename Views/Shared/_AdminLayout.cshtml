@@ -7,124 +7,54 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="~/css/admin-style.css" />
     <style>
-        /* Sidebar Styling */
-        #sidebar {
-            width: 260px;
-            height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            background: #343a40;
-            color: white;
-            transition: 0.3s ease-in-out;
-            padding-top: 20px;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+        .nav-link {
+            color: #000;
+            transition: background-color 0.3s ease;
         }
 
-            #sidebar h3 {
-                font-size: 24px;
-                font-weight: bold;
-                text-align: center;
-                padding-bottom: 20px;
+            .nav-link:hover {
+                background-color: #e0e0e0;
             }
 
-            #sidebar ul {
-                padding-left: 0;
-                list-style: none;
+            .nav-link.active {
+                background-color: #007bff !important;
+                color: white !important;
             }
-
-                #sidebar ul li {
-                    padding: 15px 20px;
-                    transition: 0.3s;
-                }
-
-                    #sidebar ul li a {
-                        color: white;
-                        text-decoration: none;
-                        font-size: 16px;
-                        display: flex;
-                        align-items: center;
-                    }
-
-                        #sidebar ul li a:hover, .active a {
-                            background: #007bff;
-                            border-radius: 5px;
-                            padding-left: 15px;
-                        }
-
-        /* Page Content */
-        #content {
-            margin-left: 260px;
-            transition: 0.3s ease-in-out;
-            padding: 20px;
-        }
-
-        /* Navbar */
-        .navbar {
-            background: white;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            padding: 10px 20px;
-        }
-
-            .navbar .search-bar {
-                max-width: 300px;
-                border-radius: 20px;
-                padding: 8px 15px;
-                border: 1px solid #ced4da;
-            }
-
-        .btn-group button {
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            font-size: 18px;
-            text-align: center;
-            line-height: 20px;
-        }
     </style>
 </head>
 <body>
-
-    <div class="d-flex" id="wrapper">
-        <div id="sidebar">
-            <h3>Admin Panel</h3>
-            <ul>
-                <li><a href="/Organization/index"> Dashboard</a></li>
-                <li><a href="/Organization/Page1"> Manage Users</a></li>
-                <li><a href="/Organization/Page2"> Manage Classes</a></li>
-            </ul>
-        </div>
-
-        <div id="content" class="container-fluid">
-            <nav class="navbar navbar-expand-lg justify-content-end">
-                @* <span> *@
-                @*     🔍 <input type="text" placeholder="Search..." class="form-control search-bar"> *@
-                @* </span> *@
-                <div class="d-flex align-items-center justify-content-end">
-                    <div class="user-info text-end me-3">
-                        <span class="d-block fw-bold">Welcome, @User.Identity.Name</span>
-                        @* <span class="d-block">Welcome, @ViewBag.OrganizationId</span> *@
-                    </div>
-                    <div class="btn-group">
-                        <button type="button" class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-weight: bold;"
-                                data-bs-toggle="dropdown">
-                            @User.Identity?.Name?.Substring(0, 1).ToUpper()
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="/Account/Logout">Logout</a></li>
-                        </ul>
-                    </div>
-                </div>
-
-
-
-            </nav>
-
-            <div>
-                @RenderBody()
+    <!-- Header Section -->
+    <header class="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-4">
+        <a class="navbar-brand" asp-action="Index" asp-controller="Home">EduSubmit</a>
+        <div class="ms-auto d-flex align-items-center">
+            <span class="me-2">Hello, @User.Identity?.Name</span>
+            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-weight: bold;">
+                @User.Identity?.Name?.Substring(0, 1).ToUpper()
             </div>
         </div>
+    </header>
+
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <nav class="bg-light p-3 vh-100" style="width: 250px;">
+            <ul class="nav flex-column">
+                <li class="nav-item"><a href="/Organization/index" class="nav-link">Dashboard</a></li>
+                <li class="nav-item"><a href="/Organization/ManageUsers" class="nav-link">Manage Users</a></li>
+                <li class="nav-item"><a href="/Organization/ManageClasses" class="nav-link">Manage Classes</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="flex-grow-1 p-4">
+            @RenderBody()
+        </div>
     </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2025 - Admin Panel - <a href="/Account/Privacy">Privacy</a>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

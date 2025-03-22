@@ -1,0 +1,129 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        .hover-card:hover {
+            transform: translateY(-10px);
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .slide-up {
+            transform: translateY(100%);
+            opacity: 0;
+            transition: transform 0.5s, opacity 0.5s;
+        }
+
+            .slide-up.visible {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+        .fade-in {
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+            .fade-in.visible {
+                opacity: 1;
+            }
+    </style>
+</head>
+<body class="font-roboto bg-gray-100">
+    <header class="flex justify-between items-center p-6 bg-white shadow-md">
+        <h1 class="text-2xl font-bold"><span class="text-purple-600">Assignment</span>Portal</h1>
+        <div>
+            <button class="border border-purple-600 text-purple-600 px-4 py-2 rounded mr-4 hover:bg-purple-600 hover:text-white transition">Login</button>
+            <button class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition">Sign Up</button>
+        </div>
+    </header>
+    <main class="text-center py-16 bg-white shadow-md">
+        <h2 class="text-4xl font-bold slide-up">Transform Your Academic Experience with</h2>
+        <h2 class="text-4xl font-bold text-purple-600 mt-2 slide-up">Smart Assignment Management</h2>
+        <p class="text-gray-600 mt-4 slide-up">Streamline assignment submissions, track progress, and achieve academic excellence with our comprehensive platform.</p>
+        <div class="flex justify-center mt-8 space-x-4">
+            <div class="bg-white shadow-lg rounded-lg p-6 hover-card slide-up">
+                <i class="fas fa-tasks text-purple-600 text-3xl mb-2"></i>
+                <p class="font-semibold">Assignment Tracking</p>
+            </div>
+            <div class="bg-white shadow-lg rounded-lg p-6 hover-card slide-up">
+                <i class="fas fa-comments text-purple-600 text-3xl mb-2"></i>
+                <p class="font-semibold">Instant Feedback</p>
+            </div>
+            <div class="bg-white shadow-lg rounded-lg p-6 hover-card slide-up">
+                <i class="fas fa-chart-line text-purple-600 text-3xl mb-2"></i>
+                <p class="font-semibold">Progress Analytics</p>
+            </div>
+        </div>
+    </main>
+    <section class="bg-gray-50 py-16">
+        <h3 class="text-3xl font-bold text-center mb-12 fade-in">Why Choose AssignmentPortal?</h3>
+        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white shadow-lg rounded-lg p-6 hover-card fade-in">
+                <i class="fas fa-upload text-purple-600 text-2xl mb-4"></i>
+                <h4 class="text-xl font-bold mb-2">Smart Submission</h4>
+                <p class="text-gray-600 mb-4">Upload assignments with ease. Support for multiple file formats and automatic deadline tracking.</p>
+                <ul class="text-gray-600 space-y-2">
+                    <li><i class="fas fa-check text-purple-600"></i> Multiple file formats</li>
+                    <li><i class="fas fa-check text-purple-600"></i> Auto-save feature</li>
+                    <li><i class="fas fa-check text-purple-600"></i> Version control</li>
+                </ul>
+            </div>
+            <div class="bg-purple-600 text-white shadow-lg rounded-lg p-6 hover-card fade-in">
+                <i class="fas fa-bolt text-2xl mb-4"></i>
+                <h4 class="text-xl font-bold mb-2">Real-time Grading</h4>
+                <p class="mb-4">Get instant feedback and grades. Track your progress with detailed analytics and insights.</p>
+                <ul class="space-y-2">
+                    <li><i class="fas fa-check"></i> Instant feedback</li>
+                    <li><i class="fas fa-check"></i> Performance tracking</li>
+                    <li><i class="fas fa-check"></i> Grade analytics</li>
+                </ul>
+            </div>
+            <div class="bg-white shadow-lg rounded-lg p-6 hover-card fade-in">
+                <i class="fas fa-bell text-purple-600 text-2xl mb-4"></i>
+                <h4 class="text-xl font-bold mb-2">Smart Notifications</h4>
+                <p class="text-gray-600 mb-4">Never miss a deadline with smart notifications and reminders for upcoming submissions.</p>
+                <ul class="text-gray-600 space-y-2">
+                    <li><i class="fas fa-check text-purple-600"></i> Deadline reminders</li>
+                    <li><i class="fas fa-check text-purple-600"></i> Email alerts</li>
+                    <li><i class="fas fa-check text-purple-600"></i> Custom notifications</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slideUpElements = document.querySelectorAll('.slide-up');
+            const fadeInElements = document.querySelectorAll('.fade-in');
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            slideUpElements.forEach(element => {
+                observer.observe(element);
+            });
+
+            fadeInElements.forEach(element => {
+                observer.observe(element);
+            });
+
+            document.querySelectorAll('.hover-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    alert('Card clicked!');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
