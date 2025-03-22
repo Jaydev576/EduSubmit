@@ -25,27 +25,31 @@ namespace EduSubmit.Controllers
         }
 
         [HttpPost]
-        public IActionResult Login(string email, string password)
+        public IActionResult Login(string email, string password, string role)
         {
             string hashedPassword = HashPassword(password);
+            object user = null;
 
-            // Check if user exists
-            var student = _context.Students.FirstOrDefault(s => s.EmailAddress == email && s.Password == hashedPassword);
-            var instructor = _context.Instructors.FirstOrDefault(i => i.EmailAddress == email && i.Password == hashedPassword);
-            var admin = _context.Organizations.FirstOrDefault(a => a.EmailAddress == email && a.Password == hashedPassword);
+            switch (role)
+            {
+                case "Student":
+                    user = _context.Students.FirstOrDefault(s => s.EmailAddress == email && s.Password == hashedPassword);
+                    break;
+                case "Instructor":
+                    user = _context.Instructors.FirstOrDefault(i => i.EmailAddress == email && i.Password == hashedPassword);
+                    break;
+                case "Organization":
+                    user = _context.Organizations.FirstOrDefault(a => a.EmailAddress == email && a.Password == hashedPassword);
+                    break;
+            }
 
-            if (student != null)
-                return AuthenticateUser(student.EmailAddress, "Student", "Student", "Index");
-
-            if (instructor != null)
-                return AuthenticateUser(instructor.EmailAddress, "Instructor", "Instructor", "Index");
-
-            if (admin != null)
-                return AuthenticateUser(admin.EmailAddress, "Organization", "Organization", "Index");
+            if (user != null)
+                return AuthenticateUser(email, role, role, "Index");
 
             ViewBag.Error = "Invalid email or password.";
             return View();
         }
+
 
         public IActionResult Logout()
         {

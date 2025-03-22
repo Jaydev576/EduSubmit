@@ -12,6 +12,14 @@
 
     <form asp-action="Login" asp-controller="Account" method="post">
         <div class="mb-3">
+            <label for="role" class="form-label">Select User Type</label>
+            <select class="form-control" name="role" required>
+                <option value="Student">Student</option>
+                <option value="Instructor">Instructor</option>
+                <option value="Organization">Admin</option>
+            </select>
+        </div>
+        <div class="mb-3">
             <label for="email" class="form-label">Email</label>
             <input type="text" class="form-control" name="email" required>
         </div>
