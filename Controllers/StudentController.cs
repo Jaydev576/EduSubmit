@@ -74,17 +74,20 @@ namespace EduSubmit.Controllers
                 ? grades.Sum(g => (double)g.Score / g.TotalPoints * 100) / grades.Count
                 : 0.0;
 
-            // Get recent assignments (limit to last 5)
+            // Get recent assignments (limit to last 3)
             var recentAssignments = assignments
                 .OrderByDescending(a => a.DueDate)
-                .Take(5)
+                .Take(3)
                 .Select(a => new
                 {
                     Id = a.AssignmentId,
                     Title = a.Title,
-                    Status = a.IsSubmitted ? "Submitted" : "Pending"
+                    Description = a.Description,  // Include Description
+                    DueDate = a.DueDate,          // Include DueDate
+                    Status = a.IsSubmitted ? "Submitted" : "Active" // Change "Pending" to "Active"
                 })
                 .ToList();
+
 
             // Store data in ViewBag
             ViewBag.PendingAssignments = pendingAssignments;
@@ -310,9 +313,31 @@ namespace EduSubmit.Controllers
         }
 
         // GET: Calendar
-        public IActionResult Calendar()
+        public ActionResult Calendar()
         {
-            return View();
+            // Get the logged-in user's email from claims
+            var userEmail = User.FindFirst(ClaimTypes.Name)?.Value;
+
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Unauthorized(); // Ensure the user is authenticated
+            }
+
+            // Fetch the StudentId using the email
+            var student = _context.Students
+                .Where(s => s.EmailAddress == userEmail)
+                .Select(s => new { s.StudentId, s.ClassId })
+                .FirstOrDefault();
+
+            int studentClassId = student.ClassId; // Assuming Student table has ClassId
+
+            // Fetch assignments related to the student's class
+            var assignments = _context.Assignments
+                .Where(a => a.ClassId == studentClassId) // Filter by class ID
+                .ToList();
+
+            return View(assignments);
         }
+
     }
 }

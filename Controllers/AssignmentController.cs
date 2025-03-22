@@ -33,7 +33,7 @@ namespace EduSubmit.Controllers
                 return NotFound();
             }
 
-            // 🔹 Show only unsubmitted assignments
+            // Show only unsubmitted assignments
             var assignments = _context.Assignments
                                       .Include(a => a.Class)
                                       .Where(a => a.IsSubmitted == false)
@@ -55,6 +55,7 @@ namespace EduSubmit.Controllers
             var assignment = await _context.Assignments
                 .Include(a => a.Class)
                 .FirstOrDefaultAsync(m => m.AssignmentId == id);
+
             if (assignment == null)
             {
                 return NotFound();

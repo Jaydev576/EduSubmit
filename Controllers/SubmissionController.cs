@@ -283,15 +283,19 @@ namespace EduSubmit.Controllers
 
                 // Check if submission already exists
                 var existingSubmission = _context.Submissions
-                    .FirstOrDefault(s => s.AssignmentId == submission.AssignmentId && s.StudentId == student.StudentId);
+                    .Any(s => s.AssignmentId == submission.AssignmentId && s.StudentId == student.StudentId);
 
-                if (existingSubmission != null)
+                if (existingSubmission)
                 {
                     ModelState.AddModelError("File", "You have already submitted this assignment.");
                     return View(submission);
                 }
 
                 // File upload logic
+                // Generate a unique identifier using GUID
+                string uniqueIdentifier = Guid.NewGuid().ToString("N");
+
+                // Sanitize class name for safe directory creation
                 string sanitizedClassName = string.Concat(assignment.Class.ClassName.Split(Path.GetInvalidFileNameChars()));
                 string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", sanitizedClassName);
 
@@ -300,21 +304,28 @@ namespace EduSubmit.Controllers
                     Directory.CreateDirectory(uploadsFolder);
                 }
 
-                string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(file.FileName);
+                // Generate secure filename
+                string originalFileName = Path.GetFileName(file.FileName);
+                string uniqueFileName = $"{uniqueIdentifier}_{student.StudentId}_{assignment.AssignmentId}_{originalFileName}";
                 string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
+                // Save file to server
                 using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
                     file.CopyTo(fileStream);
                 }
 
+                // Store the file path in submission record
                 submission.FilePath = $"/uploads/{sanitizedClassName}/{uniqueFileName}";
                 submission.SubmissionDate = DateTime.Now;
 
-                // Mark assignment as submitted
-                assignment.IsSubmitted = true;
 
                 _context.Submissions.Add(submission);
+
+                // 🔹 Mark the assignment as submitted (if IsSubmitted exists)
+                assignment.IsSubmitted = true;
+                _context.Assignments.Update(assignment);
+
                 _context.SaveChanges();
 
                 return RedirectToAction("Submissions", "Student");
@@ -325,8 +336,6 @@ namespace EduSubmit.Controllers
                 return View(submission);
             }
         }
-
-
 
     }
 }

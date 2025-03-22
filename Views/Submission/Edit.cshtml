@@ -1,7 +1,8 @@
 ﻿@model EduSubmit.Models.Submission
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Submissions";
+    ViewData["ActivePage"] = "Submissions";
     Layout = "~/Views/Shared/_StudentLayout.cshtml";
 }
 
@@ -9,7 +10,7 @@
 
 <div class="row">
     <div class="col-md-6">
-        <form asp-action="Edit" enctype="multipart/form-data">
+        <form asp-action="Submit" asp-controller="Submission" method="post" enctype="multipart/form-data">
             <input type="hidden" asp-for="AssignmentId" />
             <input type="hidden" asp-for="StudentId" />
 
@@ -27,7 +28,7 @@
                 <label class="control-label">Current File</label>
                 @if (!string.IsNullOrEmpty(Model.FilePath)) {
                     <div>
-                        <a href="@Model.FilePath" target="_blank" class="btn btn-info btn-sm">View Current File</a>
+                        <a href="@(Model.FilePath?.ToString())" target="_blank" class="btn btn-info btn-sm">View Current File</a>
                     </div>
                 }
                 else {
@@ -42,9 +43,10 @@
             </div>
 
             <div class="form-group mt-3">
-                <button type="submit" class="btn btn-primary">Save Changes</button>
-                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-success">Save Changes</button>
+                <a asp-action="Submissions" asp-controller="Student" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
+
     </div>
 </div>

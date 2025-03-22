@@ -33,14 +33,23 @@
     <div class="mt-4">
         <h4>Recent Assignments</h4>
         <div class="list-group">
-            @if (recentAssignments != null) {
+            @if (recentAssignments != null && recentAssignments.Any()) {
                 @foreach (var assignment in recentAssignments) {
                     <a href="@Url.Action("Details", "Assignment", new { id = assignment.Id })" class="list-group-item list-group-item-action">
-                        @assignment.Title
-                        <span class="badge @(assignment.Status == "Pending" ? "bg-warning" : "bg-success") float-end">@assignment.Status</span>
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">@assignment.Title</h5>
+                            <small class="text-muted">@assignment.DueDate.ToString("yyyy-MM-dd")</small>
+                        </div>
+                        <p class="mb-1">@assignment.Description</p>
+                        <span class="badge @(assignment.Status == "Active" ? "bg-warning" : "bg-success") float-end">@assignment.Status</span>
                     </a>
                 }
             }
+            else {
+                <p class="text-muted">No recent assignments available.</p>
+            }
         </div>
     </div>
+
+
 </div>

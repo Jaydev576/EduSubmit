@@ -1,0 +1,83 @@
+﻿@model List<EduSubmit.Models.Assignment>
+
+@{
+    Layout = "~/Views/Shared/_StudentLayout.cshtml";
+    ViewData["Title"] = "Calendar";
+    ViewData["ActivePage"] = "Calendar";
+    var today = DateTime.Today;
+    var daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
+    var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
+    var monthName = today.ToString("MMMM yyyy"); // Format: "March 2025"
+}
+
+<h2 style="text-align: center; margin-bottom: 10px;">📅 @monthName</h2>
+
+<div style="display: flex; justify-content: center;">
+    <table border="1" cellpadding="3" cellspacing="0" style="border-collapse: collapse; width: 80%; text-align: center; font-size: 14px;">
+        <thead>
+            <tr style="background-color: #ddd;">
+                <th style="width: 14.28%;">Sun</th>
+                <th style="width: 14.28%;">Mon</th>
+                <th style="width: 14.28%;">Tue</th>
+                <th style="width: 14.28%;">Wed</th>
+                <th style="width: 14.28%;">Thu</th>
+                <th style="width: 14.28%;">Fri</th>
+                <th style="width: 14.28%;">Sat</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <!-- Empty cells before the first day -->
+                @for (int i = 0; i < (int)firstDayOfMonth.DayOfWeek; i++)
+                {
+                    <td style="width: 14.28%; height: 50px;"></td>
+                }
+
+                @for (int day = 1; day <= daysInMonth; day++)
+                {
+                    var currentDate = new DateTime(today.Year, today.Month, day);
+                    var assignment = Model.FirstOrDefault(a => a.DueDate.Date == currentDate);
+                    var reminder = Model.FirstOrDefault(a => a.DueDate.Date.AddDays(-3) == currentDate);
+
+                    string backgroundColor = "";
+                    string textColor = "black"; // Default text color
+
+                    if (assignment != null)
+                    {
+                        backgroundColor = "red";
+                        textColor = "white";
+                    }
+                    else if (reminder != null)
+                    {
+                        backgroundColor = "orange";
+                        textColor = "white";
+                    }
+
+                    <td style="padding: 5px; width: 14.28%; height: 50px; border: 1px solid #ccc; background-color: @backgroundColor; color: @textColor;">
+                        <strong>@day</strong>
+
+                        @if (assignment != null)
+                        {
+                            <div style="font-size: 10px;">@assignment.Title</div>
+                        }
+                        else if (reminder != null)
+                        {
+                            <div style="font-size: 10px;">Reminder</div>
+                        }
+                    </td>
+
+                    @if ((day + (int)firstDayOfMonth.DayOfWeek) % 7 == 0) 
+                    {
+                        @:</tr><tr>
+                    }
+                }
+
+                <!-- Fill remaining cells in the last row -->
+                @for (int i = (daysInMonth + (int)firstDayOfMonth.DayOfWeek) % 7; i < 7 && i > 0; i++)
+                {
+                    <td style="width: 14.28%; height: 50px;"></td>
+                }
+            </tr>
+        </tbody>
+    </table>
+</div>

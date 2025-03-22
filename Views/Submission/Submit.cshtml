@@ -1,15 +1,37 @@
 ﻿@model EduSubmit.Models.Submission
 
-<h2>Submit Assignment</h2>
+@{
+    ViewData["Title"] = "Assignments";
+    ViewData["ActivePage"] = "Assignments";
+    Layout = "~/Views/Shared/_StudentLayout.cshtml";
+}
 
-<form asp-controller="Submission" asp-action="Submit" method="post" enctype="multipart/form-data">
-    <input type="hidden" asp-for="AssignmentId" />
-    <input type="hidden" asp-for="StudentId" />
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-header text-center">
+                    <h3>Submit Assignment</h3>
+                </div>
+                <div class="card-body">
+                    <form asp-controller="Submission" asp-action="Submit" method="post" enctype="multipart/form-data">
+                        <input type="hidden" asp-for="AssignmentId" />
+                        <input type="hidden" asp-for="StudentId" />
 
-    <div class="form-group">
-        <label for="file">Upload File:</label>
-        <input type="file" name="file" class="form-control" required />
+
+                        <div class="form-group mb-3">
+                            <label for="file" class="form-label"><strong>Upload File:</strong></label>
+                            <input type="file" name="file" class="form-control" required />
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-upload"></i> Upload
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <button type="submit" class="btn btn-primary">Upload</button>
-</form>
+</div>
