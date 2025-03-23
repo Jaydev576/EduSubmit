@@ -37,14 +37,20 @@ namespace EduSubmit.Controllers
                 return NotFound();
             }
 
-            // 🔹 Show only submitted assignments
+            // 🔹 Fetch only submitted assignments for this student
+            var submittedAssignmentIds = _context.Submissions
+                                                 .Where(s => s.StudentId == student.StudentId)
+                                                 .Select(s => s.AssignmentId)
+                                                 .ToHashSet(); // Use HashSet for fast lookup
+
             var submittedAssignments = _context.Assignments
                                                .Include(a => a.Class)
-                                               .Where(a => a.IsSubmitted == true)
+                                               .Where(a => submittedAssignmentIds.Contains(a.AssignmentId))
                                                .ToList();
 
             return View(submittedAssignments);
         }
+
 
 
 
@@ -109,11 +115,6 @@ namespace EduSubmit.Controllers
             {
                 return NotFound();
             }
-
-            // Populate dropdowns if needed (only if these are necessary for selection)
-            ViewData["AssignmentId"] = new SelectList(_context.Assignments, "AssignmentId", "Title", submission.AssignmentId);
-            ViewData["ClassId"] = new SelectList(_context.Classes, "ClassId", "ClassName", submission.ClassId);
-            ViewData["StudentId"] = new SelectList(_context.Students, "StudentId", "EmailAddress", submission.StudentId);
 
             return View(submission);
         }
@@ -180,7 +181,7 @@ namespace EduSubmit.Controllers
                 }
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Submissions", "Student");
         }
 
         // Helper Method
@@ -281,21 +282,18 @@ namespace EduSubmit.Controllers
                 submission.StudentId = student.StudentId;
                 submission.ClassId = assignment.Class.ClassId;
 
-                // Check if submission already exists
-                var existingSubmission = _context.Submissions
+                // 🔹 Check if a submission already exists for this student and assignment
+                bool submissionExists = _context.Submissions
                     .Any(s => s.AssignmentId == submission.AssignmentId && s.StudentId == student.StudentId);
 
-                if (existingSubmission)
+                if (submissionExists)
                 {
                     ModelState.AddModelError("File", "You have already submitted this assignment.");
                     return View(submission);
                 }
 
-                // File upload logic
-                // Generate a unique identifier using GUID
+                // 🔹 File upload logic
                 string uniqueIdentifier = Guid.NewGuid().ToString("N");
-
-                // Sanitize class name for safe directory creation
                 string sanitizedClassName = string.Concat(assignment.Class.ClassName.Split(Path.GetInvalidFileNameChars()));
                 string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", sanitizedClassName);
 
@@ -304,28 +302,20 @@ namespace EduSubmit.Controllers
                     Directory.CreateDirectory(uploadsFolder);
                 }
 
-                // Generate secure filename
                 string originalFileName = Path.GetFileName(file.FileName);
                 string uniqueFileName = $"{uniqueIdentifier}_{student.StudentId}_{assignment.AssignmentId}_{originalFileName}";
                 string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-                // Save file to server
                 using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
                     file.CopyTo(fileStream);
                 }
 
-                // Store the file path in submission record
+                // 🔹 Store file path and submission details
                 submission.FilePath = $"/uploads/{sanitizedClassName}/{uniqueFileName}";
                 submission.SubmissionDate = DateTime.Now;
 
-
                 _context.Submissions.Add(submission);
-
-                // 🔹 Mark the assignment as submitted (if IsSubmitted exists)
-                assignment.IsSubmitted = true;
-                _context.Assignments.Update(assignment);
-
                 _context.SaveChanges();
 
                 return RedirectToAction("Submissions", "Student");
@@ -336,6 +326,7 @@ namespace EduSubmit.Controllers
                 return View(submission);
             }
         }
+
 
     }
 }

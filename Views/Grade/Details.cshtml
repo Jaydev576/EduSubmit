@@ -1,48 +1,39 @@
 ﻿@model EduSubmit.Models.Grade
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Grades";
+    ViewData["ActivePage"] = "Grades";
+    Layout = "_StudentLayout";
 }
 
-<h1>Details</h1>
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Grade Details</h3>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3 font-weight-bold">Student</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.Student.EmailAddress)</dd>
 
-<div>
-    <h4>Grade</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Student)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Student.EmailAddress)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Assignment)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Assignment.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Score)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Score)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Remarks)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Remarks)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Instructor)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Instructor.EmailAddress)
-        </dd>
-    </dl>
-</div>
-<div>
-    @Html.ActionLink("Edit", "Edit", new { /* id = Model.PrimaryKey */ }) |
-    <a asp-action="Index">Back to List</a>
+                <dt class="col-sm-3 font-weight-bold">Assignment</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.Assignment.Description)</dd>
+
+                <dt class="col-sm-3 font-weight-bold">Score</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.Score)</dd>
+
+                <dt class="col-sm-3 font-weight-bold">Remarks</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.Remarks)</dd>
+
+                <dt class="col-sm-3 font-weight-bold">Instructor</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.Instructor.EmailAddress)</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a asp-action="Grades" asp-controller="Student" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+    </div>
 </div>

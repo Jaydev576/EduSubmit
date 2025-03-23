@@ -203,22 +203,51 @@ namespace EduSubmit.Controllers
         }
 
         // Common method to avoid duplicate code
+        //private IActionResult LoadDashboard()
+        //{
+        //    var email = User.Identity.Name;
+        //    if (email != null)
+        //    {
+        //        var admin = _context.Organizations.FirstOrDefault(a => a.EmailAddress == email);
+        //        if (admin != null)
+        //        {
+        //            ViewBag.AdminId = admin.OrganizationId;
+        //            ViewBag.AdminName = admin.OrganizationName;
+
+        //            // Fetching counts dynamically from the database
+        //            ViewBag.TotalStudents = _context.Students.Count(s => s.OrganizationId == admin.OrganizationId);
+        //            ViewBag.ActiveTeachers = _context.Instructors.Count(t => t.OrganizationId == admin.OrganizationId);
+        //            ViewBag.TotalClasses = _context.Classes.Count(c => c.OrganizationId == admin.OrganizationId);
+        //            ViewBag.Submissions = _context.Submissions.Count(s => s.OrganizationId == admin.OrganizationId);
+
+        //            return View("Index"); // Ensure you return the correct view
+        //        }
+        //    }
+
+        //    return RedirectToAction("Login"); // Redirect to login if no admin is found
+        //}
+
+
         private IActionResult LoadDashboard()
         {
-            var username = User.Identity.Name;
-            if (username != null)
+            var email = User.Identity.Name;
+            if (email != null)
             {
-                var admin = _context.Organizations.FirstOrDefault(a => a.Username == username);
+                var admin = _context.Organizations.FirstOrDefault(a => a.EmailAddress == email);
                 if (admin != null)
                 {
                     ViewBag.AdminId = admin.OrganizationId;
                     ViewBag.AdminName = admin.OrganizationName;
 
-                    // Fetching counts dynamically from the database
+                    // Fetching counts dynamically
                     ViewBag.TotalStudents = _context.Students.Count(s => s.OrganizationId == admin.OrganizationId);
                     ViewBag.ActiveTeachers = _context.Instructors.Count(t => t.OrganizationId == admin.OrganizationId);
                     ViewBag.TotalClasses = _context.Classes.Count(c => c.OrganizationId == admin.OrganizationId);
-                    // ViewBag.Submissions = _context.Submissions.Count(s => s.OrganizationId == admin.OrganizationId);
+
+                    // Get submission count by joining Submissions and Classes
+                    ViewBag.Submissions = _context.Submissions
+                        .Count(s => _context.Classes
+                            .Any(c => c.ClassId == s.ClassId && c.OrganizationId == admin.OrganizationId));
 
                     return View("Index"); // Ensure you return the correct view
                 }
@@ -226,6 +255,7 @@ namespace EduSubmit.Controllers
 
             return RedirectToAction("Login"); // Redirect to login if no admin is found
         }
+
 
 
         // Utility: Hash Password
@@ -247,15 +277,20 @@ namespace EduSubmit.Controllers
 
         public IActionResult ManageUsers()
         {
-            var students = _context.Students.Include(s => s.Class).Include(s => s.Organization).ToList();
+            int loggedInOrgId = GetLoggedInOrganizationId(); // Get the logged-in organization's ID
 
-            if (students == null)
-            {
-                students = new List<Student>(); // Ensure Model is never null
-            }
+            var students = _context.Students
+                                   .Where(s => s.OrganizationId == loggedInOrgId)
+                                   .ToList(); // Filter only students from the logged-in organization
 
             return View(students);
         }
+
+        // Example method to get logged-in organization ID
+        //private int GetLoggedInOrganizationId()
+        //{
+        //    return HttpContext.Session.GetInt32("OrganizationId") ?? 0; // Retrieve Organization ID from session
+        //}
 
 
         public IActionResult ManageClasses()
@@ -284,22 +319,31 @@ namespace EduSubmit.Controllers
             return View();
         }
 
-        
 
 
 
 
+
+
+
+
+        //private int GetLoggedInOrganizationId()
+        //{
+        //    var username = User.Identity.Name; // Get logged-in organization's username
+        //    var organization = _context.Organizations.FirstOrDefault(o => o.Username == username);
+
+        //    return organization?.OrganizationId ?? 0; // Return OrganizationId or 0 if not found
+        //}
 
 
 
         private int GetLoggedInOrganizationId()
         {
-            var username = User.Identity.Name; // Get logged-in organization's username
-            var organization = _context.Organizations.FirstOrDefault(o => o.Username == username);
+            var email = User.Identity.Name; // Get logged-in organization's email
+            var organization = _context.Organizations.FirstOrDefault(o => o.EmailAddress == email); // Match with Email column
 
             return organization?.OrganizationId ?? 0; // Return OrganizationId or 0 if not found
         }
-
 
 
 
@@ -389,11 +433,14 @@ namespace EduSubmit.Controllers
             return RedirectToAction("ManageUsers");
         }
 
-
-         public IActionResult AddStudent()
+        public IActionResult AddStudent()
         {
+            ViewBag.Classes = new SelectList(_context.Classes, "ClassId", "ClassName");
+            ViewBag.Organizations = new SelectList(_context.Organizations, "OrganizationId", "OrganizationName");
+
             return View();
         }
+
 
 
 
@@ -406,8 +453,14 @@ namespace EduSubmit.Controllers
                 _context.SaveChanges();
                 return RedirectToAction("Index"); // Redirect to student list
             }
+
+            // Re-populate ViewBag to avoid null reference in the dropdowns
+            ViewBag.Classes = new SelectList(_context.Classes, "ClassId", "ClassName");
+            ViewBag.Organizations = new SelectList(_context.Organizations, "OrganizationId", "OrganizationName");
+
             return View(student);
         }
+
 
 
 

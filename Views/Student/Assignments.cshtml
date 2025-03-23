@@ -8,8 +8,7 @@
 
 <h2>Assignments</h2>
 
-@if (Model.Any())  // ✅ Ensure there are assignments to display
-{
+@if (Model.Any()) {
     <table class="table table-striped">
         <thead>
             <tr>
@@ -21,22 +20,27 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var assignment in Model.Where(a => !a.IsSubmitted))  // ✅ Filter unsubmitted assignments
-            {
-                <tr>
-                    <td>@assignment.Title</td>
-                    <td>@assignment.Description</td>
-                    <td>@assignment.DueDate.ToString("yyyy-MM-dd HH:mm")</td>
-                    <td>@assignment.Class?.ClassName</td>
-                    <td>
-                        <a asp-controller="Submission" asp-action="Submit" asp-route-id="@assignment.AssignmentId" class="btn btn-info btn-sm">Submit</a>
-                    </td>
-                </tr>
+            @foreach (var assignment in Model) {
+                // ✅ Check if assignment has been submitted
+                bool isSubmitted = ViewBag.SubmittedAssignments != null &&
+                ((List<int>)ViewBag.SubmittedAssignments).Contains(assignment.AssignmentId);
+
+                if (!isSubmitted) // ✅ Only show assignments that are NOT submitted
+                {
+                    <tr>
+                        <td>@assignment.Title</td>
+                        <td>@assignment.Description</td>
+                        <td>@assignment.DueDate.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@assignment.Class?.ClassName</td>
+                        <td>
+                            <a asp-controller="Submission" asp-action="Submit" asp-route-id="@assignment.AssignmentId" class="btn btn-info btn-sm">Submit</a>
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
     </table>
 }
-else
-{
+else {
     <p class="text-muted">No pending assignments. 🎉</p>
 }

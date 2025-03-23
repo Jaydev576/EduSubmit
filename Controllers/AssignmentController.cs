@@ -23,24 +23,75 @@ namespace EduSubmit.Controllers
         // GET: Assignments
         public IActionResult Index()
         {
-            var userEmail = User.FindFirstValue(ClaimTypes.Email)
-                          ?? User.FindFirstValue("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name");
+            var userEmail = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            var student = _context.Students.FirstOrDefault(s => s.EmailAddress == userEmail);
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Unauthorized();
+            }
+
+            var student = _context.Students
+                .Where(s => s.EmailAddress == userEmail)
+                .Select(s => new { s.StudentId, s.ClassId })
+                .FirstOrDefault();
 
             if (student == null)
             {
-                return NotFound();
+                return NotFound("Student not found");
             }
 
-            // Show only unsubmitted assignments
+            int studentId = student.StudentId;
+            int classId = student.ClassId;
+
             var assignments = _context.Assignments
-                                      .Include(a => a.Class)
-                                      .Where(a => a.IsSubmitted == false)
-                                      .ToList();
+                .Where(a => a.ClassId == classId)
+                .ToList();
+
+            var submittedAssignmentIds = _context.Submissions
+                .Where(s => s.StudentId == studentId)
+                .Select(s => s.AssignmentId)
+                .ToList();
+
+            int pendingAssignments = assignments.Count(a => !submittedAssignmentIds.Contains(a.AssignmentId));
+            int submittedAssignments = assignments.Count(a => submittedAssignmentIds.Contains(a.AssignmentId));
+
+            double overallGrade = _context.Grades
+                .Where(g => g.StudentId == studentId)
+                .Join(_context.Assignments,
+                      g => g.AssignmentId,
+                      a => a.AssignmentId,
+                      (g, a) => new
+                      {
+                          Score = (double?)g.Score ?? 0,
+                          TotalPoints = (double?)a.Points ?? 1
+                      })
+                .ToList()
+                .Select(g => (g.Score / g.TotalPoints) * 100)
+                .DefaultIfEmpty(0)
+                .Average();
+
+            var recentAssignments = assignments
+                .OrderByDescending(a => a.DueDate)
+                .Take(3)
+                .Select(a => new
+                {
+                    Id = a.AssignmentId,
+                    Title = a.Title,
+                    Description = a.Description,
+                    DueDate = a.DueDate,
+                    IsSubmitted = submittedAssignmentIds.Contains(a.AssignmentId) // ✅ Store submission status
+                })
+                .ToList();
+
+            ViewBag.PendingAssignments = pendingAssignments;
+            ViewBag.SubmittedAssignments = submittedAssignmentIds; // ✅ Store submitted assignment IDs
+            ViewBag.OverallGrade = Math.Round(overallGrade, 2);
+            ViewBag.RecentAssignments = recentAssignments;
 
             return View(assignments);
         }
+
+
 
 
 

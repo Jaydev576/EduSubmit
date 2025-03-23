@@ -26,26 +26,6 @@ namespace EduSubmit.Controllers
             return View(await appDbContext.ToListAsync());
         }
 
-        // GET: Grades/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var grade = await _context.Grades
-                .Include(g => g.Assignment)
-                .Include(g => g.Instructor)
-                .Include(g => g.Student)
-                .FirstOrDefaultAsync(m => m.StudentId == id);
-            if (grade == null)
-            {
-                return NotFound();
-            }
-
-            return View(grade);
-        }
 
         // GET: Grades/Create
         public IActionResult Create()
@@ -171,6 +151,22 @@ namespace EduSubmit.Controllers
         private bool GradeExists(int id)
         {
             return _context.Grades.Any(e => e.StudentId == id);
+        }
+
+        // GET: Grade/Details?studentId&&assignmentId
+        public IActionResult Details(int studentId, int assignmentId)
+        {
+            var grade = _context.Grades
+                .Include(g => g.Student)
+                .Include(g => g.Assignment)
+                .FirstOrDefault(g => g.StudentId == studentId && g.AssignmentId == assignmentId);
+
+            if (grade == null)
+            {
+                return NotFound();
+            }
+
+            return View(grade);
         }
     }
 }

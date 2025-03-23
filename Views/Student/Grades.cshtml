@@ -11,7 +11,7 @@
     <thead>
         <tr>
             <th>@Html.DisplayNameFor(model => model.First().Assignment.Title)</th>
-            <th>@Html.DisplayNameFor(model => model.Student.FirstName)</th>
+            <th>Name</th>
             <th>@Html.DisplayNameFor(model => model.Score)</th>
             <th>@Html.DisplayNameFor(model => model.Remarks)</th>
             <th>Actions</th>
@@ -25,7 +25,7 @@
                 <td>@grade.Score</td>
                 <td>@grade.Remarks</td>
                 <td>
-                    <a asp-action="Details" asp-route-studentId="@grade.StudentId" asp-route-assignmentId="@grade.AssignmentId" class="btn btn-info btn-sm">Details</a>
+                    <a asp-action="Details" asp-controller="Grade" asp-route-studentId="@grade.StudentId" asp-route-assignmentId="@grade.AssignmentId" class="btn btn-info btn-sm">Details</a>
                 </td>
             </tr>
         }

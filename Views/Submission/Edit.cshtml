@@ -10,7 +10,7 @@
 
 <div class="row">
     <div class="col-md-6">
-        <form asp-action="Submit" asp-controller="Submission" method="post" enctype="multipart/form-data">
+        <form asp-action="Edit" asp-controller="Submission" method="post" enctype="multipart/form-data">
             <input type="hidden" asp-for="AssignmentId" />
             <input type="hidden" asp-for="StudentId" />
 
@@ -43,7 +43,7 @@
             </div>
 
             <div class="form-group mt-3">
-                <button type="submit" class="btn btn-success">Save Changes</button>
+                <button asp-action="Edit" asp-controller="Submission" type="submit" class="btn btn-success">Save Changes</button>
                 <a asp-action="Submissions" asp-controller="Student" class="btn btn-secondary">Cancel</a>
             </div>
         </form>

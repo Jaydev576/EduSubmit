@@ -37,7 +37,6 @@
                 {
                     var currentDate = new DateTime(today.Year, today.Month, day);
                     var assignment = Model.FirstOrDefault(a => a.DueDate.Date == currentDate);
-                    var reminder = Model.FirstOrDefault(a => a.DueDate.Date.AddDays(-3) == currentDate);
 
                     string backgroundColor = "";
                     string textColor = "black"; // Default text color
@@ -47,11 +46,6 @@
                         backgroundColor = "red";
                         textColor = "white";
                     }
-                    else if (reminder != null)
-                    {
-                        backgroundColor = "orange";
-                        textColor = "white";
-                    }
 
                     <td style="padding: 5px; width: 14.28%; height: 50px; border: 1px solid #ccc; background-color: @backgroundColor; color: @textColor;">
                         <strong>@day</strong>
@@ -59,10 +53,6 @@
                         @if (assignment != null)
                         {
                             <div style="font-size: 10px;">@assignment.Title</div>
-                        }
-                        else if (reminder != null)
-                        {
-                            <div style="font-size: 10px;">Reminder</div>
                         }
                     </td>
 
