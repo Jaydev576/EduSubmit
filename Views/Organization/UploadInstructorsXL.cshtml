@@ -1,19 +1,34 @@
-﻿
+﻿@* @model Instructor *@
 
-@model Student
+@* @{ *@
+@*     ViewData["Title"] = "Upload Instructors"; *@
+@* } *@
+
+@* <h2>Upload Instructors</h2> *@
+
+@* <form asp-action="UploadInstructorsXL" asp-controller="Organization" method="post" enctype="multipart/form-data"> *@
+@*     <div class="form-group"> *@
+@*         <label for="file">Select Excel File:</label> *@
+@*         <input type="file" name="file" class="form-control" required /> *@
+@*     </div> *@
+@*     <button type="submit" class="btn btn-primary">Upload</button> *@
+@* </form> *@
+
+
+@model Instructor
 
 @{
-    ViewData["Title"] = "Upload Students";
-    Layout = "~/Views/Shared/_Layout.cshtml"; // Explicitly specify the layout
+    ViewData["Title"] = "Upload Instructors";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Ensure the layout is specified
 }
 
-<div class="container mt-4">
+<div class="container mt-5">
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
-            <h2 class="mb-0">Upload Students</h2>
+            <h2 class="mb-0">Upload Instructors</h2>
         </div>
         <div class="card-body">
-            <form asp-action="UploadXl" asp-controller="Organization" method="post" enctype="multipart/form-data">
+            <form asp-action="UploadInstructorsXL" asp-controller="Organization" method="post" enctype="multipart/form-data">
                 <div class="form-group mb-4">
                     <label for="file" class="form-label fw-bold">Select Excel File</label>
                     <div class="input-group">
@@ -29,7 +44,7 @@
                     <button type="submit" class="btn btn-primary px-4">
                         <i class="bi bi-upload me-2"></i>Upload
                     </button>
-                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Cancel</a>
+                    <a href="@Url.Action("ManageInstructors")" class="btn btn-outline-secondary px-4">Cancel</a>
                 </div>
 
                 <!-- Status messages -->

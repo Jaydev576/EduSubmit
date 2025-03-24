@@ -1,41 +1,4 @@
-﻿@*
-@model EduSubmit.Models.Grade
-
-@{
-    Layout = "~/Views/Shared/_InstructorLayout.cshtml";
-}
-
-<h2>Grade Assignment</h2>
-
-<form asp-action="GradeAssignment" method="post">
-    <input type="hidden" name="studentId" value="@Model.StudentId" />
-    <input type="hidden" name="assignmentId" value="@Model.AssignmentId" />
-
-    <div>
-        <strong>Student:</strong> @Model.Student?.FirstName
-    </div>
-    <div>
-        <strong>Assignment:</strong> @Model.Assignment?.Title
-    </div>
-
-    <div class="form-group">
-        <label for="score">Score:</label>
-        <input name="score" class="form-control" required value="@Model.Score" />
-    </div>
-
-    <div class="form-group">
-        <label for="remarks">Remarks:</label>
-        <textarea name="remarks" class="form-control">@Model.Remarks</textarea>
-    </div>
-
-    <button type="submit" class="btn btn-success">Submit Grade</button>
-</form>
-*@
-
-
-
-
-@model EduSubmit.Models.Grade
+﻿@model EduSubmit.Models.Grade
 
 @{
     Layout = "~/Views/Shared/_InstructorLayout.cshtml";
@@ -43,7 +6,7 @@
     ViewData["ActivePage"] = "GradeAssignment";
 }
 
-<h2>Grade Assignment</h2>
+<h3>Grade Assignment</h3><br />
 
 <!-- View Submission Button -->
 <a href="@Model.Submission?.FilePath" target="_blank" class="btn btn-outline-primary btn-sm">📂 View File</a>
@@ -73,3 +36,13 @@
 
     <button type="submit" class="btn btn-success">Submit Grade</button>
 </form>
+
+<style>
+    h3 {
+        font-weight: 600;
+        color: #212529;
+        border-bottom: 3px solid #6e8efb;
+        display: inline-block;
+        padding-bottom: 5px;
+    }
+</style>

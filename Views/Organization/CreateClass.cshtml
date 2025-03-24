@@ -1,38 +1,197 @@
 ﻿@model EduSubmit.Models.Class
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Class</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #007bff; /* Blue for primary actions */
+            --secondary-color: #6c757d; /* Gray for secondary actions */
+            --error-color: #dc3545; /* Red for error messages */
+            --border-radius: 8px;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
 
-<h1>Create</h1>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f5f6f8;
+            color: #333;
+            line-height: 1.6;
+            padding: 30px;
+        }
 
-<h4>Class</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
+        h1 {
+            color: #2c3e50;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h4 {
+            color: #444;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background: #ddd;
+            margin: 20px 0;
+        }
+
+        .form-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+            .form-group label {
+                font-weight: 500;
+                color: #444;
+                margin-bottom: 8px;
+                display: block;
+            }
+
+        .form-control {
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 10px 15px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+            .form-control:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+                background: #fff;
+                outline: none;
+            }
+
+            .form-control[readonly] {
+                background: #e9ecef;
+                cursor: not-allowed;
+            }
+
+        .text-danger {
+            color: var(--error-color);
+            font-size: 0.875rem;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .validation-summary {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--error-color);
+            padding: 10px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            border-radius: var(--border-radius);
+            padding: 10px 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+            .btn-primary:hover {
+                background: #0056b3;
+                border-color: #0056b3;
+                box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+            }
+
+        .btn-secondary {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+            .btn-secondary:hover {
+                background: #5a6268;
+                border-color: #5a6268;
+                box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+            }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+            .back-link:hover {
+                color: var(--primary-color);
+            }
+
+        /* Responsive adjustments */
+       
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>Create</h1>
+        <h4>Class</h4>
+        <hr />
+
         <form asp-action="CreateClass" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div asp-validation-summary="ModelOnly" class="text-danger validation-summary"></div>
+
             <div class="form-group">
                 <label asp-for="ClassName" class="control-label"></label>
                 <input asp-for="ClassName" class="form-control" />
                 <span asp-validation-for="ClassName" class="text-danger"></span>
             </div>
+
             <div class="form-group">
-                <label asp-for="OrganizationId" class="control-label"></label>
-                <input asp-for="OrganizationId" class="form-control" />
-                <span asp-validation-for="OrganizationId" class="text-danger"></span>
+                <label class="control-label">Organization</label>
+                <input class="form-control" value="@ViewBag.OrganizationName" readonly />
+                <input type="hidden" asp-for="OrganizationId" value="@ViewBag.OrganizationId" />
             </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Create
+                </button>
+                <a asp-action="ManageClasses" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                </a>
             </div>
         </form>
     </div>
-</div>
 
-<div>
-    <a asp-action="page2">Back to List</a>
-</div>
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
     }
-}
-@Html.HiddenFor(model => model.OrganizationId)
+    @Html.HiddenFor(model => model.OrganizationId)
+</body>
+</html>

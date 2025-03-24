@@ -1,65 +1,229 @@
-﻿
-
-@model EduSubmit.Models.Student
+﻿@model EduSubmit.Models.Student
 
 @{
     ViewData["Title"] = "Edit Student";
 }
 
-<h2>Edit Student</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #007bff; /* Blue for primary actions */
+            --secondary-color: #6c757d; /* Gray for secondary actions */
+            --error-color: #dc3545; /* Red for error messages */
+            --border-radius: 8px;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
 
-<form asp-action="EditStudent" method="post">
-    <input type="hidden" asp-for="StudentId" />
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f5f6f8;
+            color: #333;
+            line-height: 1.6;
+            padding: 30px;
+        }
 
-    <div class="form-group">
-        <label asp-for="FirstName" class="control-label"></label>
-        <input asp-for="FirstName" class="form-control" />
-        <span asp-validation-for="FirstName" class="text-danger"></span>
+        h2 {
+            color: #2c3e50;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+            .form-group label {
+                font-weight: 500;
+                color: #444;
+                margin-bottom: 8px;
+                display: block;
+            }
+
+        .form-control {
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 10px 15px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+            .form-control:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+                background: #fff;
+                outline: none;
+            }
+
+            .form-control[readonly] {
+                background: #e9ecef;
+                cursor: not-allowed;
+            }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+            padding-right: 35px;
+        }
+
+        .text-danger {
+            color: var(--error-color);
+            font-size: 0.875rem;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .btn {
+            border-radius: var(--border-radius);
+            padding: 10px 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+            .btn-primary:hover {
+                background: #0056b3;
+                border-color: #0056b3;
+                box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+            }
+
+        .btn-secondary {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+            .btn-secondary:hover {
+                background: #5a6268;
+                border-color: #5a6268;
+                box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+            }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        /* Password toggle icon */
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+        /* Responsive adjustments */
+       
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Edit Student</h2>
+
+        <form asp-action="EditStudent" method="post">
+            <input type="hidden" asp-for="StudentId" />
+
+            <div class="form-group">
+                <label asp-for="FirstName" class="control-label"></label>
+                <input asp-for="FirstName" class="form-control" />
+                <span asp-validation-for="FirstName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="LastName" class="control-label"></label>
+                <input asp-for="LastName" class="form-control" />
+                <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="EmailAddress" class="control-label"></label>
+                <input asp-for="EmailAddress" class="form-control" type="email" />
+                <span asp-validation-for="EmailAddress" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="DateOfBirth" class="control-label"></label>
+                <input asp-for="DateOfBirth" class="form-control" type="date" />
+                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label">Organization</label>
+                <input class="form-control" value="@ViewBag.OrganizationName" readonly />
+                <input type="hidden" asp-for="OrganizationId" value="@ViewBag.OrganizationId" />
+            </div>
+
+            <div class="form-group">
+                <label for="ClassId" class="control-label">Class</label>
+                <select name="ClassId" id="ClassId" class="form-control"
+                        asp-items="ViewBag.Classes ?? new SelectList(Enumerable.Empty<SelectListItem>())">
+                    <option value="">-- Select Class --</option>
+                </select>
+                <span class="text-danger" asp-validation-for="ClassId"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Password" class="control-label"></label>
+                <div style="position: relative;">
+                    <input asp-for="Password" class="form-control" type="password" id="passwordInput" />
+                    <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+                </div>
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Save
+                </button>
+                <a asp-action="ManageUsers" class="btn btn-secondary">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </a>
+            </div>
+        </form>
     </div>
 
-    <div class="form-group">
-        <label asp-for="LastName" class="control-label"></label>
-        <input asp-for="LastName" class="form-control" />
-        <span asp-validation-for="LastName" class="text-danger"></span>
-    </div>
+    @section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+        <script>
+            // Password toggle functionality
+            const togglePassword = document.querySelector('#togglePassword');
+            const passwordInput = document.querySelector('#passwordInput');
 
-    <div class="form-group">
-        <label asp-for="EmailAddress" class="control-label"></label>
-        <input asp-for="EmailAddress" class="form-control" type="email" />
-        <span asp-validation-for="EmailAddress" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="DateOfBirth" class="control-label"></label>
-        <input asp-for="DateOfBirth" class="form-control" type="date" />
-        <span asp-validation-for="DateOfBirth" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="Password" class="control-label"></label>
-        <input asp-for="Password" class="form-control" type="password" />
-        <span asp-validation-for="Password" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="OrganizationId" class="control-label">Organization</label>
-        <select asp-for="OrganizationId" class="form-control" asp-items="@(new SelectList(ViewBag.Organizations, "OrganizationId", "OrganizationName"))">
-            <option value="">-- Select Organization --</option>
-        </select>
-        <span asp-validation-for="OrganizationId" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="ClassId" class="control-label">Class</label>
-        <select asp-for="ClassId" class="form-control" asp-items="@(new SelectList(ViewBag.Classes, "ClassId", "ClassName"))">
-            <option value="">-- Select Class --</option>
-        </select>
-        <span asp-validation-for="ClassId" class="text-danger"></span>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a asp-action="Page1" class="btn btn-secondary">Cancel</a>
-</form>
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+            togglePassword.addEventListener('click', function () {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.classList.toggle('fa-eye');
+                this.classList.toggle('fa-eye-slash');
+            });
+        </script>
+    }
+</body>
+</html>

@@ -1,68 +1,4 @@
-﻿@*
-@{
-    Layout = "~/Views/Shared/_InstructorLayout.cshtml";
-}
-@model List<EduSubmit.Models.Assignment>
-
-@{
-    ViewData["Title"] = "Assignments";
-}
-
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Assignments</h2>
-        <a asp-controller="Instructor" asp-action="CreateAssignment" class="btn btn-primary">
-            + Create Assignment
-        </a>
-    </div>
-
-    <div class="row">
-        @foreach (var assignment in Model)
-        {
-            <div class="col-md-4">
-                <div class="card shadow-sm p-3 mb-4 bg-white rounded">
-                    <div class="card-body">
-                        <h5 class="card-title">@assignment.Title</h5>
-                        <p class="text-muted">
-                            <i class="fas fa-book"></i> Subject: @assignment.SubjectName
-                        </p>
-                        <p class="text-muted">
-                            <i class="fas fa-users"></i> Class: @assignment.Class?.ClassName
-                        </p>
-                        <p class="text-muted">
-                            <i class="fas fa-calendar-alt"></i> Due: @assignment.DueDate.ToString("yyyy-MM-dd")
-                        </p>
-                        <p><i class="fas fa-trophy"></i> @assignment.Points points</p>
-                        <p><i class="fas fa-users"></i> Submissions: @(assignment.Submissions != null ? assignment.Submissions.Count() : 0)</p>
-
-                        <div class="d-flex justify-content-between mt-3">
-                            <a asp-controller="Instructor" asp-action="EditAssignment" asp-route-id="@assignment.AssignmentId" class="text-primary">
-                                
-                                <button class="btn btn-success">
-                                    <i class="fas fa-trash"></i> Edit
-                                </button>
-
-                            </a>
-                        
-                            <a asp-controller="Instructor" asp-action="DeleteAssignment" asp-route-id="@assignment.AssignmentId" class="btn btn-danger">
-                                <i class="fas fa-trash"></i> Delete
-                            </a>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
-</div>
-
-<!-- FontAwesome Icons (If not already included) -->
-<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-*@
-
-
-
-
+﻿
 @{
     Layout = "~/Views/Shared/_InstructorLayout.cshtml";
     ViewData["Title"] = "Assignments";
@@ -72,12 +8,11 @@
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Assignments</h2>
+        <h3>Assignments</h3>
         <a asp-controller="Instructor" asp-action="CreateAssignment" class="btn btn-primary">
             + Create Assignment
         </a>
     </div>
-
 
     <form method="get" asp-action="Assignments">
         <div class="row">
@@ -93,7 +28,7 @@
                 </select>
             </div>
 
-            <!-- Subject Name Filter (Uses SubjectName column from Assignments table) -->
+            <!-- Subject Name Filter -->
             <div class="col-md-3">
                 <label>Subject Name</label>
                 <input type="text" name="subject" class="form-control" placeholder="Enter subject">
@@ -123,44 +58,42 @@
             </div>
         </div>
     </form>
-
-
+    <br />
 
     <div class="row">
         @foreach (var assignment in Model)
         {
             <div class="col-md-4">
-                <div class="card shadow-sm p-3 mb-4 bg-white rounded">
-                    <div class="card-body">
-                        <h5 class="card-title">@assignment.Title</h5>
-                        <p class="text-muted">
-                            <i class="fas fa-book"></i> Subject: @assignment.SubjectName
-                        </p>
-                        <p class="text-muted">
-                            <i class="fas fa-users"></i> Class: @assignment.Class?.ClassName
-                        </p>
-                        <p class="text-muted">
-                            <i class="fas fa-calendar-alt"></i> Due: @assignment.DueDate.ToString("yyyy-MM-dd")
-                        </p>
-                        <p><i class="fas fa-trophy"></i> @assignment.Points points</p>
-                        <p><i class="fas fa-users"></i> Submissions: @(assignment.Submissions != null ? assignment.Submissions.Count() : 0)</p>
+                <!-- ✅ Wrapping the entire card with <a> tag -->
+                <a asp-controller="Instructor" asp-action="AssignmentDetails" asp-route-id="@assignment.AssignmentId" class="text-decoration-none">
+                    <div class="card shadow-sm p-3 mb-4 bg-white rounded">
+                        <div class="card-body">
+                            <h5 class="card-title">@assignment.Title</h5>
+                            <p>
+                                <i class="fas fa-book"></i> Subject: @assignment.SubjectName
+                            </p>
+                            <p>
+                                <i class="fas fa-users"></i> Class: @assignment.Class?.ClassName
+                            </p>
+                            <p>
+                                <i class="fas fa-calendar-alt"></i> Due: @assignment.DueDate.ToString("yyyy-MM-dd")
+                            </p>
+                            <p><i class="fas fa-trophy"></i> @assignment.Points points</p>
+                            <p><i class="fas fa-users"></i> Submissions: @(assignment.Submissions != null ? assignment.Submissions.Count() : 0)</p>
 
-
-                        <div class="d-flex justify-content-between mt-3">
-                            <a asp-controller="Instructor" asp-action="EditAssignment" asp-route-id="@assignment.AssignmentId" class="text-primary">
-                                @* <i class="fas fa-edit"></i> *@
-                                <button class="btn btn-success">
+                            <div class="d-flex justify-content-between mt-3">
+                                <a asp-controller="Instructor" asp-action="EditAssignment" asp-route-id="@assignment.AssignmentId" class="btn btn-success">
                                     <i class="fas fa-trash"></i> Edit
-                                </button>
-                            </a>
+                                </a>
 
-                            <a asp-controller="Instructor" asp-action="DeleteAssignment" asp-route-id="@assignment.AssignmentId" class="btn btn-danger">
-                                <i class="fas fa-trash"></i> Delete
-                            </a>
+                                <a asp-controller="Instructor" asp-action="DeleteAssignment" asp-route-id="@assignment.AssignmentId" class="btn btn-danger">
+                                    <i class="fas fa-trash"></i> Delete
+                                </a>
 
+                            </div>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
         }
     </div>
@@ -169,4 +102,114 @@
 <!-- FontAwesome Icons (If not already included) -->
 <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 
+<style>
+    /* General Container Styling */
+    .container {
+        max-width: 95%;
+        margin: auto;
+    }
 
+    h3 {
+        font-weight: 600;
+        color: #212529;
+        border-bottom: 3px solid #6e8efb;
+        display: inline-block;
+        padding-bottom: 5px;
+    }
+
+    /* Filter Form Styling */
+    form {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+
+        form label {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+    .form-control {
+        border-radius: 6px;
+        border: 1px solid #ced4da;
+        padding: 10px;
+        transition: border 0.3s ease-in-out;
+    }
+
+        .form-control:focus {
+            border-color: #4CAF50;
+            box-shadow: 0px 0px 5px rgba(76, 175, 80, 0.5);
+        }
+
+    /* Assignments Cards */
+    .card {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.12);
+        transition: all 0.3s ease-in-out;
+        border: 1px thin gray;
+        background: #ffffff;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.2);
+        }
+
+    /* Card Body */
+    .card-body {
+        padding: 20px;
+    }
+
+    .card-title {
+        font-weight: 700;
+        color: #333;
+    }
+
+    /* Muted Text */
+    .text-muted {
+        font-size: 14px;
+        color: #6c757d !important;
+    }
+
+    /* Button Styling */
+    .btn-success, .btn-danger {
+        border-radius: 5px;
+        padding: 8px 15px;
+        font-weight: 600;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .btn-success {
+        background-color: #4CAF50;
+        border: none;
+    }
+
+        .btn-success:hover {
+            background: #388E3C;
+        }
+
+    .btn-danger {
+        background-color: #E53935;
+        border: none;
+    }
+
+        .btn-danger:hover {
+            background: #C62828;
+        }
+
+    /* Clickable Card Styling */
+    a.text-decoration-none {
+        text-decoration: none;
+        color: inherit;
+    }
+
+        a.text-decoration-none:hover .card {
+            box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.2);
+            transform: scale(1.02);
+        }
+
+    
+</style>

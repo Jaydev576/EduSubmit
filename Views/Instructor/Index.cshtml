@@ -1,132 +1,196 @@
-﻿@*
-@{
-     Layout = "~/Views/Shared/_InstructorLayout.cshtml";
-}
-
-<div class="container mt-4"> 
-     <h3 class="mb-3">Dashboard</h3>
-
-     <div class="row">
-         <!-- Active Assignments -->
-         <div class="col-md-6">
-             <div class="card">
-                 <div class="card-header">Active Assignments</div>
-                 <div class="card-body">
-                     <ul class="list-group">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Algebra Quiz #3
-                            <span>
-                                <a href="#" class="text-primary me-2"><i class="bi bi-pencil"></i></a>
-                                <a href="#" class="text-danger"><i class="bi bi-trash"></i></a>
-                            </span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- Class Performance -->
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">Class Performance</div>
-                <div class="card-body">
-                    <p><strong>Average Grade:</strong> <span class="text-success">87%</span></p>
-                    <p><strong>Students:</strong> <span class="text-primary">32</span></p>
-                    <p><strong>Submission Rate:</strong> <span class="text-success">92%</span></p>
-                    <p><strong>Avg. Rating:</strong> <span class="text-warning">4.8</span></p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-*@
-
-
-
-
-
+﻿
 @{
     Layout = "~/Views/Shared/_InstructorLayout.cshtml";
     ViewData["Title"] = "Dashboard";
     ViewData["ActivePage"] = "Index";
-}
-@{
-    ViewData["Title"] = "Dashboard";
-    var activeAssignments = ViewData["ActiveAssignments"] as List<Assignment> ?? new List<Assignment>();
-    var studentCount = ViewData["StudentCount"] as int? ?? 0;
-    var submissionRate = ViewData["SubmissionRate"] as double? ?? 0;
-    var avgGrade = ViewData["AvgGrade"] as double? ?? 0;
-    var recentMessages = ViewData["RecentMessages"] as List<dynamic> ?? new List<dynamic>();
+    var classPerformance = ViewData["ClassPerformance"] as Dictionary<string, Tuple<int, double, int, int>>;
+    var activeAssignments = ViewData["ActiveAssignments"] as Dictionary<string, List<dynamic>>;
 }
 
-<div class="container mt-4">
-    <div class="row">
-        <!-- Active Assignments -->
-        <div class="col-md-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">Active Assignments</h5>
-                </div>
-                <div class="card-body">
-                    @if (activeAssignments.Any())
-                    {
-                        @foreach (var assignment in activeAssignments)
-                        {
-                            <div class="d-flex justify-content-between border-bottom py-2">
-                                <span>@assignment.Title</span>
-                                <small class="text-muted">@assignment.DueDate.ToShortDateString()</small>
-                            </div>
-                        }
-                    }
-                    else
-                    {
-                        <p class="text-muted">No active assignments.</p>
-                    }
-                </div>
-            </div>
-        </div>
+@* <h1 class="dashboard-title">Instructor Dashboard</h1> *@
 
-        <!-- Class Performance -->
-        <div class="col-md-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">Class Performance</h5>
-                </div>
-                <div class="card-body text-center">
-                    <h4 class="text-success">@avgGrade%</h4>
-                    <p>Average Grade</p>
-                    <h5>@studentCount Students</h5>
-                    <p>Enrolled</p>
-                    <h5 class="text-primary">@submissionRate%</h5>
-                    <p>Submission Rate</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Messages -->
-        @*<div class="col-md-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">Recent Messages</h5>
-                </div>
-                <div class="card-body">
-                    @if (recentMessages.Any())
-                    {
-                        @foreach (var message in recentMessages)
-                        {
-                            <div class="d-flex justify-content-between border-bottom py-2">
-                                <span>@message.Name</span>
-                                <small class="text-muted">@message.Message</small>
-                            </div>
-                        }
-                    }
-                    else
-                    {
-                        <p class="text-muted">No messages found.</p>
-                    }
-                </div>
-            </div>
-        </div>*@
+<!-- Class Performance Section -->
+<section class="class-performance">
+    <h2 class="section-title">📊 Class Performance</h2>
+    <div class="table-container">
+        <table class="performance-table">
+            <thead>
+                <tr>
+                    <th>Class Name</th>
+                    <th>Total Assignments</th>
+                    <th>Average Grade</th>
+                    <th>Total Students</th>
+                    <th>Submission Rate</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in classPerformance)
+                {
+                    <tr>
+                        <td>@item.Key</td>
+                        <td>@item.Value.Item1</td>
+                        <td>@item.Value.Item2.ToString("F1")</td>
+                        <td>@item.Value.Item3</td>
+                        <td>@item.Value.Item4%</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
-</div>
+</section>
 
+<!-- Active Assignments Section -->
+<section class="active-assignments">
+    <h2 class="section-title">📝 Active Assignments</h2>
+
+    @foreach (var classEntry in activeAssignments)
+    {
+        <h3 class="class-heading">@classEntry.Key</h3>
+
+        <div class="assignment-container">
+            @foreach (var assignment in classEntry.Value)
+            {
+                <div class="assignment-card">
+                    <h4>@assignment.Title</h4>
+                    <p><i class="fas fa-calendar-alt"></i> <strong>Due:</strong> @assignment.DueDate.ToString("dd MMM yyyy")</p>
+                    <p><i class="fas fa-file-upload"></i> <strong>Submissions:</strong> @assignment.SubmissionCount</p>
+                </div>
+            }
+        </div>
+    }
+</section>
+
+<!-- Styles -->
+<style>
+    /* General Page Styles */
+    body {
+        font-family: 'Poppins', sans-serif;
+        background: #f4f6f9;
+        color: #333;
+    }
+
+    .dashboard-title {
+        text-align: center;
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: #444;
+        text-transform: uppercase;
+    }
+
+    .section-title {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #333;
+        margin: 20px 0;
+        border-bottom: 3px solid #6e8efb;
+        display: inline-block;
+        padding-bottom: 5px;
+    }
+
+    /* Class Performance Table */
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+        margin: 20px 0;
+        padding: 10px;
+    }
+
+    .performance-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+        .performance-table thead {
+            background: #6e8efb;
+            color: white;
+        }
+
+        .performance-table th, .performance-table td {
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .performance-table th {
+            font-size: 1.1rem;
+        }
+
+        .performance-table tbody tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .performance-table tbody tr:hover {
+            background: #e6e9ff;
+            transition: 0.3s ease-in-out;
+        }
+
+    /* Active Assignments Section */
+    .class-heading {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 10px 0;
+        color: #444;
+    }
+
+    .assignment-container {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 15px;
+        padding: 10px;
+        scrollbar-width: thin;
+        scrollbar-color: #888 #f8f9fa;
+    }
+
+        .assignment-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .assignment-container::-webkit-scrollbar-thumb {
+            background-color: #888;
+            border-radius: 4px;
+        }
+
+        .assignment-container::-webkit-scrollbar-track {
+            background: #f8f9fa;
+        }
+
+    .assignment-card {
+        background: linear-gradient(135deg, #6e8efb, #a777e3);
+        color: white;
+        border-radius: 12px;
+        padding: 20px;
+        min-width: 280px;
+        box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease-in-out;
+    }
+
+        .assignment-card:hover {
+            transform: scale(1.05);
+        }
+
+        .assignment-card h4 {
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .assignment-card p {
+            margin: 5px 0;
+            font-size: 0.95em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .assignment-card i {
+            font-size: 1.2em;
+        }
+</style>
+
+<!-- FontAwesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">

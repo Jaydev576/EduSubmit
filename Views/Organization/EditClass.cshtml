@@ -1,35 +1,100 @@
-﻿@model EduSubmit.Models.Class
+﻿
+
+
+@model EduSubmit.Models.Class
 
 @{
     ViewData["Title"] = "Edit Class";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Ensure the layout is specified
 }
 
-<h2>Edit Class</h2>
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">Edit Class</h2>
+        </div>
+        <div class="card-body">
+            <form asp-action="EditClass" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="ClassId" />
 
-<form asp-action="EditClass" method="post">
-    @Html.AntiForgeryToken()
+                <div class="form-group mb-4">
+                    <label asp-for="ClassName" class="form-label fw-bold"></label>
+                    <input asp-for="ClassName" class="form-control" required />
+                    <span asp-validation-for="ClassName" class="text-danger"></span>
+                </div>
 
-    <input type="hidden" asp-for="ClassId" />
+                <div class="form-group mb-4">
+                    <label class="form-label fw-bold">Organization</label>
+                    <input class="form-control" value="@ViewBag.OrganizationName" readonly />
+                </div>
 
-    <div class="form-group">
-        <label asp-for="ClassName"></label>
-        <input asp-for="ClassName" class="form-control" required />
-        <span asp-validation-for="ClassName" class="text-danger"></span>
+                <div class="d-flex justify-content-between align-items-center">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-save me-2"></i>Save
+                    </button>
+                    <a asp-action="ManageClasses" class="btn btn-outline-secondary px-4">Cancel</a>
+                </div>
+            </form>
+        </div>
     </div>
+</div>
 
-    @* <div class="form-group"> *@
-    @*     <label asp-for="OrganizationId"></label> *@
-    @*     <select asp-for="OrganizationId" asp-items="ViewBag.Organizations" class="form-control"> *@
-    @*         <option value="">-- Select Organization --</option> *@
-    @*     </select> *@
-    @*     <span asp-validation-for="OrganizationId" class="text-danger"></span> *@
-    @* </div> *@
+<style>
+    .card {
+        max-width: 600px;
+        margin: 0 auto;
+        border: none;
+    }
 
-    <div class="form-group">
-        <label>Organization</label>
-        <input class="form-control" value="@ViewBag.OrganizationName" readonly /> <!-- Display Org Name -->
-    </div>
+    .card-header {
+        border-bottom: 2px solid rgba(255,255,255,0.2);
+    }
 
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-</form>
+    .form-label {
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        border-radius: 0.375rem;
+        transition: border-color 0.2s ease-in-out;
+    }
+
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+        }
+
+        .form-control[readonly] {
+            background-color: #f8f9fa;
+            opacity: 1;
+        }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+        padding: 0.5rem 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+            transform: translateY(-1px);
+        }
+
+    .btn-outline-secondary {
+        padding: 0.5rem 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+        .btn-outline-secondary:hover {
+            transform: translateY(-1px);
+        }
+
+    .text-danger {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+</style>

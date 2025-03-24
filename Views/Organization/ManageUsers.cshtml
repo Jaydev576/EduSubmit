@@ -67,7 +67,6 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-           
             <!-- Main Content -->
             <div class="col-md-9 py-4">
                 <div class="table-container">
@@ -83,12 +82,12 @@
                         </div>
                     </div>
 
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control search-box" placeholder="Search students by name or email...">
-                        <div class="input-group-append">
-                            <button class="btn btn-outline-secondary" type="button"><i class="fas fa-search"></i></button>
-                        </div>
-                    </div>
+                    @* <div class="input-group mb-3"> *@
+                    @*     <input type="text" class="form-control search-box" placeholder="Search students by name or email..."> *@
+                    @*     <div class="input-group-append"> *@
+                    @*         <button class="btn btn-outline-secondary" type="button"><i class="fas fa-search"></i></button> *@
+                    @*     </div> *@
+                    @* </div> *@
 
                     <table class="table table-hover table-bordered">
                         <thead class="thead-dark">
@@ -98,7 +97,7 @@
                                 <th>Email</th>
                                 <th>Date of Birth</th>
                                 <th>Class</th>
-                                <th>Organization</th>
+                                @* <th>Organization</th> *@
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -110,8 +109,18 @@
                                     <td>@student.FirstName @student.LastName</td>
                                     <td>@student.EmailAddress</td>
                                     <td>@student.DateOfBirth.ToShortDateString()</td>
-                                    <td>@(student.Class != null ? student.Class.ClassName.ToString() : "N/A")</td>
-                                    <td>@(student.Organization != null ? student.Organization.OrganizationId.ToString() : "N/A")</td>
+                                    <td>
+                                        @{
+                                            var classDict = ViewBag.Classes as Dictionary<int, string>; // Cast ViewBag to Dictionary
+                                            var className = classDict != null && classDict.ContainsKey(student.ClassId) ? classDict[student.ClassId] : "N/A";
+                                        }
+                                        <p>@className</p>
+                                    </td>
+
+
+
+
+                                    @* <td>@(student.Organization != null ? student.Organization.OrganizationId.ToString() : "N/A")</td> *@
                                     <td>
                                         <a asp-controller="Organization" asp-action="EditStudent" asp-route-id="@student.StudentId" class="btn btn-success btn-sm">
                                             <i class="fas fa-edit"></i> Edit

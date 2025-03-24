@@ -22,13 +22,6 @@ namespace EduSubmit.Controllers
             _context = context;
         }
 
-        // GET: Instructors
-        //public async Task<IActionResult> Index()
-        //{
-        //    //var appDbContext = _context.Instructors.Include(i => i.Organization);
-        //    //return View(await appDbContext.ToListAsync());
-        //    return View();
-        //}
 
         // GET: Instructors/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -126,40 +119,7 @@ namespace EduSubmit.Controllers
             return View(instructor);
         }
 
-        // GET: Instructors/Delete/5
-        //public async Task<IActionResult> Delete(int? id)
-        //{
-        //    if (id == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    var instructor = await _context.Instructors
-        //        .Include(i => i.Organization)
-        //        .FirstOrDefaultAsync(m => m.InstructorId == id);
-        //    if (instructor == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return View(instructor);
-        //}
-
-        //// POST: Instructors/Delete/5
-        //[HttpPost, ActionName("Delete")]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> DeleteConfirmed(int id)
-        //{
-        //    var instructor = await _context.Instructors.FindAsync(id);
-        //    if (instructor != null)
-        //    {
-        //        _context.Instructors.Remove(instructor);
-        //    }
-
-        //    await _context.SaveChangesAsync();
-        //    return RedirectToAction(nameof(Index));
-        //}
-
+        
         private bool InstructorExists(int id)
         {
             return _context.Instructors.Any(e => e.InstructorId == id);
@@ -169,37 +129,104 @@ namespace EduSubmit.Controllers
 
         // index method of dashboard
 
-        // Instructor Dashboard 
+        // Instructor Dashboard
         public IActionResult Index()
         {
-            ViewData["ActiveAssignments"] = _context.Assignments
-                                            .Where(a => a.DueDate >= DateTime.Now) // Filter for active assignments
-                                            .OrderBy(a => a.DueDate)
-                                            .Take(3)
-                                            .ToList() ?? new List<Assignment>();
+            string loggedInEmail = User.Identity.Name;
 
+            var instructor = _context.Instructors
+                                     .FirstOrDefault(i => i.EmailAddress == loggedInEmail);
 
-            int totalStudents = _context.Students.Count();
+            if (instructor == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
 
+            int instructorId = instructor.InstructorId;
 
-            ViewData["StudentCount"] = totalStudents;
+            // ✅ Fetch only classes that have assignments created by this instructor
+            var instructorClasses = _context.Classes
+                .Where(c => _context.Assignments.Any(a => a.InstructorId == instructorId && a.ClassId == c.ClassId))
+                .ToList();
 
-            int totalAssignments = _context.Assignments.Count();
-            int totalSubmissions = _context.Submissions.Count();
+            // ✅ Fetch ALL assignments (past + future) for performance calculation
+            var allAssignments = _context.Assignments
+                .Where(a => a.InstructorId == instructorId)
+                .ToList();
 
-            int totalExpectedSubmissions = totalStudents * totalAssignments; // Expected submissions
+            // ✅ Fetch only FUTURE assignments for the "Active Assignments" section
+            var upcomingAssignments = allAssignments
+                .Where(a => a.DueDate > DateTime.Now)
+                .ToList();
 
-            ViewData["SubmissionRate"] = totalExpectedSubmissions > 0
-                                         ? Math.Round(((double)totalSubmissions / totalExpectedSubmissions) * 100, 2) // Round to 2 decimal places
-                                         : 0;
+            var assignmentIds = allAssignments.Select(a => a.AssignmentId).ToList();
 
-            var grades = _context.Grades.AsNoTracking().ToList();
-            ViewData["AvgGrade"] = grades.Any()
-                                   ? Math.Round(grades.Average(g => (double)g.Score), 2) // Round to 2 decimal places
-                                   : 0;
+            var grades = _context.Grades
+                .Where(g => assignmentIds.Contains(g.AssignmentId))
+                .ToList();
 
-            return View("index");
+            var classPerformance = instructorClasses.ToDictionary(
+                c => c.ClassName,
+                c =>
+                {
+                    // ✅ Total assignments should include past & future assignments
+                    int totalAssignments = allAssignments.Count(a => a.ClassId == c.ClassId);
+
+                    var classAssignmentIds = allAssignments.Where(a => a.ClassId == c.ClassId)
+                                                           .Select(a => a.AssignmentId)
+                                                           .ToList();
+
+                    // ✅ Fix avgGrade calculation
+                    double avgGrade = classAssignmentIds.Any() && grades.Any(g => classAssignmentIds.Contains(g.AssignmentId))
+                        ? grades.Where(g => classAssignmentIds.Contains(g.AssignmentId)).Average(g => g.Score)
+                        : 0;
+
+                    int totalStudents = _context.Students.Count(s => s.ClassId == c.ClassId);
+
+                    int totalSubmissions = _context.Submissions
+                        .Where(s => classAssignmentIds.Contains(s.AssignmentId))
+                        .Count();
+
+                    // ✅ Ensure expected submissions is correctly calculated
+                    int expectedSubmissions = (totalStudents > 0 && totalAssignments > 0)
+                        ? totalStudents * totalAssignments
+                        : 1; // Prevent division by zero
+
+                    double submissionRate = Math.Round(((double)totalSubmissions / expectedSubmissions) * 100, 2);
+
+                    return new Tuple<int, double, int, int>(totalAssignments, avgGrade, totalStudents, (int)submissionRate);
+                }
+            );
+
+            ViewData["ClassPerformance"] = classPerformance;
+
+            // ✅ Ensure `activeAssignments` is always initialized
+            var activeAssignments = instructorClasses.ToDictionary(
+                c => c.ClassName,
+                c =>
+                {
+                    var classAssignments = upcomingAssignments
+                        .Where(a => a.ClassId == c.ClassId)
+                        .Select(a => new
+                        {
+                            a.AssignmentId,
+                            a.Title,
+                            a.DueDate,
+                            SubmissionCount = _context.Submissions.Count(s => s.AssignmentId == a.AssignmentId)
+                        })
+                        .ToList<dynamic>();
+
+                    return classAssignments;
+                }
+            );
+
+            ViewData["ActiveAssignments"] = activeAssignments ?? new Dictionary<string, List<dynamic>>();
+
+            return View("Index");
         }
+
+
+
 
 
         // Create Assignment (GET)
@@ -311,53 +338,6 @@ namespace EduSubmit.Controllers
             return View(assignment);
         }
 
-
-
-        //Delete Assignment (GET Confirmation)
-        //public async Task<IActionResult> DeleteAssignment(int id)
-        //{
-        //    var assignment = await _context.Assignments.FindAsync(id);
-        //    if (assignment == null) return NotFound();
-
-        //    return View(assignment);
-        //}
-
-        /*
-        [HttpGet]
-        public async Task<IActionResult> DeleteAssignment(int id)
-        {
-            var assignment = await _context.Assignments
-                .Include(a => a.Class) // Ensure Class data is loaded
-                .FirstOrDefaultAsync(a => a.AssignmentId == id);
-
-            if (assignment == null)
-            {
-                return NotFound(); // Handle case where assignment is not found
-            }
-
-            // Debugging: Check if Class is being retrieved correctly
-            Console.WriteLine($"Class Name: {assignment?.Class?.ClassName}");
-
-            return View(assignment); // Pass assignment data to confirmation view
-        }
-
-
-        //POST: Delete Assignment
-        [HttpPost, ActionName("DeleteAssignment")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var assignment = await _context.Assignments.FindAsync(id);
-            if (assignment == null) return NotFound();
-
-            _context.Assignments.Remove(assignment);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction("Assignments");
-        }
-        */
-
-
         //Delete Assignment (GET Confirmation)
         [HttpGet]
         public async Task<IActionResult> DeleteAssignment(int id)
@@ -432,20 +412,22 @@ namespace EduSubmit.Controllers
 
 
         // ✅ 7️⃣ List Assignments
-        /*
-         public async Task<IActionResult> Assignments()
-         {
-             var assignments = await _context.Assignments.Include(a => a.Class).ToListAsync();
-             return View(assignments);
-         }
-        */
-
+        
         [HttpGet]
         public async Task<IActionResult> Assignments(int? classId, string subject, DateTime? dueDate, int? minPoints, int? maxPoints)
         {
+            var userEmail = User.Identity?.Name;
+            var instructor = await _context.Instructors.FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
+
+            if (instructor == null)
+            {
+                return Unauthorized("Instructor profile not found.");
+            }
+
             var query = _context.Assignments
                 .Include(a => a.Class)
-                .Include(a => a.Submissions) // Ensure submissions are loaded
+                .Include(a => a.Submissions)
+                .Where(a => a.InstructorId == instructor.InstructorId) // Restrict assignments to logged-in instructor
                 .AsQueryable();
 
             // 🔹 Apply Filters
@@ -453,9 +435,8 @@ namespace EduSubmit.Controllers
                 query = query.Where(a => a.ClassId == classId.Value);
 
             if (!string.IsNullOrEmpty(subject))
-            {
                 query = query.Where(a => a.SubjectName.Contains(subject));
-            }
+
             if (dueDate.HasValue)
                 query = query.Where(a => a.DueDate.Date == dueDate.Value.Date);
 
@@ -483,24 +464,48 @@ namespace EduSubmit.Controllers
 
 
         // ✅ Show all student submissions (Pending grading)
+
         public async Task<IActionResult> Submissions()
         {
-            var pendingSubmissions = await _context.Submissions
+            var userEmail = User.Identity?.Name;
+            var instructor = await _context.Instructors
+                .FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
+
+            if (instructor == null)
+            {
+                return Unauthorized("Instructor profile not found.");
+            }
+
+            var submissions = await _context.Submissions
                 .Include(s => s.Student)
                 .Include(s => s.Assignment)
-                .Where(s => !_context.Grades.Any(g => g.StudentId == s.StudentId && g.AssignmentId == s.AssignmentId))
+                .Where(s => s.Assignment.InstructorId == instructor.InstructorId)
+                .Where(s => !_context.Grades.Any(g => g.AssignmentId == s.AssignmentId && g.StudentId == s.StudentId)) // ✅ Exclude graded submissions
                 .ToListAsync();
 
-            return View(pendingSubmissions); // ✅ Pass the correct model to the view
+            return View(submissions);
         }
 
 
+
         // ✅ Show all graded submissions
+
         public async Task<IActionResult> GradedSubmissions()
         {
+            var userEmail = User.Identity?.Name;
+            var instructor = await _context.Instructors
+                .FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
+
+            if (instructor == null)
+            {
+                return Unauthorized("Instructor profile not found.");
+            }
+
+            // ✅ Only fetch graded submissions for assignments created by the logged-in instructor
             var gradedSubmissions = await _context.Grades
                 .Include(g => g.Student)
                 .Include(g => g.Assignment)
+                .Where(g => g.Assignment.InstructorId == instructor.InstructorId) // 🔹 Restrict graded assignments
                 .Where(g => g.Score > 0) // Fetch only graded assignments
                 .ToListAsync();
 
@@ -509,51 +514,39 @@ namespace EduSubmit.Controllers
 
 
         // ✅ Instructor assigns a grade
+        
         public async Task<IActionResult> GradeAssignment(int studentId, int assignmentId)
         {
-            // ✅ Retrieve logged-in email
             var userEmail = User.Identity?.Name;
-            if (string.IsNullOrEmpty(userEmail))
-            {
-                return Unauthorized("User email not found. Please log in again.");
-            }
-
-            // ✅ Fetch InstructorId from the database
             var instructor = await _context.Instructors.FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
+
             if (instructor == null)
             {
                 return Unauthorized("Instructor profile not found.");
             }
 
-            int instructorId = instructor.InstructorId;
+            var submission = await _context.Submissions
+                .Include(s => s.Student)
+                .Include(s => s.Assignment)
+                .FirstOrDefaultAsync(s => s.StudentId == studentId && s.AssignmentId == assignmentId);
 
-            // ✅ Fetch Existing Grade Entry (if any)
+            if (submission == null || submission.Assignment.InstructorId != instructor.InstructorId)
+            {
+                return Unauthorized("You can only grade assignments submitted for your own assignments.");
+            }
+
             var grade = await _context.Grades
-                .Include(g => g.Student)
-                .Include(g => g.Assignment)
                 .FirstOrDefaultAsync(g => g.StudentId == studentId && g.AssignmentId == assignmentId);
 
             if (grade == null)
             {
-                var submission = await _context.Submissions
-                    .Include(s => s.Student)
-                    .Include(s => s.Assignment)
-                    .FirstOrDefaultAsync(s => s.StudentId == studentId && s.AssignmentId == assignmentId);
-
-                if (submission == null)
-                {
-                    return NotFound("Submission not found.");
-                }
-
                 grade = new Grade
                 {
                     StudentId = studentId,
                     AssignmentId = assignmentId,
                     Score = 0,
                     Remarks = "",
-                    Student = submission.Student,
-                    Assignment = submission.Assignment,
-                    InstructorId = instructorId // ✅ Use correct InstructorId from DB
+                    InstructorId = instructor.InstructorId
                 };
 
                 _context.Grades.Add(grade);
@@ -567,44 +560,43 @@ namespace EduSubmit.Controllers
 
 
         // ✅ Save the assigned grade
-        /*
+        
         [HttpPost]
         public async Task<IActionResult> GradeAssignment(int studentId, int assignmentId, float score, string remarks)
         {
-            var grade = await _context.Grades
-            .FirstOrDefaultAsync(g => g.StudentId == studentId && g.AssignmentId == assignmentId);
+            var userEmail = User.Identity?.Name;
+            var instructor = await _context.Instructors
+                .FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
 
-            if (grade == null) return NotFound();
+            if (instructor == null)
+            {
+                return Unauthorized("Instructor profile not found.");
+            }
 
-            grade.Score = score;
-            grade.Remarks = remarks;
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(GradedSubmissions)); // ✅ Redirect after grading
-        }
-        */
-        [HttpPost]
-        public async Task<IActionResult> GradeAssignment(int studentId, int assignmentId, float score, string remarks)
-        {
             var grade = await _context.Grades
                 .Include(g => g.Assignment)
                 .FirstOrDefaultAsync(g => g.StudentId == studentId && g.AssignmentId == assignmentId);
 
-            if (grade == null) return NotFound();
+            // ✅ Ensure the assignment belongs to the logged-in instructor
+            if (grade == null || grade.Assignment.InstructorId != instructor.InstructorId)
+            {
+                return Unauthorized("You can only grade assignments submitted for your own assignments.");
+            }
 
-            // ✅ Ensure score is within range 0 to assignment's max points
+            // ✅ Prevent grading an assignment outside valid score range
             if (score < 0 || score > grade.Assignment.Points)
             {
                 ModelState.AddModelError("Score", $"Score must be between 0 and {grade.Assignment.Points}.");
-                return View(grade); // Show error message
+                return View(grade);
             }
 
             grade.Score = score;
             grade.Remarks = remarks;
-
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(GradedSubmissions)); // ✅ Redirect after grading
+
+            return RedirectToAction(nameof(GradedSubmissions));
         }
+
 
 
 
@@ -629,188 +621,107 @@ namespace EduSubmit.Controllers
 
 
         //student progress
-        public async Task<IActionResult> StudentProgress(string sortBy = "completion", bool filterLow = false)
+        
+        public async Task<IActionResult> StudentProgress(int? classId, string sortBy = "completion", bool filterLow = false)
         {
-            var totalAssignments = await _context.Assignments.CountAsync(); // Total available assignments
+            string loggedInEmail = User.Identity.Name;
 
-            var studentProgressQuery = _context.Students
-                .Select(s => new
-                {
-                    Id = s.StudentId,
-                    Name = s.FirstName,
-                    LastActive = _context.Submissions
-                        .Where(sub => sub.StudentId == s.StudentId)
-                        .OrderByDescending(sub => sub.SubmissionDate)
-                        .Select(sub => sub.SubmissionDate)
-                        .FirstOrDefault(),
+            var instructor = await _context.Instructors
+                                           .FirstOrDefaultAsync(i => i.EmailAddress == loggedInEmail);
 
-                    CompletedSubmissions = _context.Submissions
-                        .Where(sub => sub.StudentId == s.StudentId)
-                        .Count(),
-
-                    SubmissionCompletionRate = totalAssignments > 0
-                        ? (_context.Submissions.Where(sub => sub.StudentId == s.StudentId).Count() * 100) / totalAssignments
-                        : 0, // Avoid division by zero
-
-                    AverageGrade = _context.Grades
-                        .Where(sub => sub.StudentId == s.StudentId)
-                        .Average(sub => (double?)sub.Score) ?? 0
-                })
-                .AsEnumerable() // Convert to IEnumerable
-                .Select(s => (dynamic)s); // Convert to dynamic
-
-            // ✅ Apply Filtering (if selected)
-            if (filterLow)
+            if (instructor == null)
             {
-                studentProgressQuery = studentProgressQuery.Where(s => s.SubmissionCompletionRate < 50);
+                return RedirectToAction("Login", "Account");
             }
 
-            // ✅ Apply Sorting
-            studentProgressQuery = sortBy switch
+            int instructorId = instructor.InstructorId;
+
+            // ✅ Fetch class IDs from assignments
+            var instructorClassIds = await _context.Assignments
+                                                   .Where(a => a.InstructorId == instructorId)
+                                                   .Select(a => a.ClassId)
+                                                   .Distinct()
+                                                   .ToListAsync();
+
+            Console.WriteLine($"Instructor's Class IDs Count: {instructorClassIds.Count}"); // Debugging
+
+            if (!instructorClassIds.Any())
             {
-                "grade" => studentProgressQuery.OrderByDescending(s => s.AverageGrade),
-                _ => studentProgressQuery.OrderByDescending(s => s.SubmissionCompletionRate) // Default: Sort by Completion %
+                ViewBag.Classes = new List<object>();  // Ensure View doesn't break
+                return View(new List<Dictionary<string, object>>());
+            }
+
+            // ✅ Get students only in instructor's classes
+            var studentQuery = _context.Students
+                                       .Where(s => instructorClassIds.Contains(s.ClassId));
+
+            if (classId.HasValue)
+            {
+                studentQuery = studentQuery.Where(s => s.ClassId == classId);
+            }
+
+            var totalAssignments = await _context.Assignments
+                                                 .Where(a => a.InstructorId == instructorId)
+                                                 .CountAsync();
+
+            var studentProgressList = await studentQuery
+            .Select(s => new Dictionary<string, object>
+            {
+        { "Id", s.StudentId },
+        { "Name", s.FirstName + " " + s.LastName },
+        { "ClassName", _context.Classes.Where(c => c.ClassId == s.ClassId).Select(c => c.ClassName).FirstOrDefault() ?? "Unknown" },
+        { "LastActive", _context.Submissions
+            .Where(sub => sub.StudentId == s.StudentId && _context.Assignments.Where(a => a.InstructorId == instructorId).Select(a => a.AssignmentId).Contains(sub.AssignmentId))
+            .OrderByDescending(sub => sub.SubmissionDate)
+            .Select(sub => (DateTime?)sub.SubmissionDate)
+            .FirstOrDefault() ?? DateTime.MinValue },
+        { "CompletedSubmissions", _context.Submissions
+            .Where(sub => sub.StudentId == s.StudentId && _context.Assignments.Where(a => a.InstructorId == instructorId).Select(a => a.AssignmentId).Contains(sub.AssignmentId))
+            .Count() },
+        { "SubmissionCompletionRate", totalAssignments > 0
+            ? (double)(_context.Submissions.Where(sub => sub.StudentId == s.StudentId && _context.Assignments.Where(a => a.InstructorId == instructorId).Select(a => a.AssignmentId).Contains(sub.AssignmentId)).Count() * 100) / totalAssignments
+            : 0.0 },
+        { "AverageGrade", _context.Grades
+            .Where(g => g.StudentId == s.StudentId && _context.Assignments.Where(a => a.InstructorId == instructorId).Select(a => a.AssignmentId).Contains(g.AssignmentId))
+            .Average(g => (double?)g.Score) ?? 0.0 }
+            }).ToListAsync();
+
+            if (filterLow)
+            {
+                studentProgressList = studentProgressList.Where(s => (double)s["SubmissionCompletionRate"] < 50).ToList();
+            }
+
+            studentProgressList = sortBy switch
+            {
+                "grade" => studentProgressList.OrderByDescending(s => (double)s["AverageGrade"]).ToList(),
+                _ => studentProgressList.OrderByDescending(s => (double)s["SubmissionCompletionRate"]).ToList()
             };
 
-            var studentList = studentProgressQuery.ToList();
+            // ✅ Fetch Class List for Dropdown
+            var classList = await _context.Classes
+                .Where(c => instructorClassIds.Contains(c.ClassId))
+                .Select(c => new Dictionary<string, object>
+                {
+                    { "ClassId", c.ClassId },
+                    { "ClassName", c.ClassName }
+                })
+                .ToListAsync();
 
-            // ✅ Compute Class Averages (Prevent Issues in View)
-            ViewBag.AverageGrade = studentList.Any() ? studentList.Average(s => (double)s.AverageGrade) : 0;
-            ViewBag.AverageSubmissionCompletion = studentList.Any() ? studentList.Average(s => (double)s.SubmissionCompletionRate) : 0;
+            //ViewBag.Classes = classList; // Store in ViewBag
 
-            return View(studentList); // Pass as List<dynamic>
+
+            Console.WriteLine($"Total Classes Fetched: {classList.Count}"); // Debugging
+
+            ViewBag.Classes = classList;
+            ViewBag.SelectedClassId = classId;
+            ViewBag.AverageGrade = studentProgressList.Any() ? studentProgressList.Average(s => (double)s["AverageGrade"]) : 0;
+            ViewBag.AverageSubmissionCompletion = studentProgressList.Any() ? studentProgressList.Average(s => (double)s["SubmissionCompletionRate"]) : 0;
+
+            return View(studentProgressList);
         }
 
 
 
-        //// ✅ 1️⃣ View All Announcements
-        //public async Task<IActionResult> Announcements()
-        //{
-        //    var announcements = await _context.Announcements
-        //        .Include(a => a.Instructor)
-        //        .Include(a => a.Comments)
-        //        .OrderByDescending(a => a.CreatedAt)
-        //        .ToListAsync();
-
-        //    return View("~/Views/Instructor/Announcements.cshtml", announcements);
-        //}
-
-        //// ✅ 2️⃣ Create Announcement (GET)
-        //public IActionResult CreateAnnouncement()
-        //{
-        //    return View("~/Views/Instructor/CreateAnnouncement.cshtml");
-        //}
-
-        //// ✅ 3️⃣ Create Announcement (POST)
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> CreateAnnouncement(Announcement announcement)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        // Get logged-in instructor ID
-        //        var userEmail = User.Identity?.Name;
-        //        var instructor = await _context.Instructors.FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
-        //        if (instructor == null) return Unauthorized();
-
-        //        announcement.InstructorId = instructor.InstructorId;
-        //        _context.Add(announcement);
-        //        await _context.SaveChangesAsync();
-        //        return RedirectToAction(nameof(Announcements));
-        //    }
-        //    return View("~/Views/Instructor/CreateAnnouncement.cshtml", announcement);
-        //}
-
-        //// ✅ 4️⃣ Edit Announcement (GET)
-        //public async Task<IActionResult> EditAnnouncement(int id)
-        //{
-        //    var announcement = await _context.Announcements.FindAsync(id);
-        //    if (announcement == null) return NotFound();
-
-        //    return View("~/Views/Instructor/EditAnnouncement.cshtml", announcement);
-        //}
-
-        //// ✅ 5️⃣ Edit Announcement (POST)
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> EditAnnouncement(int id, Announcement announcement)
-        //{
-        //    if (id != announcement.Id) return NotFound();
-
-        //    if (ModelState.IsValid)
-        //    {
-        //        _context.Update(announcement);
-        //        await _context.SaveChangesAsync();
-        //        return RedirectToAction(nameof(Announcements));
-        //    }
-        //    return View("~/Views/Instructor/EditAnnouncement.cshtml", announcement);
-        //}
-
-        //// ✅ 6️⃣ Delete Announcement (POST)
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> DeleteAnnouncement(int id)
-        //{
-        //    var announcement = await _context.Announcements.FindAsync(id);
-        //    if (announcement == null) return NotFound();
-
-        //    _context.Announcements.Remove(announcement);
-        //    await _context.SaveChangesAsync();
-        //    return RedirectToAction(nameof(Announcements));
-        //}
-
-        //// ✅ 7️⃣ Like an Announcement
-        //[HttpPost]
-        //public async Task<IActionResult> LikeAnnouncement(int id)
-        //{
-        //    var announcement = await _context.Announcements.FindAsync(id);
-        //    if (announcement == null) return NotFound();
-
-        //    announcement.LikeCount++;
-        //    await _context.SaveChangesAsync();
-        //    return RedirectToAction(nameof(Announcements));
-        //}
-
-        //// ✅ 8️⃣ Add Comment to Announcement
-        //[HttpPost]
-        //public async Task<IActionResult> AddComment(int id, string content)
-        //{
-        //    if (string.IsNullOrWhiteSpace(content))
-        //    {
-        //        return RedirectToAction(nameof(Announcements));
-        //    }
-
-        //    var userEmail = User.Identity?.Name;
-        //    var instructor = await _context.Instructors.FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
-        //    if (instructor == null) return Unauthorized();
-
-        //    var comment = new Comment
-        //    {
-        //        AnnouncementId = id,
-        //        Content = content,
-        //        InstructorId = instructor.InstructorId
-        //    };
-
-        //    _context.Comments.Add(comment);
-        //    await _context.SaveChangesAsync();
-        //    return RedirectToAction(nameof(Announcements));
-        //}
-    
-
-        //public IActionResult Messages()
-        //{
-        //    return View();
-        //}
-
-        //public IActionResult ReportsAnalytics()
-        //{
-        //    return View();
-        //}
-
-        //public IActionResult Settings()
-        //{
-        //    return View();
-        //}
 
         // Help & Support Page
         public IActionResult HelpSupport()
@@ -818,6 +729,35 @@ namespace EduSubmit.Controllers
             return View();
         }
 
-        
+
+
+        //Assignment Details
+        public async Task<IActionResult> AssignmentDetails(int id)
+        {
+            var assignment = await _context.Assignments
+                .Include(a => a.Class) // Include class details
+                .Include(a => a.Submissions) // Include submissions
+                .FirstOrDefaultAsync(a => a.AssignmentId == id);
+
+            if (assignment == null)
+            {
+                return NotFound("Assignment not found.");
+            }
+
+            // Fetch total students in class
+            int totalStudents = await _context.Students.CountAsync(s => s.ClassId == assignment.ClassId);
+
+            // Count submitted & pending submissions
+            int submittedCount = assignment.Submissions.Count();
+            int pendingCount = totalStudents - submittedCount;
+
+            ViewBag.TotalStudents = totalStudents;
+            ViewBag.SubmittedCount = submittedCount;
+            ViewBag.PendingCount = pendingCount;
+
+            return View(assignment);
+        }
+
+
     }
 }

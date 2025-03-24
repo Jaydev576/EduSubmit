@@ -6,54 +6,7 @@
 
 
 <div class="container mt-4">
-    @*
-    <h2 class="mb-4 text-center">Help & Support</h2>
-
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h5 class="card-title"><i class="bi bi-book"></i> Documentation</h5>
-                    <p class="card-text">Browse our comprehensive guides and documentation.</p>
-                    <a href="#" class="btn btn-primary">Learn More</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h5 class="card-title"><i class="bi bi-camera-video"></i> Video Tutorials</h5>
-                    <p class="card-text">Watch step-by-step video guides.</p>
-                    <a href="#" class="btn btn-primary">Learn More</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h5 class="card-title"><i class="bi bi-people"></i> Community Forum</h5>
-                    <p class="card-text">Connect with other instructors and share experiences.</p>
-                    <a href="#" class="btn btn-primary">Learn More</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h5 class="card-title"><i class="bi bi-envelope"></i> Contact Support</h5>
-                    <p class="card-text">Get help from our support team.</p>
-                    <a href="#" class="btn btn-primary">Learn More</a>
-                </div>
-            </div>
-        </div>
-    </div>
-    *@
-    <h3 class="mt-5 text-center">Frequently Asked Questions</h3>
+    <h3 class="text-center">Frequently Asked Questions</h3>
     <div class="accordion" id="faqAccordion">
         @for (int i = 1; i <= 10; i++)
         {
@@ -78,16 +31,16 @@
     {
         var questions = new[]
         {
+            "How do I navigate the Dashboard?",
             "How do I create a new assignment?",
-            "How do I grade an assignment?",
-            "Can I upload multiple files for an assignment?",
-            "How do I reset my password?",
-            "How do I add a new course?",
-            "How can I view submitted assignments?",
-            "What file formats are supported for uploads?",
-            "How do I enable notifications?",
-            "How do I contact a student?",
-            "How do I delete an assignment?"
+            "How can I view student submissions?",
+            "How do I grade submitted assignments?",
+            "How do I track student progress?",
+            "Can I edit an assignment after creating it?",
+            "How do I delete an assignment?",
+            "How do I view a student's performance history?",
+            "How can I download submitted assignments?",
+            "Where can I see graded submissions?"
         };
         return questions[index - 1];
     }
@@ -96,17 +49,27 @@
     {
         var answers = new[]
         {
-            "Go to the Assignments section, click 'New Assignment' and fill in the details.",
-            "Navigate to 'Assignments', open the submission, and assign a grade.",
-            "Yes, you can upload multiple files in PDF, DOCX, and ZIP formats.",
-            "Click 'Forgot Password' on the login page and follow the steps.",
-            "Go to the 'Courses' tab, click 'Add Course' and enter course details.",
-            "Under the 'Assignments' section, you can view all submitted assignments.",
-            "Supported file formats include PDF, DOCX, PPTX, and ZIP.",
-            "Go to 'Settings' and enable email or push notifications.",
-            "You can contact students via the 'Messages' section.",
-            "Click on an assignment, go to options, and select 'Delete'."
+            "The dashboard provides an overview of assignments, submissions, and student performance.",
+            "Go to 'Assignments', click 'Create Assignment', and fill in the required details.",
+            "Navigate to 'Student Submissions' to see submitted assignments for each class.",
+            "Open a submitted assignment from 'Student Submissions', provide feedback, and enter a grade.",
+            "Visit 'Student Progress' to track completion rates and performance trends.",
+            "Yes, click on an assignment in 'Assignments' and select 'Edit' to modify details.",
+            "Go to 'Assignments', select an assignment, and choose the 'Delete' option.",
+            "Go to 'Student Progress', select a student, and view their performance history.",
+            "Navigate to 'Student Submissions' and click on a submission to download it.",
+            "Go to 'Graded Submissions' to view assignments that have been graded."
         };
         return answers[index - 1];
     }
 }
+
+<style>
+    h3 {
+        font-weight: 600;
+        color: #212529;
+        border-bottom: 3px solid #6e8efb;
+        display: inline-block;
+        padding-bottom: 5px;
+    }
+</style>

@@ -1,0 +1,29 @@
+﻿@{
+    Layout = "~/Views/Shared/_InstructorLayout.cshtml";
+    ViewData["Title"] = "Assignment Details";
+}
+
+@model EduSubmit.Models.Assignment
+
+<div class="container mt-4">
+    <h3>@Model.Title</h3>
+    <hr>
+
+    <div class="card shadow-sm p-4">
+        <h5>Assignment Details</h5>
+        <p><strong>Subject:</strong> @Model.SubjectName</p>
+        <p><strong>Assignment Description:</strong> @Model.Description</p>
+        <p><strong>Class:</strong> @Model.Class?.ClassName</p>
+        <p><strong>Due Date:</strong> @Model.DueDate.ToString("dd MMM yyyy")</p>
+        <p><strong>Points:</strong> @Model.Points</p>
+    </div>
+
+    <div class="card shadow-sm p-4 mt-3">
+        <h5>Submission Overview</h5>
+        <p><strong>Total Students:</strong> @ViewBag.TotalStudents</p>
+        <p><strong>Submissions Received:</strong> @ViewBag.SubmittedCount</p>
+        <p><strong>Pending Submissions:</strong> @ViewBag.PendingCount</p>
+    </div>
+
+    <a asp-controller="Instructor" asp-action="Assignments" class="btn btn-secondary mt-4">Back to Assignments</a>
+</div>
