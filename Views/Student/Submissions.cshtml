@@ -6,37 +6,95 @@
     Layout = "~/Views/Shared/_StudentLayout.cshtml";
 }
 
-<h2>Submissions</h2>
+<!-- Floating Header -->
+<div class="card border border-primary shadow-sm mb-3">
+    <div class="card-body text-center">
+        <h2 class="text-primary">📜 Submissions</h2>
+    </div>
+</div>
 
-@if (Model != null && Model.Any())  // Ensures the model isn't null and contains data
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>@Html.DisplayNameFor(model => model.First().Assignment.Title)</th>
-                <th>Name</th>
-                <th>Submission Date</th>
-                <th>Submission File</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var submission in Model) {
+<div class="card p-4 shadow-sm border-0" style="background: #F8FEFF; border-radius: 12px;">
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label for="subjectFilter" class="form-label fw-bold text-dark">Filter by Subject:</label>
+            <select id="subjectFilter" class="form-select border-0 shadow-sm" style="background-color: #ffffff;" onchange="filterSubmissions()">
+                <option value="">📚 All Subjects</option>
+                @foreach (var subject in Model.Select(s => s.Assignment?.SubjectName).Distinct().Where(s => s != null)) {
+                    <option value="@subject">@subject</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label for="monthFilter" class="form-label fw-bold text-dark">Filter by Due Date (Month):</label>
+            <select id="monthFilter" class="form-select border-0 shadow-sm" style="background-color: #ffffff;" onchange="filterSubmissions()">
+                <option value="" selected>📅 All Months</option> <!-- Default selection -->
+                @for (int month = 1; month <= 12; month++) {
+                    string monthName = new DateTime(DateTime.Now.Year, month, 1).ToString("MMMM");
+                    <option value="@month">@monthName</option>
+                }
+            </select>
+        </div>
+    </div>
+</div>
+
+@if (Model != null && Model.Any()) {
+    <div class="table-responsive mt-4">
+        <table class="table table-hover text-center shadow-sm border-light" id="submissionsTable" style="border-radius: 12px;">
+            <thead style="background: linear-gradient(to right, #56CCF2, #2F80ED); color: white;">
                 <tr>
-                    <td>@submission.Assignment?.Title</td>
-                    <td>@submission.Student?.FirstName @submission.Student?.LastName</td>
-                    <td>@submission.SubmissionDate.ToString("yyyy-MM-dd HH:mm")</td>
-                    <td>
-                        <a href="@submission.FilePath" target="_blank" class="btn btn-outline-primary btn-sm">📂 View File</a>
-                    </td>
-                    <td>
-                        <a asp-controller="Submission" asp-action="Edit" asp-route-assignmentId="@submission.AssignmentId" asp-route-studentId="@submission.StudentId" class="btn btn-warning btn-sm">✏ Edit</a>
-                    </td>
+                    <th>@Html.DisplayNameFor(model => model.First().Assignment.Title)</th>
+                    <th>📖 Subject</th>
+                    <th>📅 Due Date</th>
+                    <th>📅 Submission Date</th>
+                    <th>📂 Submission File</th>
+                    <th>✏ Actions</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var submission in Model) {
+                    <tr class="submission-row" data-subject="@submission.Assignment?.SubjectName" data-duemonth="@submission.Assignment?.DueDate.Month">
+                        <td class="align-middle text-dark">@submission.Assignment?.Title</td>
+                        <td class="align-middle text-dark">@submission.Assignment?.SubjectName</td>
+                        <td class="align-middle text-dark">@submission.Assignment?.DueDate.ToString("yyyy-MM-dd")</td>
+                        <td class="align-middle text-dark">@submission.SubmissionDate.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td class="align-middle">
+                            <a href="@submission.FilePath" target="_blank" class="btn btn-outline-primary btn-sm shadow-sm">📂 View File</a>
+                        </td>
+                        <td class="align-middle">
+                            <a asp-controller="Submission" asp-action="Edit" asp-route-assignmentId="@submission.AssignmentId" asp-route-studentId="@submission.StudentId" class="btn btn-outline-primary btn-sm shadow-sm">✏ Edit</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
 else {
-    <p class="text-muted">No submissions yet. 🚀 Start submitting your assignments!</p>
+    <p class="text-muted text-center fs-5 mt-4">No submissions yet. 🚀 Start submitting your assignments!</p>
 }
+
+<script>
+    function filterSubmissions() {
+        var selectedSubject = document.getElementById("subjectFilter").value.toLowerCase();
+        var selectedMonth = document.getElementById("monthFilter").value;
+        var rows = document.querySelectorAll(".submission-row");
+
+        rows.forEach(row => {
+            var subject = row.getAttribute("data-subject").toLowerCase();
+            var dueMonth = row.getAttribute("data-duemonth");
+
+            var subjectMatch = (selectedSubject === "" || subject === selectedSubject);
+            var monthMatch = (selectedMonth === "" || dueMonth === selectedMonth);
+
+            if (subjectMatch && monthMatch) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        filterSubmissions(); // Apply default filtering on page load
+    });
+</script>

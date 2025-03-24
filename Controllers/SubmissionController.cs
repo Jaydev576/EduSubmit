@@ -125,44 +125,51 @@ namespace EduSubmit.Controllers
         public async Task<IActionResult> Edit(int assignmentId, int studentId, IFormFile newFile)
         {
             var existingSubmission = await _context.Submissions
+                .Include(s => s.Assignment)
+                .ThenInclude(a => a.Class)
                 .FirstOrDefaultAsync(s => s.AssignmentId == assignmentId && s.StudentId == studentId);
 
-            if (existingSubmission == null)
+            if (existingSubmission == null || existingSubmission.Assignment == null || existingSubmission.Assignment.Class == null)
             {
                 return NotFound();
             }
 
             if (newFile != null && newFile.Length > 0)
             {
-                // Define the upload directory
-                string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
+                string sanitizedClassName = string.Concat(existingSubmission.Assignment.Class.ClassName.Split(Path.GetInvalidFileNameChars()));
+                string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", sanitizedClassName);
+
                 if (!Directory.Exists(uploadsFolder))
                 {
                     Directory.CreateDirectory(uploadsFolder);
                 }
 
-                // Keep the same file name but allow different file types
-                string newFileName = $"{studentId}_{assignmentId}{Path.GetExtension(newFile.FileName)}";
-                string filePath = Path.Combine(uploadsFolder, newFileName);
-
-                // Delete old file if it exists
-                if (System.IO.File.Exists(filePath))
+                // Delete the old file if it exists
+                if (!string.IsNullOrEmpty(existingSubmission.FilePath))
                 {
-                    System.IO.File.Delete(filePath);
+                    string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, existingSubmission.FilePath.TrimStart('/'));
+                    if (System.IO.File.Exists(oldFilePath))
+                    {
+                        System.IO.File.Delete(oldFilePath);
+                    }
                 }
 
+                // Generate a new unique filename
+                string uniqueIdentifier = Guid.NewGuid().ToString("N");
+                string originalFileName = Path.GetFileName(newFile.FileName);
+                string newFileName = $"{uniqueIdentifier}_{studentId}_{assignmentId}_{originalFileName}";
+                string newFilePath = Path.Combine(uploadsFolder, newFileName);
+
                 // Save the new file
-                using (var stream = new FileStream(filePath, FileMode.Create))
+                using (var stream = new FileStream(newFilePath, FileMode.Create))
                 {
                     await newFile.CopyToAsync(stream);
                 }
 
-                // Update the file path
-                existingSubmission.FilePath = $"/uploads/{newFileName}";
+                // Update file path and submission date
+                existingSubmission.FilePath = $"/uploads/{sanitizedClassName}/{newFileName}";
+                existingSubmission.SubmissionDate = DateTime.Now;
             }
-
-            // Update other fields (without overriding the entire object)
-            existingSubmission.SubmissionDate = DateTime.Now; // Update submission time
 
             try
             {
@@ -171,7 +178,7 @@ namespace EduSubmit.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!SubmissionExists(assignmentId, studentId))
+                if (!_context.Submissions.Any(s => s.AssignmentId == assignmentId && s.StudentId == studentId))
                 {
                     return NotFound();
                 }

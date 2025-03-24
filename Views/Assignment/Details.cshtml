@@ -1,54 +1,46 @@
 ﻿@model EduSubmit.Models.Assignment
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Student Dashboard";
+    ViewData["ActivePage"] = "Dashboard";
+    Layout = "~/Views/Shared/_StudentLayout.cshtml";
 }
 
-<h1>Details</h1>
+<div class="container mt-4">
+    <!-- Floating Header -->
+    <div class="card border border-primary shadow-sm mb-3">
+        <div class="card-body text-center">
+            <h2 class="text-primary">📄 Assignment Details</h2>
+        </div>
+    </div>
 
-<div>
-    <h4>Assignment</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Title)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Title)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DueDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DueDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Points)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Points)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.SubjectName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.SubjectName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Class)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Class.ClassName)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.AssignmentId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <!-- Assignment Details -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3 text-primary fw-bold">Title</dt>
+                <dd class="col-sm-9">@Model.Title</dd>
+
+                <dt class="col-sm-3 text-primary fw-bold">Description</dt>
+                <dd class="col-sm-9">@Model.Description</dd>
+
+                <dt class="col-sm-3 text-primary fw-bold">Due Date</dt>
+                <dd class="col-sm-9">@Model.DueDate.ToString("dddd, dd MMM yyyy")</dd>
+
+                <dt class="col-sm-3 text-primary fw-bold">Points</dt>
+                <dd class="col-sm-9">@Model.Points</dd>
+
+                <dt class="col-sm-3 text-primary fw-bold">Subject</dt>
+                <dd class="col-sm-9">@Model.SubjectName</dd>
+
+                <dt class="col-sm-3 text-primary fw-bold">Class</dt>
+                <dd class="col-sm-9">@Model.Class.ClassName</dd>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="mt-3 d-flex justify-content-between">
+        <a asp-action="Index" asp-controller="Student" class="btn btn-secondary">⬅️ Back to List</a>
+    </div>
 </div>

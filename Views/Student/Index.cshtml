@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Student Dashboard";
     ViewData["ActivePage"] = "Dashboard";
     Layout = "~/Views/Shared/_StudentLayout.cshtml";
 
@@ -7,49 +7,74 @@
 }
 
 <div class="container mt-4">
-    <div class="row">
-        <!-- Stats Cards -->
+    <!-- Floating Header -->
+    <div class="card border border-primary shadow-sm mb-3">
+        <div class="card-body text-center">
+            <h2 class="text-primary">📊 Student Dashboard</h2>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-3">
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm p-3">
-                <h5>Pending Assignments</h5>
-                <h3 class="text-warning">@ViewBag.PendingAssignments</h3>
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #FFD700, #FFA500);">
+                    <h6 class="m-0"><i class="bi bi-exclamation-circle-fill"></i> Pending Assignments</h6>
+                </div>
+                <div class="card-body text-center">
+                    <h3 class="text-warning fw-bold">@ViewBag.PendingAssignments</h3>
+                </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm p-3">
-                <h5>Submitted</h5>
-                <h3 class="text-success">@ViewBag.SubmittedAssignments</h3>
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #28A745, #218838);">
+                    <h6 class="m-0"><i class="bi bi-check-circle-fill"></i> Submitted Assignments</h6>
+                </div>
+                <div class="card-body text-center">
+                    <h3 class="text-success fw-bold">@ViewBag.SubmittedAssignments</h3>
+                </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm p-3">
-                <h5>Overall Grade</h5>
-                <h3 class="text-primary">@ViewBag.OverallGrade.ToString("0.00")%</h3>
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #007BFF, #0056b3);">
+                    <h6 class="m-0"><i class="bi bi-award-fill"></i> Overall Grade</h6>
+                </div>
+                <div class="card-body text-center">
+                    <h3 class="text-primary fw-bold">@ViewBag.OverallGrade.ToString("0.00")%</h3>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Recent Assignments -->
     <div class="mt-4">
-        <h4>Recent Assignments</h4>
-        <div class="list-group">
+        <h4>📅 Recent Assignments</h4>
+        <div class="row g-3">
             @if (recentAssignments != null && recentAssignments.Any()) {
                 @foreach (var assignment in recentAssignments) {
-                    <a href="@Url.Action("Details", "Assignment", new { id = assignment.Id })" class="list-group-item list-group-item-action">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">@assignment.Title</h5>
-                            <small class="text-muted">@assignment.DueDate.ToString("yyyy-MM-dd")</small>
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm rounded-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title text-dark">@assignment.Title</h5>
+                                    <span class="badge @(assignment.Status == "Active" ? "bg-warning" : "bg-success")">
+                                        @assignment.Status
+                                    </span>
+                                </div>
+                                <p class="text-muted small mb-1">@assignment.DueDate.ToString("yyyy-MM-dd")</p>
+                                <p class="card-text">@assignment.Description</p>
+                                <a href="@Url.Action("Details", "Assignment", new { id = assignment.Id })"
+                                   class="btn btn-info btn-sm shadow-sm">📖 View Details</a>
+                            </div>
                         </div>
-                        <p class="mb-1">@assignment.Description</p>
-                        <span class="badge @(assignment.Status == "Active" ? "bg-warning" : "bg-success") float-end">@assignment.Status</span>
-                    </a>
+                    </div>
                 }
             }
             else {
-                <p class="text-muted">No recent assignments available.</p>
+                <p class="text-muted text-center">No recent assignments available. 🎉</p>
             }
         </div>
     </div>
-
-
 </div>

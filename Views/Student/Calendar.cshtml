@@ -4,70 +4,99 @@
     Layout = "~/Views/Shared/_StudentLayout.cshtml";
     ViewData["Title"] = "Calendar";
     ViewData["ActivePage"] = "Calendar";
-    var today = DateTime.Today;
-    var daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
-    var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
-    var monthName = today.ToString("MMMM yyyy"); // Format: "March 2025"
+
+    // Get selected month & year from query parameters
+    int selectedYear = Context.Request.Query["year"].Count > 0 ? int.Parse(Context.Request.Query["year"]) : DateTime.Today.Year;
+    int selectedMonth = Context.Request.Query["month"].Count > 0 ? int.Parse(Context.Request.Query["month"]) : DateTime.Today.Month;
+
+    var daysInMonth = DateTime.DaysInMonth(selectedYear, selectedMonth);
+    var firstDayOfMonth = new DateTime(selectedYear, selectedMonth, 1);
+    var monthName = firstDayOfMonth.ToString("MMMM yyyy"); // Format: "March 2025"
 }
 
-<h2 style="text-align: center; margin-bottom: 10px;">📅 @monthName</h2>
-
-<div style="display: flex; justify-content: center;">
-    <table border="1" cellpadding="3" cellspacing="0" style="border-collapse: collapse; width: 80%; text-align: center; font-size: 14px;">
-        <thead>
-            <tr style="background-color: #ddd;">
-                <th style="width: 14.28%;">Sun</th>
-                <th style="width: 14.28%;">Mon</th>
-                <th style="width: 14.28%;">Tue</th>
-                <th style="width: 14.28%;">Wed</th>
-                <th style="width: 14.28%;">Thu</th>
-                <th style="width: 14.28%;">Fri</th>
-                <th style="width: 14.28%;">Sat</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <!-- Empty cells before the first day -->
-                @for (int i = 0; i < (int)firstDayOfMonth.DayOfWeek; i++)
-                {
-                    <td style="width: 14.28%; height: 50px;"></td>
-                }
-
-                @for (int day = 1; day <= daysInMonth; day++)
-                {
-                    var currentDate = new DateTime(today.Year, today.Month, day);
-                    var assignment = Model.FirstOrDefault(a => a.DueDate.Date == currentDate);
-
-                    string backgroundColor = "";
-                    string textColor = "black"; // Default text color
-
-                    if (assignment != null)
-                    {
-                        backgroundColor = "red";
-                        textColor = "white";
-                    }
-
-                    <td style="padding: 5px; width: 14.28%; height: 50px; border: 1px solid #ccc; background-color: @backgroundColor; color: @textColor;">
-                        <strong>@day</strong>
-
-                        @if (assignment != null)
+<div class="container mt-4 d-flex justify-content-center">
+    <div style="width: 70%;">
+        
+        <!-- Filter Section -->
+        <div class="card border border-primary shadow-sm mb-3">
+            <div class="card-body text-center">
+                <h2 class="text-primary">📅 @monthName</h2>
+                
+                <form method="get" class="d-flex justify-content-center align-items-center mt-3">
+                    <select name="month" class="form-select me-2" style="width: auto;">
+                        @for (int i = 1; i <= 12; i++)
                         {
-                            <div style="font-size: 10px;">@assignment.Title</div>
+                            <option value="@i" selected="@(i == selectedMonth ? "selected" : null)">
+                                @(new DateTime(2000, i, 1).ToString("MMMM"))
+                            </option>
                         }
-                    </td>
+                    </select>
+                    
+                    <select name="year" class="form-select me-2" style="width: auto;">
+                        @for (int y = DateTime.Today.Year - 3; y <= DateTime.Today.Year + 1; y++)
+                        {
+                            <option value="@y" selected="@(y == selectedYear ? "selected" : null)">
+                                @y
+                            </option>
+                        }
+                    </select>
+                    
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </form>
+            </div>
+        </div>
 
-                    @if ((day + (int)firstDayOfMonth.DayOfWeek) % 7 == 0) 
+        <!-- Calendar Table -->
+        <table class="table table-bordered text-center shadow-sm">
+            <thead class="text-white" style="background: linear-gradient(135deg, #007BFF, #0056b3);">
+                <tr>
+                    <th>Sun</th>
+                    <th>Mon</th>
+                    <th>Tue</th>
+                    <th>Wed</th>
+                    <th>Thu</th>
+                    <th>Fri</th>
+                    <th>Sat</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <!-- Empty cells before the first day -->
+                    @for (int i = 0; i < (int)firstDayOfMonth.DayOfWeek; i++)
                     {
-                        @:</tr><tr>
+                        <td style="height: 50px;"></td>
                     }
-                }
 
-                <!-- Fill remaining cells in the last row -->
-                @for (int i = (daysInMonth + (int)firstDayOfMonth.DayOfWeek) % 7; i < 7 && i > 0; i++)
-                {
-                    <td style="width: 14.28%; height: 50px;"></td>
-                }
-            </tr>
-        </tbody>
-    </table>
+                    @for (int day = 1; day <= daysInMonth; day++)
+                    {
+                        var currentDate = new DateTime(selectedYear, selectedMonth, day);
+                        var assignment = Model.FirstOrDefault(a => a.DueDate.Date == currentDate);
+
+                        string backgroundColor = assignment != null ? "red" : "white";
+                        string textColor = assignment != null ? "white" : "black";
+
+                        <td style="padding: 8px; height: 50px; border: 1px solid #ccc; background-color: @backgroundColor; color: @textColor;">
+                            <strong>@day</strong>
+
+                            @if (assignment != null)
+                            {
+                                <div class="small fw-bold" style="font-size: 12px;">@assignment.Title</div>
+                            }
+                        </td>
+
+                        @if ((day + (int)firstDayOfMonth.DayOfWeek) % 7 == 0) 
+                        {
+                            @:</tr><tr>
+                        }
+                    }
+
+                    <!-- Fill remaining cells in the last row -->
+                    @for (int i = (daysInMonth + (int)firstDayOfMonth.DayOfWeek) % 7; i < 7 && i > 0; i++)
+                    {
+                        <td style="height: 50px;"></td>
+                    }
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
