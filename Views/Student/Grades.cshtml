@@ -42,7 +42,6 @@
                 <thead class="text-white" style="background: linear-gradient(135deg, #007BFF, #0056b3);">
                     <tr>
                         <th>Assignment</th>
-                        <th>Name</th>
                         <th id="scoreColumn" style="cursor: pointer;">Score</th>
                         <th>Remarks</th>
                         <th>Actions</th>
@@ -52,7 +51,6 @@
                     @foreach (var grade in Model) {
                         <tr data-subject="@grade.Assignment?.SubjectName">
                             <td>@grade.Assignment?.Title</td>
-                            <td>@grade.Student?.FirstName @grade.Student?.LastName</td>
                             <td class="score">@grade.Score</td>
                             <td>@grade.Remarks</td>
                             <td>
