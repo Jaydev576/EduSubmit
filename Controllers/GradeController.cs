@@ -159,6 +159,7 @@ namespace EduSubmit.Controllers
             var grade = _context.Grades
                 .Include(g => g.Student)
                 .Include(g => g.Assignment)
+                .Include(g => g.Instructor)
                 .FirstOrDefault(g => g.StudentId == studentId && g.AssignmentId == assignmentId);
 
             if (grade == null)
