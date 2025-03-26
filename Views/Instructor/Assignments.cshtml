@@ -16,41 +16,44 @@
             + Create Coding Assignment
         </a>
     </div>
-    
+
     <form id="filterForm">
         <div class="row">
             <!-- Class Filter -->
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label>Class</label>
                 <select id="classFilter" class="form-control">
                     <option value="">All Classes</option>
-                    @foreach (var cls in ViewBag.Classes)
-                    {
+                    @foreach (var cls in ViewBag.Classes) {
                         <option value="@cls.Value">@cls.Text</option>
                     }
                 </select>
             </div>
 
-            <!-- Subject Name Filter as Dropdown -->
-            <div class="col-md-4">
+            <!-- Subject Filter -->
+            <div class="col-md-3">
                 <label>Subject Name</label>
                 <select id="subjectFilter" class="form-control">
                     <option value="">All Subjects</option>
-                    @foreach (var subject in Model.Select(a => a.SubjectName).Distinct())
-                    {
+                    @foreach (var subject in Model.Select(a => a.SubjectName).Distinct()) {
                         <option value="@subject">@subject</option>
                     }
                 </select>
             </div>
 
-            <!-- Month-wise Due Date Filter -->
-            <div class="col-md-4">
+            <!-- Due Month Dropdown -->
+            <div class="col-md-3">
                 <label>Due Month</label>
-                <input type="month" id="dueMonthFilter" class="form-control">
+                <select id="dueMonthFilter" class="form-control">
+                    <option value="">All Months</option>
+                    @foreach (var month in Model.Select(a => a.DueDate.ToString("yyyy-MM")).Distinct().OrderBy(m => m)) {
+                        <option value="@month">@DateTime.ParseExact(month, "yyyy-MM", null).ToString("MMMM yyyy")</option>
+                    }
+                </select>
             </div>
 
-            <!-- Sorting Filter -->
-            <div class="col-md-4">
+            <!-- Sort by Points -->
+            <div class="col-md-3">
                 <label>Sort by Points</label>
                 <select id="pointsSort" class="form-control">
                     <option value="">No Sorting</option>
@@ -58,14 +61,13 @@
                     <option value="desc">Descending</option>
                 </select>
             </div>
-
         </div>
     </form>
+
     <br />
 
     <div class="row" id="assignmentsContainer">
-        @foreach (var assignment in Model)
-        {
+        @foreach (var assignment in Model) {
             <div class="col-md-4 assignment-card"
                  data-class="@assignment.ClassId"
                  data-subject="@assignment.SubjectName"
@@ -92,7 +94,7 @@
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function () {
         const classFilter = document.getElementById("classFilter");
         const subjectFilter = document.getElementById("subjectFilter");
         const dueMonthFilter = document.getElementById("dueMonthFilter");
@@ -102,12 +104,12 @@
         function filterAssignments() {
             const selectedClass = classFilter.value;
             const selectedSubject = subjectFilter.value;
-            const selectedDueMonth = dueMonthFilter.value;
+            const selectedDueMonth = dueMonthFilter.value; // Now from dropdown
             const selectedSort = pointsSort.value;
 
             let assignments = Array.from(document.querySelectorAll(".assignment-card"));
 
-            // Filter logic
+            // Filtering logic
             assignments.forEach(card => {
                 const cardClass = card.getAttribute("data-class");
                 const cardSubject = card.getAttribute("data-subject");
@@ -117,17 +119,16 @@
 
                 if (selectedClass && selectedClass !== cardClass) isVisible = false;
                 if (selectedSubject && selectedSubject !== cardSubject) isVisible = false;
-                if (selectedDueMonth && selectedDueMonth !== cardDueMonth) isVisible = false;
+                if (selectedDueMonth && selectedDueMonth !== cardDueMonth && selectedDueMonth !== "") isVisible = false;
 
                 card.style.display = isVisible ? "block" : "none";
             });
 
-            // Sort logic
+            // Sorting logic
             if (selectedSort) {
                 assignments.sort((a, b) => {
                     let pointsA = parseInt(a.querySelector("p:nth-of-type(3)").textContent.replace("Points:", "").trim()) || 0;
                     let pointsB = parseInt(b.querySelector("p:nth-of-type(3)").textContent.replace("Points:", "").trim()) || 0;
-
                     return selectedSort === "asc" ? pointsA - pointsB : pointsB - pointsA;
                 });
 
@@ -153,9 +154,10 @@
 
         classFilter.addEventListener("change", filterAssignments);
         subjectFilter.addEventListener("change", filterAssignments);
-        dueMonthFilter.addEventListener("input", filterAssignments);
+        dueMonthFilter.addEventListener("change", filterAssignments);
         pointsSort.addEventListener("change", filterAssignments);
     });
+
 </script>
 
 <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
