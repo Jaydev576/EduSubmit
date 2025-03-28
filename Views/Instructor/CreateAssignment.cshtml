@@ -42,9 +42,14 @@
         </div>
 
         <div class="form-group">
-            <label asp-for="ClassId">Class</label>
-            <select asp-for="ClassId" asp-items="ViewBag.Classes" class="form-control"></select>
-            <span asp-validation-for="ClassId" class="text-danger"></span>
+            <label for="ClassId">Select Class:</label>
+            <select id="ClassId" name="ClassId" class="form-control">
+                <option value="">Select Class</option>
+                @foreach (var item in ViewBag.Classes as SelectList)
+                {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            </select>
         </div>
 
         <!-- Hidden field to store InstructorId -->

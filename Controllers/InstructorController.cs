@@ -234,7 +234,7 @@ namespace EduSubmit.Controllers
         {
             var userEmail = User.Identity?.Name;
             var instructor = await _context.Instructors
-                .Include(i => i.Organization) // Ensure Organization is loaded
+                .Include(i => i.Organization) // Load Organization details
                 .FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
 
             if (instructor == null)
@@ -242,13 +242,14 @@ namespace EduSubmit.Controllers
                 return Unauthorized("Instructor profile not found.");
             }
 
-            // Fetch classes that belong to the same organization as the instructor
+            // Get classes that belong to the instructor's organization
             var classes = await _context.Classes
-                .Where(c => c.OrganizationId == instructor.OrganizationId) // Filter by organization
+                .Where(c => c.OrganizationId == instructor.OrganizationId)
                 .ToListAsync();
 
-            ViewBag.InstructorId = instructor.InstructorId; // Pass InstructorId to View
-            ViewBag.Classes = new SelectList(classes, "ClassId", "ClassName");
+            ViewBag.InstructorId = instructor.InstructorId;
+            ViewBag.OrganizationId = instructor.OrganizationId;
+            ViewBag.Classes = new SelectList(classes, "ClassId", "ClassName"); // Pass filtered classes
 
             return View();
         }
