@@ -233,18 +233,26 @@ namespace EduSubmit.Controllers
         public async Task<IActionResult> CreateAssignment()
         {
             var userEmail = User.Identity?.Name;
-            var instructor = await _context.Instructors.FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
+            var instructor = await _context.Instructors
+                .Include(i => i.Organization) // Ensure Organization is loaded
+                .FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
 
             if (instructor == null)
             {
                 return Unauthorized("Instructor profile not found.");
             }
 
+            // Fetch classes that belong to the same organization as the instructor
+            var classes = await _context.Classes
+                .Where(c => c.OrganizationId == instructor.OrganizationId) // Filter by organization
+                .ToListAsync();
+
             ViewBag.InstructorId = instructor.InstructorId; // Pass InstructorId to View
-            ViewBag.Classes = new SelectList(await _context.Classes.ToListAsync(), "ClassId", "ClassName");
+            ViewBag.Classes = new SelectList(classes, "ClassId", "ClassName");
 
             return View();
         }
+
 
 
         // Create Assignment (POST)
@@ -253,7 +261,9 @@ namespace EduSubmit.Controllers
         public async Task<IActionResult> CreateAssignment(Assignment assignment)
         {
             var userEmail = User.Identity?.Name;
-            var instructor = await _context.Instructors.FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
+            var instructor = await _context.Instructors
+                .Include(i => i.Organization)
+                .FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
 
             if (instructor == null)
             {
@@ -269,15 +279,23 @@ namespace EduSubmit.Controllers
                 return RedirectToAction("Assignments");
             }
 
-            ViewBag.Classes = new SelectList(await _context.Classes.ToListAsync(), "ClassId", "ClassName");
+            // Fetch only relevant classes for dropdown
+            var classes = await _context.Classes
+                .Where(c => c.OrganizationId == instructor.OrganizationId)
+                .ToListAsync();
+
+            ViewBag.Classes = new SelectList(classes, "ClassId", "ClassName");
             return View(assignment);
         }
+
 
         //Edit Assignment (GET)
         public async Task<IActionResult> EditAssignment(int id)
         {
             var userEmail = User.Identity?.Name;
-            var instructor = await _context.Instructors.FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
+            var instructor = await _context.Instructors
+                .Include(i => i.Organization)
+                .FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
 
             if (instructor == null)
             {
@@ -285,18 +303,22 @@ namespace EduSubmit.Controllers
             }
 
             var assignment = await _context.Assignments.FindAsync(id);
-
             if (assignment == null) return NotFound();
 
-            // Ensure that only the instructor who created this assignment can edit it
             if (assignment.InstructorId != instructor.InstructorId)
             {
                 return Unauthorized("You are not allowed to edit this assignment.");
             }
 
-            ViewBag.Classes = new SelectList(await _context.Classes.ToListAsync(), "ClassId", "ClassName", assignment.ClassId);
+            // Fetch classes from the same organization as the instructor
+            var classes = await _context.Classes
+                .Where(c => c.OrganizationId == instructor.OrganizationId)
+                .ToListAsync();
+
+            ViewBag.Classes = new SelectList(classes, "ClassId", "ClassName", assignment.ClassId);
             return View(assignment);
         }
+
 
 
         //Edit Assignment (POST)
@@ -307,7 +329,9 @@ namespace EduSubmit.Controllers
             if (id != assignment.AssignmentId) return NotFound();
 
             var userEmail = User.Identity?.Name;
-            var instructor = await _context.Instructors.FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
+            var instructor = await _context.Instructors
+                .Include(i => i.Organization)
+                .FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
 
             if (instructor == null)
             {
@@ -315,10 +339,8 @@ namespace EduSubmit.Controllers
             }
 
             var existingAssignment = await _context.Assignments.FindAsync(id);
-
             if (existingAssignment == null) return NotFound();
 
-            // Ensure that only the instructor who created this assignment can edit it
             if (existingAssignment.InstructorId != instructor.InstructorId)
             {
                 return Unauthorized("You are not allowed to edit this assignment.");
@@ -326,7 +348,6 @@ namespace EduSubmit.Controllers
 
             if (ModelState.IsValid)
             {
-                // Keep the original InstructorId
                 assignment.InstructorId = existingAssignment.InstructorId;
 
                 _context.Entry(existingAssignment).CurrentValues.SetValues(assignment);
@@ -334,9 +355,15 @@ namespace EduSubmit.Controllers
                 return RedirectToAction("Assignments");
             }
 
-            ViewBag.Classes = new SelectList(await _context.Classes.ToListAsync(), "ClassId", "ClassName", assignment.ClassId);
+            // Fetch classes from the same organization as the instructor
+            var classes = await _context.Classes
+                .Where(c => c.OrganizationId == instructor.OrganizationId)
+                .ToListAsync();
+
+            ViewBag.Classes = new SelectList(classes, "ClassId", "ClassName", assignment.ClassId);
             return View(assignment);
         }
+
 
         //Delete Assignment (GET Confirmation)
         [HttpGet]
@@ -411,10 +438,9 @@ namespace EduSubmit.Controllers
 
 
 
-        // ✅ 7️⃣ List Assignments
-        
+      // Assignment list
         [HttpGet]
-        public async Task<IActionResult> Assignments(int? classId, string subject, DateTime? dueDate, int? minPoints, int? maxPoints)
+        public async Task<IActionResult> Assignments()
         {
             var userEmail = User.Identity?.Name;
             var instructor = await _context.Instructors.FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
@@ -424,33 +450,21 @@ namespace EduSubmit.Controllers
                 return Unauthorized("Instructor profile not found.");
             }
 
-            var query = _context.Assignments
+            // Get all assignments created by this instructor
+            var assignments = await _context.Assignments
                 .Include(a => a.Class)
                 .Include(a => a.Submissions)
-                .Where(a => a.InstructorId == instructor.InstructorId) // Restrict assignments to logged-in instructor
-                .AsQueryable();
+                .Where(a => a.InstructorId == instructor.InstructorId)
+                .ToListAsync();
 
-            // 🔹 Apply Filters
-            if (classId.HasValue)
-                query = query.Where(a => a.ClassId == classId.Value);
+            // Load only classes for which this instructor has created assignments
+            var instructorClasses = assignments
+                .Where(a => a.Class != null)  // Ensure Class is not null
+                .Select(a => a.Class)
+                .Distinct()
+                .ToList();
 
-            if (!string.IsNullOrEmpty(subject))
-                query = query.Where(a => a.SubjectName.Contains(subject));
-
-            if (dueDate.HasValue)
-                query = query.Where(a => a.DueDate.Date == dueDate.Value.Date);
-
-            if (minPoints.HasValue)
-                query = query.Where(a => a.Points >= minPoints.Value);
-
-            if (maxPoints.HasValue)
-                query = query.Where(a => a.Points <= maxPoints.Value);
-
-            // Fetch the filtered assignments
-            var assignments = await query.ToListAsync();
-
-            // Load Class dropdown for filtering
-            ViewBag.Classes = new SelectList(await _context.Classes.ToListAsync(), "ClassId", "ClassName");
+            ViewBag.Classes = new SelectList(instructorClasses, "ClassId", "ClassName");
 
             return View(assignments);
         }
