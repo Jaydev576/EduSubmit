@@ -11,8 +11,10 @@
         <thead>
             <tr>
                 <th>Student</th>
+                <th>Subject</th>
                 <th>Assignment</th>
                 <th>Score</th>
+                <th>Max Score</th>
                 <th>Remarks</th>
                 <th>Action</th>
             </tr>
@@ -22,8 +24,10 @@
             {
                 <tr>
                     <td>@grade.Student.FirstName @grade.Student.LastName</td>
+                    <td>@grade.Assignment.SubjectName</td>
                     <td>@grade.Assignment.Title</td>
-                    <td>@(grade.Score == 0 ? "Pending" : grade.Score.ToString() + "%")</td>
+                    <td>@grade.Score</td>
+                    <td>@grade.Assignment.Points</td>
                     <td>@(string.IsNullOrEmpty(grade.Remarks) ? "No remarks" : grade.Remarks)</td>
                     <td>
                         <a href="@Url.Action("GradeAssignment", "Instructor", new { studentId = grade.StudentId, assignmentId = grade.AssignmentId })" class="text-primary"><button class="btn btn-primary">Edit Grade</button></a>

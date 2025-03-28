@@ -520,7 +520,7 @@ namespace EduSubmit.Controllers
                 .Include(g => g.Student)
                 .Include(g => g.Assignment)
                 .Where(g => g.Assignment.InstructorId == instructor.InstructorId) // 🔹 Restrict graded assignments
-                .Where(g => g.Score > 0) // Fetch only graded assignments
+                .Where(g => g.Score >= 0) // Fetch only graded assignments
                 .ToListAsync();
 
             return View(gradedSubmissions);
@@ -559,7 +559,7 @@ namespace EduSubmit.Controllers
                     StudentId = studentId,
                     AssignmentId = assignmentId,
                     Score = 0,
-                    Remarks = "",
+                    Remarks = "No Remarks",
                     InstructorId = instructor.InstructorId
                 };
 
