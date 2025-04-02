@@ -1,154 +1,4 @@
-﻿@* @{ *@
-@*     ViewData["Title"] = "Register"; *@
-@*     Layout = "~/Views/Shared/_RegisterLayout.cshtml"; *@
-@* } *@
-
-@* <div class="container mt-5"> *@
-@*     <h2 class="text-center">Register</h2> *@
-
-@*     <!-- Role Selection --> *@
-@*     <div class="btn-group d-flex mb-3" role="group"> *@
-@*         <button type="button" class="btn btn-primary active" id="studentBtn">Student</button> *@
-@*         <button type="button" class="btn btn-secondary" id="instructorBtn">Instructor</button> *@
-@*         <button type="button" class="btn btn-secondary" id="adminBtn">Admin</button> *@
-@*     </div> *@
-
-@*     <!-- Student Form --> *@
-@*     <div id="studentForm"> *@
-@*         <form asp-action="RegisterStudent" asp-controller="Register" method="post"> *@
-@*             <div class="mb-3"> *@
-@*                 <label class="form-label">First Name</label> *@
-@*                 <input type="text" class="form-control" name="FirstName" required> *@
-@*             </div> *@
-@*             <div class="mb-3"> *@
-@*                 <label class="form-label">Last Name</label> *@
-@*                 <input type="text" class="form-control" name="LastName" required> *@
-@*             </div> *@
-@*             <div class="mb-3"> *@
-@*                 <label class="form-label">Email</label> *@
-@*                 <input type="email" class="form-control" name="EmailAddress" required> *@
-@*             </div> *@
-@*             <div class="mb-3"> *@
-@*                 <label class="form-label">Password</label> *@
-@*                 <input type="password" class="form-control" name="Password" required> *@
-@*             </div> *@
-@*             <div class="mb-3"> *@
-@*                 <label class="form-label">Date of Birth</label> *@
-@*                 <input type="date" class="form-control" name="DateOfBirth" required> *@
-@*             </div> *@
-@*             <div class="form-group"> *@
-@*                 <label for="OrganizationId" class="control-label">Organization</label> *@
-@*                 <select name="OrganizationId" id="OrganizationId" class="form-control" asp-items="ViewBag.Organizations"> *@
-@*                     <option value="">-- Select Organization --</option> *@
-@*                 </select> *@
-@*                 <span name="OrganizationId" class="text-danger"></span> *@
-@*             </div> *@
-@*             <div class="form-group"> *@
-@*                 <label for="ClassId" class="control-label">Class</label> *@
-@*                 <select name="ClassId" id="ClassId" class="form-control" asp-items="ViewBag.Classes"> *@
-@*                     <option value="">-- Select Class --</option> *@
-@*                 </select> *@
-@*                 <span name="ClassId" class="text-danger"></span> *@
-@*             </div> *@
-@*             <button type="submit" class="btn btn-success">Register as Student</button> *@
-@*         </form> *@
-@*     </div> *@
-
-@*     <!-- Instructor Form --> *@
-@*     <div id="instructorForm" class="d-none"> *@
-@*         <form asp-action="RegisterInstructor" asp-controller="Register" method="post"> *@
-@*             <div class="mb-3"> *@
-@*                 <label class="form-label">First Name</label> *@
-@*                 <input type="text" class="form-control" name="FirstName" required> *@
-@*             </div> *@
-@*             <div class="mb-3"> *@
-@*                 <label class="form-label">Last Name</label> *@
-@*                 <input type="text" class="form-control" name="LastName" required> *@
-@*             </div> *@
-@*             <div class="mb-3"> *@
-@*                 <label class="form-label">Email</label> *@
-@*                 <input type="email" class="form-control" name="EmailAddress" required> *@
-@*             </div> *@
-@*             <div class="mb-3"> *@
-@*                 <label class="form-label">Password</label> *@
-@*                 <input type="password" class="form-control" name="Password" required> *@
-@*             </div> *@
-@*             <div class="form-group"> *@
-@*                 <label for="OrganizationId" class="control-label">Organization</label> *@
-@*                 <select name="OrganizationId" id="OrganizationId" class="form-control" asp-items="ViewBag.Organizations"> *@
-@*                     <option value="">-- Select Organization --</option> *@
-@*                 </select> *@
-@*                 <span name="OrganizationId" class="text-danger"></span> *@
-@*             </div> *@
-@*             <button type="submit" class="btn btn-success">Register as Instructor</button> *@
-@*         </form> *@
-@*     </div> *@
-
-@*     <!-- Admin Form --> *@
-@*     <div id="adminForm" class="d-none"> *@
-@*         <form asp-action="RegisterAdmin" asp-controller="Register" method="post"> *@
-@*             <div class="mb-3"> *@
-@*                 <label class="form-label">Organization Name</label> *@
-@*                 <input type="text" class="form-control" name="OrganizationName" required> *@
-@*             </div> *@
-@*             <div class="mb-3"> *@
-@*                 <label class="form-label">Username</label> *@
-@*                 <input type="text" class="form-control" name="Username" required> *@
-@*             </div> *@
-@*             <div class="mb-3"> *@
-@*                 <label class="form-label">Email</label> *@
-@*                 <input type="email" class="form-control" name="EmailAddress" required> *@
-@*             </div> *@
-@*             <div class="mb-3"> *@
-@*                 <label class="form-label">Password</label> *@
-@*                 <input type="password" class="form-control" name="Password" required> *@
-@*             </div> *@
-@*             <button type="submit" class="btn btn-success">Register as Admin</button> *@
-@*         </form> *@
-@*     </div> *@
-@* </div> *@
-
-@* @section Scripts { *@
-@*     <script> *@
-@*         document.addEventListener("DOMContentLoaded", function () { *@
-@*             const studentBtn = document.getElementById("studentBtn"); *@
-@*             const instructorBtn = document.getElementById("instructorBtn"); *@
-@*             const adminBtn = document.getElementById("adminBtn"); *@
-
-@*             const studentForm = document.getElementById("studentForm"); *@
-@*             const instructorForm = document.getElementById("instructorForm"); *@
-@*             const adminForm = document.getElementById("adminForm"); *@
-
-@*             function showForm(selectedBtn, formToShow) { *@
-@*                 studentBtn.classList.remove("btn-primary"); *@
-@*                 studentBtn.classList.add("btn-secondary"); *@
-@*                 instructorBtn.classList.remove("btn-primary"); *@
-@*                 instructorBtn.classList.add("btn-secondary"); *@
-
-
-@*                 adminBtn.classList.remove("btn-primary"); *@
-@*                 adminBtn.classList.add("btn-secondary"); *@
-
-@*                 selectedBtn.classList.remove("btn-secondary"); *@
-@*                 selectedBtn.classList.add("btn-primary"); *@
-
-@*                 studentForm.classList.add("d-none"); *@
-@*                 instructorForm.classList.add("d-none"); *@
-@*                 adminForm.classList.add("d-none"); *@
-
-@*                 formToShow.classList.remove("d-none"); *@
-@*             } *@
-
-@*             studentBtn.addEventListener("click", () => showForm(studentBtn, studentForm)); *@
-@*             instructorBtn.addEventListener("click", () => showForm(instructorBtn, instructorForm)); *@
-@*             adminBtn.addEventListener("click", () => showForm(adminBtn, adminForm)); *@
-@*         }); *@
-@*     </script> *@
-@* } *@
-
-
-
-
+﻿@model Student
 
 @{
     ViewData["Title"] = "Register";
@@ -156,135 +6,151 @@
 }
 
 <div class="container mt-5">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white text-center">
-            <h2 class="mb-0">Register</h2>
+    <div class="card shadow-lg">
+        <div class="card-header bg-gradient-primary text-white text-center">
+            <h2 class="mb-0 fw-bold">Create Your Account</h2>
+            <p class="text-light mt-1">Select your role to get started</p>
         </div>
-        <div class="card-body">
+        <div class="card-body p-4">
             <!-- Role Selection -->
-            <div class="btn-group d-flex mb-4" role="group">
-                <button type="button" class="btn btn-primary active" id="studentBtn">
+            <div class="btn-group d-flex mb-4 justify-content-center gap-2" role="group">
+                <button type="button" class="btn btn-primary shadow-sm active" id="studentBtn">
                     <i class="bi bi-person me-2"></i>Student
                 </button>
-                <button type="button" class="btn btn-secondary" id="instructorBtn">
+                <button type="button" class="btn btn-outline-primary shadow-sm" id="instructorBtn">
                     <i class="bi bi-person-gear me-2"></i>Instructor
                 </button>
-                <button type="button" class="btn btn-secondary" id="adminBtn">
+                <button type="button" class="btn btn-outline-primary shadow-sm" id="adminBtn">
                     <i class="bi bi-shield-lock me-2"></i>Admin
                 </button>
             </div>
 
             <!-- Student Form -->
-            <div id="studentForm">
-                <form asp-action="RegisterStudent" asp-controller="Register" method="post">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">First Name</label>
-                            <input type="text" class="form-control" name="FirstName" required />
+            <div id="studentForm" class="form-container">
+                <form asp-action="RegisterStudent" asp-controller="Register" method="post" class="needs-validation" novalidate>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">First Name</label>
+                            <input type="text" class="form-control shadow-sm" name="FirstName" required />
+                            <div class="invalid-feedback">Please enter your first name.</div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Last Name</label>
-                            <input type="text" class="form-control" name="LastName" required />
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Last Name</label>
+                            <input type="text" class="form-control shadow-sm" name="LastName" required />
+                            <div class="invalid-feedback">Please enter your last name.</div>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Email</label>
-                        <input type="email" class="form-control" name="EmailAddress" required />
+                        <label class="form-label fw-semibold">Email</label>
+                        <input type="email" class="form-control shadow-sm" name="EmailAddress" required />
+                        <div class="invalid-feedback">Please enter a valid email address.</div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Password</label>
-                        <input type="password" class="form-control" name="Password" required />
+                        <label class="form-label fw-semibold">Password</label>
+                        <input type="password" class="form-control shadow-sm" name="Password" required />
+                        <div class="invalid-feedback">Please enter a password.</div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Date of Birth</label>
-                        <input type="date" class="form-control" name="DateOfBirth" required />
+                        <label class="form-label fw-semibold">Date of Birth</label>
+                        <input type="date" class="form-control shadow-sm" name="DateOfBirth" required />
+                        <div class="invalid-feedback">Please enter your date of birth.</div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="OrganizationId" class="form-label fw-bold">Organization</label>
-                            <select name="OrganizationId" id="OrganizationId" class="form-control" asp-items="ViewBag.Organizations" required>
-                                <option value="">-- Select Organization --</option>
-                            </select>
-                            <span name="OrganizationId" class="text-danger"></span>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="ClassId" class="form-label fw-bold">Class</label>
-                            <select name="ClassId" id="ClassId" class="form-control" asp-items="ViewBag.Classes" required>
-                                <option value="">-- Select Class --</option>
-                            </select>
-                            <span name="ClassId" class="text-danger"></span>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Organization</label>
+                        <select id="OrganizationId" name="OrganizationId" class="form-select shadow-sm" required>
+                            <option value="">-- Select Organization --</option>
+                            @foreach (var org in ViewBag.Organizations)
+                            {
+                                <option value="@org.Value">@org.Text</option>
+                            }
+                        </select>
+                        <div class="invalid-feedback">Please select an organization.</div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Class</label>
+                        <select id="ClassId" name="ClassId" class="form-select shadow-sm" required>
+                            <option value="">-- Select Class --</option>
+                        </select>
+                        <div class="invalid-feedback">Please select a class.</div>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
-                        <button type="submit" class="btn btn-success px-4">
+                        <button type="submit" class="btn btn-success shadow-sm px-4">
                             <i class="bi bi-person-plus me-2"></i>Register as Student
                         </button>
-                        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary px-4">Cancel</a>
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary shadow-sm px-4">Cancel</a>
                     </div>
                 </form>
             </div>
 
             <!-- Instructor Form -->
-            <div id="instructorForm" class="d-none">
-                <form asp-action="RegisterInstructor" asp-controller="Register" method="post">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">First Name</label>
-                            <input type="text" class="form-control" name="FirstName" required />
+            <div id="instructorForm" class="form-container d-none">
+                <form asp-action="RegisterInstructor" asp-controller="Register" method="post" class="needs-validation" novalidate>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">First Name</label>
+                            <input type="text" class="form-control shadow-sm" name="FirstName" required />
+                            <div class="invalid-feedback">Please enter your first name.</div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Last Name</label>
-                            <input type="text" class="form-control" name="LastName" required />
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Last Name</label>
+                            <input type="text" class="form-control shadow-sm" name="LastName" required />
+                            <div class="invalid-feedback">Please enter your last name.</div>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Email</label>
-                        <input type="email" class="form-control" name="EmailAddress" required />
+                        <label class="form-label fw-semibold">Email</label>
+                        <input type="email" class="form-control shadow-sm" name="EmailAddress" required />
+                        <div class="invalid-feedback">Please enter a valid email address.</div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Password</label>
-                        <input type="password" class="form-control" name="Password" required />
+                        <label class="form-label fw-semibold">Password</label>
+                        <input type="password" class="form-control shadow-sm" name="Password" required />
+                        <div class="invalid-feedback">Please enter a password.</div>
                     </div>
-                    <div class="mb-3">
-                        <label for="OrganizationId" class="form-label fw-bold">Organization</label>
-                        <select name="OrganizationId" id="OrganizationId" class="form-control" asp-items="ViewBag.Organizations" required>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Organization</label>
+                        <select name="OrganizationId" id="OrganizationId" class="form-select shadow-sm" asp-items="ViewBag.Organizations" required>
                             <option value="">-- Select Organization --</option>
                         </select>
-                        <span name="OrganizationId" class="text-danger"></span>
+                        <div class="invalid-feedback">Please select an organization.</div>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
-                        <button type="submit" class="btn btn-success px-4">
+                        <button type="submit" class="btn btn-success shadow-sm px-4">
                             <i class="bi bi-person-plus me-2"></i>Register as Instructor
                         </button>
-                        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary px-4">Cancel</a>
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary shadow-sm px-4">Cancel</a>
                     </div>
                 </form>
             </div>
 
             <!-- Admin Form -->
-            <div id="adminForm" class="d-none">
-                <form asp-action="RegisterAdmin" asp-controller="Register" method="post">
+            <div id="adminForm" class="form-container d-none">
+                <form asp-action="RegisterAdmin" asp-controller="Register" method="post" class="needs-validation" novalidate>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Organization Name</label>
-                        <input type="text" class="form-control" name="OrganizationName" required />
+                        <label class="form-label fw-semibold">Organization Name</label>
+                        <input type="text" class="form-control shadow-sm" name="OrganizationName" required />
+                        <div class="invalid-feedback">Please enter the organization name.</div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Username</label>
-                        <input type="text" class="form-control" name="Username" required />
+                        <label class="form-label fw-semibold">Username</label>
+                        <input type="text" class="form-control shadow-sm" name="Username" required />
+                        <div class="invalid-feedback">Please enter a username.</div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Email</label>
-                        <input type="email" class="form-control" name="EmailAddress" required />
+                        <label class="form-label fw-semibold">Email</label>
+                        <input type="email" class="form-control shadow-sm" name="EmailAddress" required />
+                        <div class="invalid-feedback">Please enter a valid email address.</div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Password</label>
-                        <input type="password" class="form-control" name="Password" required />
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Password</label>
+                        <input type="password" class="form-control shadow-sm" name="Password" required />
+                        <div class="invalid-feedback">Please enter a password.</div>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
-                        <button type="submit" class="btn btn-success px-4">
+                        <button type="submit" class="btn btn-success shadow-sm px-4">
                             <i class="bi bi-person-plus me-2"></i>Register as Admin
                         </button>
-                        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary px-4">Cancel</a>
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary shadow-sm px-4">Cancel</a>
                     </div>
                 </form>
             </div>
@@ -293,83 +159,131 @@
 </div>
 
 <style>
-    .card {
-        max-width: 800px;
-        margin: 0 auto;
-        border: none;
+    :root {
+        --primary: #007bff;
+        --success: #28a745;
+        --secondary: #6c757d;
+        --light-bg: #f8f9fa;
     }
 
-    .card-header {
-        border-bottom: 2px solid rgba(255,255,255,0.2);
+    body {
+        background: var(--light-bg);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .card {
+        max-width: 600px; /* Reduced from 900px to make it narrower */
+        width: 100%;
+        border-radius: 15px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, var(--primary), #0056b3);
     }
 
     .btn-group .btn {
-        transition: all 0.3s ease;
-        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        padding: 0.75rem 2rem;
         font-weight: 500;
+        transition: all 0.3s ease;
     }
 
-    .btn-group .btn-primary {
-        background-color: #007bff;
-        border-color: #007bff;
+    .btn-primary {
+        background: var(--primary);
+        border: none;
     }
 
-        .btn-group .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #0056b3;
+        .btn-primary.active, .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
         }
 
-    .btn-group .btn-secondary {
-        background-color: #6c757d;
-        border-color: #6c757d;
+    .btn-outline-primary {
+        border: 2px solid var(--primary);
+        color: var(--primary);
     }
 
-        .btn-group .btn-secondary:hover {
-            background-color: #5a6268;
-            border-color: #545b62;
+        .btn-outline-primary:hover {
+            background: var(--primary);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
         }
+
+    .form-container {
+        animation: fadeIn 0.3s ease-in-out;
+    }
 
     .form-label {
         color: #333;
+        font-size: 1rem;
         margin-bottom: 0.5rem;
     }
 
     .form-control, .form-select {
-        border-radius: 0.375rem;
-        transition: border-color 0.2s ease-in-out;
+        border-radius: 8px;
+        padding: 0.75rem;
+        border: 1px solid #ced4da;
+        transition: all 0.3s ease;
     }
 
         .form-control:focus, .form-select:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
         }
 
     .btn-success {
-        background-color: #28a745;
-        border-color: #28a745;
-        padding: 0.5rem 1.5rem;
+        background: var(--success);
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
         transition: all 0.3s ease;
     }
 
         .btn-success:hover {
-            background-color: #218838;
-            border-color: #1e7e34;
-            transform: translateY(-1px);
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
         }
 
     .btn-outline-secondary {
-        padding: 0.5rem 1.5rem;
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
         transition: all 0.3s ease;
     }
 
         .btn-outline-secondary:hover {
-            transform: translateY(-1px);
+            background: var(--secondary);
+            color: #fff;
+            transform: translateY(-2px);
         }
 
-    .text-danger {
+    .invalid-feedback {
+        display: none;
         font-size: 0.875rem;
-        margin-top: 0.25rem;
+        color: #dc3545;
     }
+
+    .form-control:invalid:focus, .form-select:invalid:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+
+    .needs-validation.was-validated .form-control:invalid ~ .invalid-feedback,
+    .needs-validation.was-validated .form-select:invalid ~ .invalid-feedback {
+        display: block;
+    }
+
 </style>
 
 @section Scripts {
@@ -378,20 +292,19 @@
             const studentBtn = document.getElementById("studentBtn");
             const instructorBtn = document.getElementById("instructorBtn");
             const adminBtn = document.getElementById("adminBtn");
-
             const studentForm = document.getElementById("studentForm");
             const instructorForm = document.getElementById("instructorForm");
             const adminForm = document.getElementById("adminForm");
 
             function showForm(selectedBtn, formToShow) {
                 studentBtn.classList.remove("btn-primary", "active");
-                studentBtn.classList.add("btn-secondary");
+                studentBtn.classList.add("btn-outline-primary");
                 instructorBtn.classList.remove("btn-primary", "active");
-                instructorBtn.classList.add("btn-secondary");
+                instructorBtn.classList.add("btn-outline-primary");
                 adminBtn.classList.remove("btn-primary", "active");
-                adminBtn.classList.add("btn-secondary");
+                adminBtn.classList.add("btn-outline-primary");
 
-                selectedBtn.classList.remove("btn-secondary");
+                selectedBtn.classList.remove("btn-outline-primary");
                 selectedBtn.classList.add("btn-primary", "active");
 
                 studentForm.classList.add("d-none");
@@ -404,6 +317,41 @@
             studentBtn.addEventListener("click", () => showForm(studentBtn, studentForm));
             instructorBtn.addEventListener("click", () => showForm(instructorBtn, instructorForm));
             adminBtn.addEventListener("click", () => showForm(adminBtn, adminForm));
+
+            // Bootstrap-like form validation
+            document.querySelectorAll('.needs-validation').forEach(form => {
+                form.addEventListener('submit', (event) => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        });
+
+        $(document).ready(function () {
+            $("#OrganizationId").change(function () {
+                var orgId = $(this).val();
+                $("#ClassId").empty();
+
+                if (orgId) {
+                    $.ajax({
+                        url: '/Register/GetClassesByOrganization',
+                        type: 'GET',
+                        data: { organizationId: orgId },
+                        success: function (response) {
+                            $("#ClassId").append('<option value="">-- Select Class --</option>');
+                            $.each(response, function (index, item) {
+                                $("#ClassId").append('<option value="' + item.classId + '">' + item.className + '</option>');
+                            });
+                        },
+                        error: function () {
+                            alert("Error loading classes.");
+                        }
+                    });
+                }
+            });
         });
     </script>
 }

@@ -4,33 +4,233 @@
 }
 
 <div class="container mt-5">
-    <h2 class="text-center">Login</h2>
+    <div class="card shadow-lg">
+        <div class="card-header bg-gradient-primary text-white text-center">
+            <h2 class="mb-0 fw-bold">Welcome Back</h2>
+            <p class="text-light mt-1">Log in to your account</p>
+        </div>
+        <div class="card-body p-4">
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @ViewBag.Error
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
 
-    @if (ViewBag.Error != null) {
-        <div class="alert alert-danger">@ViewBag.Error</div>
+            <form asp-action="Login" asp-controller="Account" method="post" class="needs-validation" novalidate>
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">User Type</label>
+                    <div class="btn-group d-flex gap-2" role="group">
+                        <input type="radio" class="btn-check" name="role" id="student" value="Student" required autocomplete="off">
+                        <label class="btn btn-outline-primary shadow-sm" for="student">
+                            <i class="bi bi-person me-2"></i>Student
+                        </label>
+
+                        <input type="radio" class="btn-check" name="role" id="instructor" value="Instructor" autocomplete="off">
+                        <label class="btn btn-outline-primary shadow-sm" for="instructor">
+                            <i class="bi bi-person-gear me-2"></i>Instructor
+                        </label>
+
+                        <input type="radio" class="btn-check" name="role" id="admin" value="Organization" autocomplete="off">
+                        <label class="btn btn-outline-primary shadow-sm" for="admin">
+                            <i class="bi bi-shield-lock me-2"></i>Admin
+                        </label>
+                    </div>
+                    <div class="invalid-feedback d-block mt-2" id="role-error" style="display: none;">
+                        Please select a user type.
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label fw-semibold">Email</label>
+                    <input type="email" class="form-control shadow-sm" name="email" id="email" required />
+                    <div class="invalid-feedback">Please enter a valid email address.</div>
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="form-label fw-semibold">Password</label>
+                    <input type="password" class="form-control shadow-sm" name="password" id="password" required />
+                    <div class="invalid-feedback">Please enter your password.</div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <button type="submit" class="btn btn-success shadow-sm px-4">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                    </button>
+                    <a href="@Url.Action("Register", "Register")" class="btn btn-outline-secondary shadow-sm px-4">
+                        Register
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary: #007bff;
+        --success: #28a745;
+        --secondary: #6c757d;
+        --light-bg: #f8f9fa;
     }
 
-    <form asp-action="Login" asp-controller="Account" method="post">
-        <div class="mb-3">
-            <label for="role" class="form-label">Select User Type</label>
-            <select class="form-control" name="role" required>
-                <option value="Student">Student</option>
-                <option value="Instructor">Instructor</option>
-                <option value="Organization">Admin</option>
-            </select>
-        </div>
-        <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="text" class="form-control" name="email" required>
-        </div>
-        <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" name="password" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Login</button>
-    </form>
+    body {
+        background: var(--light-bg);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
 
-    <p class="mt-3">
-        New User? <a asp-action="Register" asp-controller="Register">Register here</a>
-    </p>
-</div>
+    .container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .card {
+        max-width: 500px;
+        width: 100%;
+        border-radius: 15px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, var(--primary), #0056b3);
+    }
+
+    .form-label {
+        color: #333;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        border-radius: 8px;
+        padding: 0.75rem;
+        border: 1px solid #ced4da;
+        transition: all 0.3s ease;
+    }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+    /* Button Group Styling for User Type */
+    .btn-group {
+        justify-content: center;
+    }
+
+    .btn-check {
+        display: none;
+    }
+
+    .btn-outline-primary {
+        border-radius: 10px;
+        padding: 0.6rem 1.5rem;
+        font-weight: 500;
+        border: 2px solid var(--primary);
+        color: var(--primary);
+        background: #fff;
+        transition: all 0.3s ease;
+    }
+
+        .btn-outline-primary:hover {
+            background: var(--primary);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+
+    .btn-check:checked + .btn-outline-primary {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    .btn-check:focus + .btn-outline-primary,
+    .btn-outline-primary:focus {
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.5);
+    }
+
+    .btn-success {
+        background: var(--success);
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        transition: all 0.3s ease;
+    }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+    .btn-outline-secondary {
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        transition: all 0.3s ease;
+    }
+
+        .btn-outline-secondary:hover {
+            background: var(--secondary);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+    .alert-danger {
+        border-radius: 8px;
+        padding: 0.75rem 1.25rem;
+        font-size: 0.9rem;
+    }
+
+    .invalid-feedback {
+        display: none;
+        font-size: 0.875rem;
+        color: #dc3545;
+    }
+
+    .form-control:invalid:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+
+    .needs-validation.was-validated .form-control:invalid ~ .invalid-feedback {
+        display: block;
+    }
+
+</style>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Bootstrap-like form validation with custom radio button handling
+            document.querySelectorAll('.needs-validation').forEach(form => {
+                form.addEventListener('submit', (event) => {
+                    const roleSelected = form.querySelector('input[name="role"]:checked');
+                    const roleError = document.getElementById('role-error');
+
+                    if (!form.checkValidity() || !roleSelected) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+
+                    form.classList.add('was-validated');
+                    if (!roleSelected) {
+                        roleError.style.display = 'block';
+                    } else {
+                        roleError.style.display = 'none';
+                    }
+                }, false);
+
+                // Clear role error when a radio button is selected
+                form.querySelectorAll('input[name="role"]').forEach(radio => {
+                    radio.addEventListener('change', () => {
+                        document.getElementById('role-error').style.display = 'none';
+                    });
+                });
+            });
+        });
+    </script>
+}}
+
