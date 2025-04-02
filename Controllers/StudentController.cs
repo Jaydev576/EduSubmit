@@ -17,10 +17,12 @@ namespace EduSubmit.Controllers
     public class StudentController : Controller
     {
         private readonly AppDbContext _context;
+        private IWebHostEnvironment _webHostEnvironment;
 
-        public StudentController(AppDbContext context)
+        public StudentController(AppDbContext context, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: Student
@@ -84,7 +86,7 @@ namespace EduSubmit.Controllers
             // 🔹 Get 3 recent assignments, tracking submission status
             var recentAssignments = assignments
                 .OrderByDescending(a => a.DueDate)
-                .Take(3)
+                .Take(4)
                 .Select(a => new
                 {
                     Id = a.AssignmentId,
@@ -374,6 +376,22 @@ namespace EduSubmit.Controllers
                 .Submissions.Include(s => s.Assignment)
                 .Include(s => s.Student)
                 .ToListAsync();
+
+            string codingAssignmentsPath = Path.Combine(_webHostEnvironment.WebRootPath, "CodingAssignments");
+            var assignmentTypeDictionary = new Dictionary<int, bool>();
+
+            foreach (var submission in submissions)
+            {
+                if (submission.Assignment != null)
+                {
+                    string folderPath = Path.Combine(codingAssignmentsPath, $"{submission.Assignment.ClassId}_{submission.Assignment.AssignmentId}");
+                    bool isCodingAssignment = Directory.Exists(folderPath);
+                    assignmentTypeDictionary[submission.Assignment.AssignmentId] = isCodingAssignment;
+                }
+            }
+
+            ViewBag.IsCodingAssignment = assignmentTypeDictionary;
+
             return View(submissions);
         }
 
@@ -384,8 +402,26 @@ namespace EduSubmit.Controllers
                 .Grades.Include(g => g.Student)
                 .Include(g => g.Assignment)
                 .ToListAsync();
+
+            var codingAssignments = new Dictionary<int, bool>();
+
+            foreach (var grade in grades)
+            {
+                if (grade.Assignment != null && grade.Student != null && grade.AssignmentId > 0)
+                {
+                    string assignmentPath = Path.Combine(_webHostEnvironment.WebRootPath, "CodingAssignments", $"{grade.Student.ClassId}_{grade.AssignmentId}");
+
+                    bool isCoding = Directory.Exists(assignmentPath);
+
+                    codingAssignments.TryAdd(grade.AssignmentId, isCoding);
+                }
+            }
+
+            ViewBag.IsCodingAssignments = codingAssignments;
+
             return View(grades);
         }
+
 
         // GET: Calendar
         public ActionResult Calendar()

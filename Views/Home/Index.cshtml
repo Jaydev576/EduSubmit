@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"]</title>
-    <link href="./lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -20,19 +20,19 @@
             transition: transform 0.5s, opacity 0.5s;
         }
 
-            .slide-up.visible {
-                transform: translateY(0);
-                opacity: 1;
-            }
+        .slide-up.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
 
         .fade-in {
             opacity: 0;
             transition: opacity 0.5s;
         }
 
-            .fade-in.visible {
-                opacity: 1;
-            }
+        .fade-in.visible {
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="font-roboto bg-light">
@@ -128,6 +128,6 @@
         });
     </script>
 
-    <script src="./lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

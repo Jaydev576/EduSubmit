@@ -47,16 +47,16 @@
         </div>
 
         <!-- Calendar Table -->
-        <table class="table table-bordered text-center shadow-sm">
+        <table class="table table-bordered text-center shadow-sm" style="table-layout: fixed; width: 100%;">
             <thead class="text-white" style="background: linear-gradient(135deg, #007BFF, #0056b3);">
                 <tr>
-                    <th>Sun</th>
-                    <th>Mon</th>
-                    <th>Tue</th>
-                    <th>Wed</th>
-                    <th>Thu</th>
-                    <th>Fri</th>
-                    <th>Sat</th>
+                    <th style="width: 14.28%;">Sun</th>
+                    <th style="width: 14.28%;">Mon</th>
+                    <th style="width: 14.28%;">Tue</th>
+                    <th style="width: 14.28%;">Wed</th>
+                    <th style="width: 14.28%;">Thu</th>
+                    <th style="width: 14.28%;">Fri</th>
+                    <th style="width: 14.28%;">Sat</th>
                 </tr>
             </thead>
             <tbody>
@@ -70,17 +70,15 @@
                     @for (int day = 1; day <= daysInMonth; day++)
                     {
                         var currentDate = new DateTime(selectedYear, selectedMonth, day);
-                        var assignment = Model.FirstOrDefault(a => a.DueDate.Date == currentDate);
-
-                        string backgroundColor = assignment != null ? "red" : "white";
-                        string textColor = assignment != null ? "white" : "black";
+                        var assignmentsDue = Model.Count(a => a.DueDate.Date == currentDate);
+                        string backgroundColor = assignmentsDue > 0 ? "red" : "white";
+                        string textColor = assignmentsDue > 0 ? "white" : "black";
 
                         <td style="padding: 8px; height: 50px; border: 1px solid #ccc; background-color: @backgroundColor; color: @textColor;">
                             <strong>@day</strong>
-
-                            @if (assignment != null)
+                            @if (assignmentsDue > 0)
                             {
-                                <div class="small fw-bold" style="font-size: 12px;">@assignment.Title</div>
+                                <div class="small fw-bold" style="font-size: 12px;">@assignmentsDue Assignments Due</div>
                             }
                         </td>
 

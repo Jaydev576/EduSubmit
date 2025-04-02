@@ -4,23 +4,48 @@
     ViewData["Title"] = "Assignments";
     ViewData["ActivePage"] = "Assignments";
     Layout = "~/Views/Shared/_StudentLayout.cshtml";
+    bool isCodingAssignment = ViewBag.IsCodingAssignment ?? false;
+    string programmingLanguage = ViewBag.ProgrammingLanguage ?? "";
+    List<string> testCases = ViewBag.TestCases as List<string> ?? new List<string>();
 }
 
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-md-8">
             <div class="card shadow-lg">
                 <div class="card-header text-center">
                     <h3>Submit Assignment</h3>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <form asp-controller="Submission" asp-action="Submit" method="post" enctype="multipart/form-data">
-                        <input type="hidden" asp-for="AssignmentId" />
-                        <input type="hidden" asp-for="StudentId" />
+                        <input type="hidden" asp-for="AssignmentId" value="@Model.AssignmentId" />
+                        <input type="hidden" asp-for="StudentId" value="@ViewBag.StudentId" />
 
+                        @if (isCodingAssignment) {
+                            <div class="alert alert-info text-center">
+                                <strong>This is a coding assignment.</strong><br>
+                                Please submit a valid code file in <strong>@programmingLanguage</strong>.
+                            </div>
 
-                        <div class="form-group mb-3">
-                            <label for="file" class="form-label"><strong>Upload File:</strong></label>
+                            <div class="form-group mb-4">
+                                <label class="fw-bold">Programming Language:</label>
+                                <input type="text" class="form-control" value="@programmingLanguage" readonly />
+                            </div>
+
+                            @if (testCases.Any()) {
+                                <div class="form-group mb-4">
+                                    <label class="fw-bold">Sample Test Cases:</label>
+                                    <ul class="list-group">
+                                        @foreach (var testCase in testCases.Take(2)) {
+                                            <li class="list-group-item bg-light">@testCase</li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                        }
+
+                        <div class="form-group mb-4">
+                            <label for="file" class="form-label fw-bold">Upload File:</label>
                             <input type="file" name="file" class="form-control" required />
                         </div>
 
@@ -29,6 +54,12 @@
                                 <i class="fas fa-upload"></i> Upload
                             </button>
                         </div>
+
+                        @if (isCodingAssignment && programmingLanguage.ToLower() == "java") {
+                            <div class="alert alert-warning mt-4 text-center">
+                                <strong>Note:</strong> If submitting a Java file, ensure the main class is named <code>Main</code>.
+                            </div>
+                        }
                     </form>
                 </div>
             </div>

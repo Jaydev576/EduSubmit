@@ -1,6 +1,10 @@
 using EduSubmit.Data;
+using EduSubmit.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 
 namespace EduSubmit
 {
@@ -10,6 +14,7 @@ namespace EduSubmit
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Add services to the container.
             builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -21,7 +26,9 @@ namespace EduSubmit
 
             builder.Services.AddAuthorization();
 
-            // Add services to the container.
+            builder.Services.AddHttpClient();
+            builder.Services.AddScoped<CodeExecutionService>();
+
             builder.Services.AddControllersWithViews();
 
             var app = builder.Build();
@@ -35,7 +42,14 @@ namespace EduSubmit
             }
 
             app.UseHttpsRedirection();
-            app.UseStaticFiles();
+
+            var provider = new FileExtensionContentTypeProvider();
+            provider.Mappings[".py"] = "text/plain"; // Allow Python files
+
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                ContentTypeProvider = provider
+            });
 
             app.UseRouting();
 

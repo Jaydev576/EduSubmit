@@ -13,10 +13,12 @@ namespace EduSubmit.Controllers
     public class GradeController : Controller
     {
         private readonly AppDbContext _context;
+        private IWebHostEnvironment _webHostEnvironment;
 
-        public GradeController(AppDbContext context)
+        public GradeController(AppDbContext context, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: Grades
@@ -166,6 +168,10 @@ namespace EduSubmit.Controllers
             {
                 return NotFound();
             }
+
+            // Check if the assignment is a coding assignment
+            string codingAssignmentPath = Path.Combine(_webHostEnvironment.WebRootPath, "CodingAssignments", $"{grade.Student.ClassId}_{assignmentId}");
+            ViewBag.IsCodingAssignment = Directory.Exists(codingAssignmentPath);
 
             return View(grade);
         }

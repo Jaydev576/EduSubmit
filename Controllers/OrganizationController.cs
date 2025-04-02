@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using AspNetCoreGeneratedDocument;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.CodeAnalysis.Scripting;
-using Npgsql.Internal.Postgres;
 
 namespace EduSubmit.Controllers
 {

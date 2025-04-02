@@ -4,3 +4,4 @@ appsettings.Development.json
 obj/
 bin/
 wwwroot/uploads
+wwwroot/CodingAssignments

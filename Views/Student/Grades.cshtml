@@ -6,19 +6,17 @@
     Layout = "~/Views/Shared/_StudentLayout.cshtml";
 
     var subjects = Model.Select(g => g.Assignment?.SubjectName).Distinct().Where(s => s != null).ToList();
+    var isCodingAssignments = ViewBag.IsCodingAssignments as Dictionary<int, bool> ?? new Dictionary<int, bool>();
 }
 
 <div class="container mt-4">
-    <!-- Floating Header -->
     <div class="card border border-primary shadow-sm mb-3">
         <div class="card-body text-center">
             <h2 class="text-primary">📊 Grades</h2>
         </div>
     </div>
 
-    <!-- Filters & Sorting -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <!-- Subject Filter -->
         <div class="d-flex">
             <label class="me-2 fw-bold align-self-center">Filter by Subject:</label>
             <select class="form-select me-2" id="subjectDropdown">
@@ -29,29 +27,37 @@
             </select>
         </div>
 
-        <!-- Sorting Button -->
-        <button id="sortButton" class="btn btn-outline-primary">
-            Sort by Score 🔼
-        </button>
+        <div class="d-flex">
+            <label class="me-2 fw-bold align-self-center">Filter by Type:</label>
+            <select class="form-select" id="typeDropdown">
+                <option value="">All Assignments</option>
+                <option value="coding">Coding Assignments</option>
+                <option value="normal">Normal Assignments</option>
+            </select>
+        </div>
     </div>
 
-    <!-- Grades Table -->
     <div class="card shadow-sm">
         <div class="card-body">
             <table class="table table-striped table-hover text-center" id="gradesTable">
                 <thead class="text-white" style="background: linear-gradient(135deg, #007BFF, #0056b3);">
                     <tr>
-                        <th>Assignment</th>
-                        <th id="scoreColumn" style="cursor: pointer;">Score</th>
+                        <th id="assignmentColumn" class="sortable" data-sort="assignment">Assignment 🔼</th>
+                        <th>Subject</th>
+                        <th id="scoreColumn" class="sortable" data-sort="score">Score 🔼</th>
+                        <th id="maxScoreColumn" class="sortable" data-sort="maxScore">Max Score 🔼</th>
                         <th>Remarks</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="gradesBody">
                     @foreach (var grade in Model) {
-                        <tr data-subject="@grade.Assignment?.SubjectName">
-                            <td>@grade.Assignment?.Title</td>
+                        bool isCoding = isCodingAssignments.TryGetValue(grade.AssignmentId, out bool coding) && coding;
+                        <tr data-subject="@grade.Assignment?.SubjectName" data-type="@(isCoding ? "coding" : "normal")">
+                            <td class="assignment">@grade.Assignment?.Title</td>
+                            <td>@grade.Assignment?.SubjectName</td>
                             <td class="score">@grade.Score</td>
+                            <td class="maxScore">@grade.Assignment?.Points</td>
                             <td>@grade.Remarks</td>
                             <td>
                                 <a asp-action="Details" asp-controller="Grade"
@@ -69,37 +75,53 @@
     </div>
 </div>
 
-<!-- JavaScript for Filtering and Sorting -->
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function () {
         const subjectDropdown = document.getElementById("subjectDropdown");
-        const sortButton = document.getElementById("sortButton");
+        const typeDropdown = document.getElementById("typeDropdown");
         const gradesBody = document.getElementById("gradesBody");
-        let ascending = true;  // Sorting order flag
+        const assignmentColumn = document.getElementById("assignmentColumn");
+        const scoreColumn = document.getElementById("scoreColumn");
+        const maxScoreColumn = document.getElementById("maxScoreColumn");
+        let sortOrder = { assignment: true, score: true, maxScore: true };
 
-        // Subject filtering
-        subjectDropdown.addEventListener("change", function () {
+        function filterTable() {
             const selectedSubject = subjectDropdown.value.toLowerCase();
-            document.querySelectorAll("#gradesBody tr").forEach(row => {
-                const rowSubject = row.getAttribute("data-subject")?.toLowerCase();
-                row.style.display = (selectedSubject === "" || rowSubject === selectedSubject) ? "" : "none";
-            });
-        });
+            const selectedType = typeDropdown.value.toLowerCase();
 
-        // Sorting function
-        sortButton.addEventListener("click", function () {
+            document.querySelectorAll("#gradesBody tr").forEach(row => {
+                const rowSubject = row.getAttribute("data-subject")?.toLowerCase() || "";
+                const rowType = row.getAttribute("data-type")?.toLowerCase() || "";
+
+                const subjectMatch = !selectedSubject || rowSubject === selectedSubject;
+                const typeMatch = !selectedType || rowType === selectedType;
+
+                row.style.display = subjectMatch && typeMatch ? "" : "none";
+            });
+        }
+
+        function sortTable(column, key) {
             let rows = Array.from(gradesBody.querySelectorAll("tr"));
             rows.sort((a, b) => {
-                let scoreA = parseFloat(a.querySelector(".score").textContent) || 0;
-                let scoreB = parseFloat(b.querySelector(".score").textContent) || 0;
-                return ascending ? scoreA - scoreB : scoreB - scoreA;
+                let valA = key === "assignment"
+                    ? a.querySelector("." + key).textContent.trim().toLowerCase()
+                    : parseFloat(a.querySelector("." + key).textContent) || 0;
+                let valB = key === "assignment"
+                    ? b.querySelector("." + key).textContent.trim().toLowerCase()
+                    : parseFloat(b.querySelector("." + key).textContent) || 0;
+
+                return sortOrder[key] ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
             });
 
-            rows.forEach(row => gradesBody.appendChild(row));  // Reorder table
-            ascending = !ascending;  // Toggle sort order
+            rows.forEach(row => gradesBody.appendChild(row));
+            sortOrder[key] = !sortOrder[key];
+            column.innerHTML = `${column.textContent.replace(/[🔼🔽]/g, '')} ${sortOrder[key] ? "🔼" : "🔽"}`;
+        }
 
-            // Update button icon
-            sortButton.innerHTML = `Sort by Score ${ascending ? "🔼" : "🔽"}`;
-        });
+        subjectDropdown.addEventListener("change", filterTable);
+        typeDropdown.addEventListener("change", filterTable);
+        assignmentColumn.addEventListener("click", () => sortTable(assignmentColumn, "assignment"));
+        scoreColumn.addEventListener("click", () => sortTable(scoreColumn, "score"));
+        maxScoreColumn.addEventListener("click", () => sortTable(maxScoreColumn, "maxScore"));
     });
 </script>

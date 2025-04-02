@@ -3,52 +3,85 @@
     Layout = "~/Views/Shared/_InstructorLayout.cshtml";
     ViewData["Title"] = "Create Assignment";
     ViewData["ActivePage"] = "Assignments";
+    bool isCoding = ViewBag.IsCodingAssignment ?? false;
 }
 
-
 <div class="container mt-4">
-    <h2>Create Assignment</h2>
+    <h2>@(isCoding ? "Create Coding Assignment" : "Create Assignment")</h2>
     <hr />
 
-    <form asp-action="CreateAssignment" method="post">
+    <form asp-action="CreateAssignment" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="isCoding" value="@isCoding.ToString().ToLower()" />
+
         <div class="form-group">
             <label asp-for="Title"></label>
-            <input asp-for="Title" class="form-control" />
+            <input asp-for="Title" class="form-control" required />
             <span asp-validation-for="Title" class="text-danger"></span>
         </div>
 
         <div class="form-group">
             <label asp-for="Description"></label>
-            <textarea asp-for="Description" class="form-control"></textarea>
+            <textarea asp-for="Description" class="form-control" required></textarea>
             <span asp-validation-for="Description" class="text-danger"></span>
         </div>
 
         <div class="form-group">
             <label asp-for="DueDate"></label>
-            <input asp-for="DueDate" type="date" class="form-control" />
+            <input asp-for="DueDate" type="date" class="form-control" required />
             <span asp-validation-for="DueDate" class="text-danger"></span>
         </div>
 
         <div class="form-group">
             <label asp-for="Points"></label>
-            <input asp-for="Points" type="number" class="form-control" />
+            <input asp-for="Points" type="number" class="form-control" required />
             <span asp-validation-for="Points" class="text-danger"></span>
         </div>
 
         <div class="form-group">
             <label asp-for="SubjectName"></label>
-            <input asp-for="SubjectName" class="form-control" />
+            <input asp-for="SubjectName" class="form-control" required />
             <span asp-validation-for="SubjectName" class="text-danger"></span>
         </div>
 
         <div class="form-group">
             <label asp-for="ClassId">Class</label>
-            <select asp-for="ClassId" asp-items="ViewBag.Classes" class="form-control"></select>
+            <select asp-for="ClassId" asp-items="ViewBag.Classes" class="form-control" required></select>
             <span asp-validation-for="ClassId" class="text-danger"></span>
         </div>
 
         <!-- Hidden field to store InstructorId -->
-        <input type="hidden" asp-for="InstructorId" value="@ViewBag.InstructorId" />
+        <input type="hidden" asp-for="InstructorId" value="@ViewBag.InstructorId"/>
+
+        @if (isCoding) {
+            <h4 class="mt-4">Coding Assignment Details</h4>
+
+            <div class="form-group">
+                <label for="ProgrammingLanguage">Programming Language</label>
+                <select name="ProgrammingLanguage" class="form-control">
+                    <option value="">Select a language</option>
+                    <option value="C++">C++</option>
+                    <option value="Java">Java</option>
+                    <option value="Python">Python</option>
+                    <option value="C#">C#</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="TestCases">Test Cases</label>
+                <textarea name="TestCases" class="form-control" placeholder="Enter test cases, one per line."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="SampleSolution">Upload Sample Solution</label>
+                <input type="file" name="SampleSolution" class="form-control-file" />
+            </div>
+        }
+        else {
+            <!-- Ensure empty names for coding-related fields -->
+            <input type="hidden" name="ProgrammingLanguage" value="" />
+            <input type="hidden" name="TestCases" value="" />
+            <input type="hidden" name="SampleSolution" value="" />
+        }
 
         <button type="submit" class="btn btn-primary">Create</button>
         <a asp-action="Assignments" class="btn btn-secondary">Cancel</a>

@@ -7,14 +7,16 @@
 }
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 ps-3 pe-3">
         <h3>Assignments</h3>
-        <a asp-controller="Instructor" asp-action="CreateAssignment" class="btn btn-primary">
-            + Create Assignment
-        </a>
-        <a asp-controller="Instructor" asp-action="CreateCodingAssignment" class="btn btn-primary">
-            + Create Coding Assignment
-        </a>
+        <div class="d-flex gap-3">
+            <a asp-controller="Instructor" asp-action="CreateAssignment" asp-route-isCoding="false" class="btn btn-primary">
+                + Create Assignment
+            </a>
+            <a asp-controller="Instructor" asp-action="CreateAssignment" asp-route-isCoding="true" class="btn btn-primary">
+                + Create Coding Assignment
+            </a>
+        </div>
     </div>
 
     <form id="filterForm">

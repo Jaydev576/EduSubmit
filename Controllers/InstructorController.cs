@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using EduSubmit.Data;
 using EduSubmit.Models;
 using Microsoft.AspNetCore.Authorization;
+using Newtonsoft.Json;
 
 namespace EduSubmit.Controllers
 {
@@ -119,7 +120,7 @@ namespace EduSubmit.Controllers
             return View(instructor);
         }
 
-        
+
         private bool InstructorExists(int id)
         {
             return _context.Instructors.Any(e => e.InstructorId == id);
@@ -230,7 +231,7 @@ namespace EduSubmit.Controllers
 
 
         // Create Assignment (GET)
-        public async Task<IActionResult> CreateAssignment()
+        public async Task<IActionResult> CreateAssignment(bool isCoding = false)
         {
             var userEmail = User.Identity?.Name;
             var instructor = await _context.Instructors.FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
@@ -240,38 +241,152 @@ namespace EduSubmit.Controllers
                 return Unauthorized("Instructor profile not found.");
             }
 
-            ViewBag.InstructorId = instructor.InstructorId; // Pass InstructorId to View
+            ViewBag.IsCodingAssignment = isCoding; // Pass flag to view
+            ViewBag.InstructorId = instructor.InstructorId;
             ViewBag.Classes = new SelectList(await _context.Classes.ToListAsync(), "ClassId", "ClassName");
 
             return View();
         }
 
 
+
         // Create Assignment (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateAssignment(Assignment assignment)
+        public async Task<IActionResult> CreateAssignment(
+            Assignment assignment,
+            bool isCoding,
+            string? ProgrammingLanguage,
+            string? TestCases,
+            IFormFile? SampleSolution)
         {
+            // Get Instructor
             var userEmail = User.Identity?.Name;
             var instructor = await _context.Instructors.FirstOrDefaultAsync(i => i.EmailAddress == userEmail);
-
             if (instructor == null)
             {
-                return Unauthorized("Instructor profile not found.");
+                return Unauthorized(new { message = "Instructor profile not found." });
             }
+            Console.WriteLine(instructor.InstructorId);
 
-            assignment.InstructorId = instructor.InstructorId; // Assign InstructorId
+            // Assign InstructorId
+            assignment.InstructorId = instructor.InstructorId;
 
-            if (ModelState.IsValid)
+            // Validate Non-Coding Assignments
+            if (!isCoding)
             {
-                _context.Assignments.Add(assignment);
-                await _context.SaveChangesAsync();
-                return RedirectToAction("Assignments");
+                ModelState.Remove("ProgrammingLanguage");
+                ModelState.Remove("TestCases");
+                ModelState.Remove("SampleSolution");
             }
 
-            ViewBag.Classes = new SelectList(await _context.Classes.ToListAsync(), "ClassId", "ClassName");
-            return View(assignment);
+            // Validate Coding Assignments
+            if (isCoding)
+            {
+                if (string.IsNullOrWhiteSpace(ProgrammingLanguage))
+                {
+                    ModelState.AddModelError("ProgrammingLanguage", "Programming language is required for coding assignments.");
+                }
+                if (string.IsNullOrWhiteSpace(TestCases))
+                {
+                    ModelState.AddModelError("TestCases", "Test cases are required for coding assignments.");
+                }
+                if (SampleSolution == null || SampleSolution.Length == 0)
+                {
+                    ModelState.AddModelError("SampleSolution", "Sample solution file is required for coding assignments.");
+                }
+            }
+
+            // Validate Common Fields
+            if (string.IsNullOrWhiteSpace(assignment.Title) ||
+                string.IsNullOrWhiteSpace(assignment.Description) ||
+                assignment.DueDate == default ||
+                assignment.Points <= 0 ||
+                string.IsNullOrWhiteSpace(assignment.SubjectName) ||
+                assignment.ClassId == 0)
+            {
+                ModelState.AddModelError(string.Empty, "All fields are required.");
+            }
+
+            // Check ModelState before processing
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return BadRequest(new { message = "Validation failed", errors });
+            }
+
+            // Save Assignment
+            _context.Assignments.Add(assignment);
+            await _context.SaveChangesAsync();
+
+            // Handle Coding Assignment Files
+            if (isCoding)
+            {
+                await SaveCodingAssignmentFiles(assignment.AssignmentId, assignment.ClassId, ProgrammingLanguage, TestCases, SampleSolution);
+            }
+
+            return RedirectToAction("Assignments");
         }
+
+        // Helper function to handle file storage
+        private async Task SaveCodingAssignmentFiles(int assignmentId, int classId, string programmingLanguage, string testCases, IFormFile sampleSolution)
+        {
+            // Define the folder path based on AssignmentId
+            string assignmentFolder = Path.Combine("wwwroot/CodingAssignments", $"{classId.ToString()}_{assignmentId.ToString()}");
+
+            if (!Directory.Exists(assignmentFolder))
+            {
+                Directory.CreateDirectory(assignmentFolder);
+            }
+
+            // Save Test Cases as JSON file
+            if (!string.IsNullOrWhiteSpace(testCases))
+            {
+                // Convert line-separated test cases into a JSON array
+                string[] testCasesArray = testCases.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                                                   .Select(tc => tc.Trim())
+                                                   .ToArray();
+
+                // Convert to JSON format
+                string jsonTestCases = JsonConvert.SerializeObject(testCasesArray, Formatting.Indented);
+
+                string testCasesPath = Path.Combine(assignmentFolder, "TestCases.json");
+                await System.IO.File.WriteAllTextAsync(testCasesPath, jsonTestCases);
+            }
+
+            // Save Programming Language
+            if (!string.IsNullOrWhiteSpace(programmingLanguage))
+            {
+                string languagePath = Path.Combine(assignmentFolder, "ProgrammingLanguage.txt");
+                await System.IO.File.WriteAllTextAsync(languagePath, programmingLanguage);
+            }
+
+            // Save Sample Solution with correct extension
+            if (sampleSolution != null && sampleSolution.Length > 0)
+            {
+                string extension = GetFileExtension(programmingLanguage);
+                string solutionFilePath = Path.Combine(assignmentFolder, $"SampleSolution{extension}");
+
+                using (var fileStream = new FileStream(solutionFilePath, FileMode.Create))
+                {
+                    await sampleSolution.CopyToAsync(fileStream);
+                }
+            }
+        }
+
+        // Function to determine the file extension based on programming language
+        private string GetFileExtension(string programmingLanguage)
+        {
+            return programmingLanguage.ToLower() switch
+            {
+                "c++" => ".cpp",
+                "java" => ".java",
+                "python" => ".py",
+                "c#" => ".cs",
+                _ => ".txt"
+            };
+        }
+
 
         //Edit Assignment (GET)
         public async Task<IActionResult> EditAssignment(int id)
@@ -412,7 +527,7 @@ namespace EduSubmit.Controllers
 
 
         // ✅ 7️⃣ List Assignments
-        
+
         [HttpGet]
         public async Task<IActionResult> Assignments(int? classId, string subject, DateTime? dueDate, int? minPoints, int? maxPoints)
         {
@@ -514,7 +629,7 @@ namespace EduSubmit.Controllers
 
 
         // ✅ Instructor assigns a grade
-        
+
         public async Task<IActionResult> GradeAssignment(int studentId, int assignmentId)
         {
             var userEmail = User.Identity?.Name;
@@ -560,7 +675,7 @@ namespace EduSubmit.Controllers
 
 
         // ✅ Save the assigned grade
-        
+
         [HttpPost]
         public async Task<IActionResult> GradeAssignment(int studentId, int assignmentId, float score, string remarks)
         {
@@ -621,7 +736,7 @@ namespace EduSubmit.Controllers
 
 
         //student progress
-        
+
         public async Task<IActionResult> StudentProgress(int? classId, string sortBy = "completion", bool filterLow = false)
         {
             string loggedInEmail = User.Identity.Name;
