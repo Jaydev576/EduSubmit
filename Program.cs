@@ -45,6 +45,7 @@ namespace EduSubmit
 
             var provider = new FileExtensionContentTypeProvider();
             provider.Mappings[".py"] = "text/plain"; // Allow Python files
+            provider.Mappings[".cs"] = "text/plain"; // Allow CSharp files
 
             app.UseStaticFiles(new StaticFileOptions
             {

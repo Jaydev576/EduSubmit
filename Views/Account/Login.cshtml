@@ -3,67 +3,6 @@
     Layout = "~/Views/Shared/_RegisterLayout.cshtml";
 }
 
-<div class="container mt-5">
-    <div class="card shadow-lg">
-        <div class="card-header bg-gradient-primary text-white text-center">
-            <h2 class="mb-0 fw-bold">Welcome Back</h2>
-            <p class="text-light mt-1">Log in to your account</p>
-        </div>
-        <div class="card-body p-4">
-            @if (ViewBag.Error != null)
-            {
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    @ViewBag.Error
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            }
-
-            <form asp-action="Login" asp-controller="Account" method="post" class="needs-validation" novalidate>
-                <div class="mb-4">
-                    <label class="form-label fw-semibold">User Type</label>
-                    <div class="btn-group d-flex gap-2" role="group">
-                        <input type="radio" class="btn-check" name="role" id="student" value="Student" required autocomplete="off">
-                        <label class="btn btn-outline-primary shadow-sm" for="student">
-                            <i class="bi bi-person me-2"></i>Student
-                        </label>
-
-                        <input type="radio" class="btn-check" name="role" id="instructor" value="Instructor" autocomplete="off">
-                        <label class="btn btn-outline-primary shadow-sm" for="instructor">
-                            <i class="bi bi-person-gear me-2"></i>Instructor
-                        </label>
-
-                        <input type="radio" class="btn-check" name="role" id="admin" value="Organization" autocomplete="off">
-                        <label class="btn btn-outline-primary shadow-sm" for="admin">
-                            <i class="bi bi-shield-lock me-2"></i>Admin
-                        </label>
-                    </div>
-                    <div class="invalid-feedback d-block mt-2" id="role-error" style="display: none;">
-                        Please select a user type.
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label for="email" class="form-label fw-semibold">Email</label>
-                    <input type="email" class="form-control shadow-sm" name="email" id="email" required />
-                    <div class="invalid-feedback">Please enter a valid email address.</div>
-                </div>
-                <div class="mb-4">
-                    <label for="password" class="form-label fw-semibold">Password</label>
-                    <input type="password" class="form-control shadow-sm" name="password" id="password" required />
-                    <div class="invalid-feedback">Please enter your password.</div>
-                </div>
-                <div class="d-flex justify-content-between align-items-center">
-                    <button type="submit" class="btn btn-success shadow-sm px-4">
-                        <i class="bi bi-box-arrow-in-right me-2"></i>Login
-                    </button>
-                    <a href="@Url.Action("Register", "Register")" class="btn btn-outline-secondary shadow-sm px-4">
-                        Register
-                    </a>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <style>
     :root {
         --primary: #007bff;
@@ -201,36 +140,94 @@
 
 </style>
 
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-gradient-primary text-white text-center">
+            <h2 class="mb-0 fw-bold">Welcome Back</h2>
+            <p class="text-light mt-1">Log in to your account</p>
+        </div>
+        <div class="card-body p-4">
+            @if (ViewBag.Error != null) {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @ViewBag.Error
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <form asp-action="Login" asp-controller="Account" method="post" class="needs-validation" novalidate>
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">User Type</label>
+                    <div class="btn-group d-flex gap-2" role="group">
+                        <input type="radio" class="btn-check" name="role" id="student" value="Student" required autocomplete="off">
+                        <label class="btn btn-outline-primary shadow-sm" for="student">
+                            <i class="bi bi-person me-2"></i>Student
+                        </label>
+
+                        <input type="radio" class="btn-check" name="role" id="instructor" value="Instructor" autocomplete="off">
+                        <label class="btn btn-outline-primary shadow-sm" for="instructor">
+                            <i class="bi bi-person-gear me-2"></i>Instructor
+                        </label>
+
+                        <input type="radio" class="btn-check" name="role" id="admin" value="Organization" autocomplete="off">
+                        <label class="btn btn-outline-primary shadow-sm" for="admin">
+                            <i class="bi bi-shield-lock me-2"></i>Admin
+                        </label>
+                    </div>
+                    <div class="invalid-feedback d-block mt-2" id="role-error" style="display: none;">
+                        Please select a user type.
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label fw-semibold">Email</label>
+                    <input type="email" class="form-control shadow-sm" name="email" id="email" required />
+                    <div class="invalid-feedback">Please enter a valid email address.</div>
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="form-label fw-semibold">Password</label>
+                    <input type="password" class="form-control shadow-sm" name="password" id="password" required />
+                    <div class="invalid-feedback">Please enter your password.</div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <button type="submit" class="btn btn-success shadow-sm px-4">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                    </button>
+                    <a href="@Url.Action("Register", "Register")" class="btn btn-outline-secondary shadow-sm px-4">
+                        Register
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // Bootstrap-like form validation with custom radio button handling
-            document.querySelectorAll('.needs-validation').forEach(form => {
-                form.addEventListener('submit', (event) => {
-                    const roleSelected = form.querySelector('input[name="role"]:checked');
-                    const roleError = document.getElementById('role-error');
+                document.addEventListener("DOMContentLoaded", function () {
+            const form = document.querySelector(".needs-validation");
+            const roleError = document.getElementById("role-error");
+            const roleInputs = document.querySelectorAll('input[name="role"]');
 
-                    if (!form.checkValidity() || !roleSelected) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    }
+            form.addEventListener("submit", function (event) {
+                const roleSelected = document.querySelector('input[name="role"]:checked');
 
-                    form.classList.add('was-validated');
-                    if (!roleSelected) {
-                        roleError.style.display = 'block';
-                    } else {
-                        roleError.style.display = 'none';
-                    }
-                }, false);
+                if (!roleSelected) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    roleError.style.display = "block";
+                } else {
+                    roleError.style.display = "none"; // Hide error when valid
+                }
 
-                // Clear role error when a radio button is selected
-                form.querySelectorAll('input[name="role"]').forEach(radio => {
-                    radio.addEventListener('change', () => {
-                        document.getElementById('role-error').style.display = 'none';
-                    });
+                form.classList.add("was-validated");
+            });
+
+            // Hide error message and mark radio inputs valid when any is selected
+            roleInputs.forEach((radio) => {
+                radio.addEventListener("change", function () {
+                    roleError.classList.remove("d-block"); // Remove Bootstrap's display block class
+                    roleError.classList.add("d-none");    // Add Bootstrap's display none class
                 });
             });
         });
     </script>
-}}
-
+}
