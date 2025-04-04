@@ -14,8 +14,16 @@ namespace EduSubmit
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            var connectionString = Environment.GetEnvironmentVariable("DefaultConnection");
+
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new Exception("Database connection string is not set. Ensure you have added it to Railway environment variables.");
+            }
+
             // Add services to the container.
-            builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlServer(connectionString ?? throw new InvalidOperationException("Database connection string not found!")));
 
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
@@ -25,17 +33,15 @@ namespace EduSubmit
                 });
 
             builder.Services.AddAuthorization();
-
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<CodeExecutionService>();
-
             builder.Services.AddControllersWithViews();
 
-            // Configuration for Kestrel to deploy the project on Railway.app
+            // Configuration for Kestrel to deploy on Railway.app
             builder.WebHost.ConfigureKestrel(serverOptions =>
             {
-                var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-                serverOptions.ListenAnyIP(Int32.Parse(port));
+                var port = Environment.GetEnvironmentVariable("PORT") ?? "8080"; // Default to 8080 if PORT is not set
+                serverOptions.ListenAnyIP(int.Parse(port));
             });
 
             var app = builder.Build();
@@ -44,7 +50,6 @@ namespace EduSubmit
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
@@ -52,7 +57,7 @@ namespace EduSubmit
 
             var provider = new FileExtensionContentTypeProvider();
             provider.Mappings[".py"] = "text/plain"; // Allow Python files
-            provider.Mappings[".cs"] = "text/plain"; // Allow CSharp files
+            provider.Mappings[".cs"] = "text/plain"; // Allow C# files
 
             app.UseStaticFiles(new StaticFileOptions
             {
@@ -60,7 +65,7 @@ namespace EduSubmit
             });
 
             app.UseRouting();
-
+            app.UseAuthentication(); // Added this to ensure authentication middleware is used
             app.UseAuthorization();
 
             app.MapControllerRoute(
