@@ -14,6 +14,10 @@ namespace EduSubmit
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Reset and configure configuration sources
+            builder.Configuration.Sources.Clear();
+            builder.Configuration.AddEnvironmentVariables();
+
             var connectionString = Environment.GetEnvironmentVariable("DefaultConnection");
 
             if (string.IsNullOrEmpty(connectionString))
