@@ -31,6 +31,13 @@ namespace EduSubmit
 
             builder.Services.AddControllersWithViews();
 
+            // Configuration for Kestrel to deploy the project on Railway.app
+            builder.WebHost.ConfigureKestrel(serverOptions =>
+            {
+                var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+                serverOptions.ListenAnyIP(Int32.Parse(port));
+            });
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
