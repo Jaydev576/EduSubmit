@@ -737,22 +737,21 @@ namespace EduSubmit.Controllers
 
             int instructorId = instructor.InstructorId;
 
-            // ✅ Fetch class IDs from assignments
+            // Fetch class IDs from assignments
             var instructorClassIds = await _context.Assignments
                                                    .Where(a => a.InstructorId == instructorId)
                                                    .Select(a => a.ClassId)
                                                    .Distinct()
                                                    .ToListAsync();
 
-            Console.WriteLine($"Instructor's Class IDs Count: {instructorClassIds.Count}"); // Debugging
+            Console.WriteLine($"Instructor's Class IDs Count: {instructorClassIds.Count}");
 
             if (!instructorClassIds.Any())
             {
-                ViewBag.Classes = new List<object>();  // Ensure View doesn't break
+                ViewBag.Classes = new List<object>();
                 return View(new List<Dictionary<string, object>>());
             }
 
-            // ✅ Get students only in instructor's classes
             var studentQuery = _context.Students
                                        .Where(s => instructorClassIds.Contains(s.ClassId));
 
@@ -765,62 +764,101 @@ namespace EduSubmit.Controllers
                                                  .Where(a => a.InstructorId == instructorId)
                                                  .CountAsync();
 
-            var studentProgressList = await studentQuery
-            .Select(s => new Dictionary<string, object>
+            // Step 1: Fetch student list first
+            var studentList = await studentQuery.ToListAsync();
+
+            // Step 2: Compute progress data in memory
+            var studentProgressList = studentList.Select(s =>
             {
+                var studentAssignments = (
+                    from g in _context.Grades
+                    join a in _context.Assignments on g.AssignmentId equals a.AssignmentId
+                    where g.StudentId == s.StudentId && a.InstructorId == instructorId && a.Points > 0
+                    select ((double)g.Score / a.Points) * 100
+                ).ToList(); // Bring to memory
+
+                var averageGrade = studentAssignments.Any() ? studentAssignments.Average() : 0.0;
+
+                return new Dictionary<string, object>
+    {
         { "Id", s.StudentId },
         { "Name", s.FirstName + " " + s.LastName },
-        { "ClassName", _context.Classes.Where(c => c.ClassId == s.ClassId).Select(c => c.ClassName).FirstOrDefault() ?? "Unknown" },
+        { "ClassName", _context.Classes
+            .Where(c => c.ClassId == s.ClassId)
+            .Select(c => c.ClassName)
+            .FirstOrDefault() ?? "Unknown" },
+
         { "LastActive", _context.Submissions
-            .Where(sub => sub.StudentId == s.StudentId && _context.Assignments.Where(a => a.InstructorId == instructorId).Select(a => a.AssignmentId).Contains(sub.AssignmentId))
+            .Where(sub => sub.StudentId == s.StudentId &&
+                          _context.Assignments
+                                  .Where(a => a.InstructorId == instructorId)
+                                  .Select(a => a.AssignmentId)
+                                  .Contains(sub.AssignmentId))
             .OrderByDescending(sub => sub.SubmissionDate)
             .Select(sub => (DateTime?)sub.SubmissionDate)
             .FirstOrDefault() ?? DateTime.MinValue },
+
         { "CompletedSubmissions", _context.Submissions
-            .Where(sub => sub.StudentId == s.StudentId && _context.Assignments.Where(a => a.InstructorId == instructorId).Select(a => a.AssignmentId).Contains(sub.AssignmentId))
-            .Count() },
+            .Count(sub => sub.StudentId == s.StudentId &&
+                          _context.Assignments
+                                  .Where(a => a.InstructorId == instructorId)
+                                  .Select(a => a.AssignmentId)
+                                  .Contains(sub.AssignmentId)) },
+
         { "SubmissionCompletionRate", totalAssignments > 0
-            ? (double)(_context.Submissions.Where(sub => sub.StudentId == s.StudentId && _context.Assignments.Where(a => a.InstructorId == instructorId).Select(a => a.AssignmentId).Contains(sub.AssignmentId)).Count() * 100) / totalAssignments
+            ? (double)(_context.Submissions
+                .Count(sub => sub.StudentId == s.StudentId &&
+                              _context.Assignments
+                                      .Where(a => a.InstructorId == instructorId)
+                                      .Select(a => a.AssignmentId)
+                                      .Contains(sub.AssignmentId)) * 100) / totalAssignments
             : 0.0 },
-        { "AverageGrade", _context.Grades
-            .Where(g => g.StudentId == s.StudentId && _context.Assignments.Where(a => a.InstructorId == instructorId).Select(a => a.AssignmentId).Contains(g.AssignmentId))
-            .Average(g => (double?)g.Score) ?? 0.0 }
-            }).ToListAsync();
+
+        { "AverageGrade", averageGrade }
+    };
+            }).ToList();
 
             if (filterLow)
             {
-                studentProgressList = studentProgressList.Where(s => (double)s["SubmissionCompletionRate"] < 50).ToList();
+                studentProgressList = studentProgressList
+                    .Where(s => (double)s["SubmissionCompletionRate"] < 50)
+                    .ToList();
             }
 
             studentProgressList = sortBy switch
             {
-                "grade" => studentProgressList.OrderByDescending(s => (double)s["AverageGrade"]).ToList(),
-                _ => studentProgressList.OrderByDescending(s => (double)s["SubmissionCompletionRate"]).ToList()
+                "grade" => studentProgressList
+                    .OrderByDescending(s => (double)s["AverageGrade"])
+                    .ToList(),
+
+                _ => studentProgressList
+                    .OrderByDescending(s => (double)s["SubmissionCompletionRate"])
+                    .ToList()
             };
 
-            // ✅ Fetch Class List for Dropdown
             var classList = await _context.Classes
                 .Where(c => instructorClassIds.Contains(c.ClassId))
                 .Select(c => new Dictionary<string, object>
                 {
-                    { "ClassId", c.ClassId },
-                    { "ClassName", c.ClassName }
+            { "ClassId", c.ClassId },
+            { "ClassName", c.ClassName }
                 })
                 .ToListAsync();
 
-            //ViewBag.Classes = classList; // Store in ViewBag
-
-
-            Console.WriteLine($"Total Classes Fetched: {classList.Count}"); // Debugging
+            Console.WriteLine($"Total Classes Fetched: {classList.Count}");
 
             ViewBag.Classes = classList;
             ViewBag.SelectedClassId = classId;
-            ViewBag.AverageGrade = studentProgressList.Any() ? studentProgressList.Average(s => (double)s["AverageGrade"]) : 0;
-            ViewBag.AverageSubmissionCompletion = studentProgressList.Any() ? studentProgressList.Average(s => (double)s["SubmissionCompletionRate"]) : 0;
+            ViewBag.AverageGrade = studentProgressList.Any()
+                ? studentProgressList.Average(s => (double)s["AverageGrade"])
+                : 0;
+
+            ViewBag.AverageSubmissionCompletion = studentProgressList.Any()
+                ? studentProgressList.Average(s => (double)s["SubmissionCompletionRate"])
+                : 0;
 
             return View(studentProgressList);
         }
-
 
         // Help & Support Page
         public IActionResult HelpSupport()

@@ -80,7 +80,21 @@
                 <div class="form-group mb-3">
                     <label for="SampleSolution">Upload Sample Solution</label>
                     <input type="file" name="SampleSolution" class="form-control-file" />
+
+                    <div class="alert alert-info mt-3">
+                        <h6 class="fw-bold mb-2">📌 Sample Solution Guidelines for Instructors:</h6>
+                        <p class="mb-2">Please write your sample code to demonstrate how the student's function should be called using interactive input. This helps validate student submissions automatically.</p>
+
+                        <ul class="mb-1">
+                            <li><strong>Python:</strong> <code>myFunction(int(input()))</code></li>
+                            <li><strong>C++:</strong> <code>cin >> n; myFunction(n);</code></li>
+                            <li><strong>Java:</strong> <code>myFunction(sc.nextInt());</code> (inside a <code>Main</code> class)</li>
+                            <li><strong>C#:</strong> <code>myFunction(int.Parse(Console.ReadLine()))</code></li>
+                        </ul>
+                        <small class="text-muted">Make sure the sample follows the same input pattern expected from students.</small>
+                    </div>
                 </div>
+
             </div>
         }
         else {

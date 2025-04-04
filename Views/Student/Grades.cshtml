@@ -71,23 +71,32 @@
                     }
                 </tbody>
             </table>
+
+            <!-- 📭 No Grades Message -->
+            <div id="noGradesMessage" class="text-center text-muted my-3" style="display: none;">
+                <h5>📭 You haven't received any grades yet for your submitted assignments.</h5>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-        document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function () {
         const subjectDropdown = document.getElementById("subjectDropdown");
         const typeDropdown = document.getElementById("typeDropdown");
         const gradesBody = document.getElementById("gradesBody");
         const assignmentColumn = document.getElementById("assignmentColumn");
         const scoreColumn = document.getElementById("scoreColumn");
         const maxScoreColumn = document.getElementById("maxScoreColumn");
+        const noGradesMessage = document.getElementById("noGradesMessage");
+
         let sortOrder = { assignment: true, score: true, maxScore: true };
 
         function filterTable() {
             const selectedSubject = subjectDropdown.value.toLowerCase();
             const selectedType = typeDropdown.value.toLowerCase();
+
+            let hasVisibleRow = false;
 
             document.querySelectorAll("#gradesBody tr").forEach(row => {
                 const rowSubject = row.getAttribute("data-subject")?.toLowerCase() || "";
@@ -96,8 +105,13 @@
                 const subjectMatch = !selectedSubject || rowSubject === selectedSubject;
                 const typeMatch = !selectedType || rowType === selectedType;
 
-                row.style.display = subjectMatch && typeMatch ? "" : "none";
+                const visible = subjectMatch && typeMatch;
+                row.style.display = visible ? "" : "none";
+
+                if (visible) hasVisibleRow = true;
             });
+
+            noGradesMessage.style.display = hasVisibleRow ? "none" : "block";
         }
 
         function sortTable(column, key) {
@@ -123,5 +137,8 @@
         assignmentColumn.addEventListener("click", () => sortTable(assignmentColumn, "assignment"));
         scoreColumn.addEventListener("click", () => sortTable(scoreColumn, "score"));
         maxScoreColumn.addEventListener("click", () => sortTable(maxScoreColumn, "maxScore"));
+
+        // Check on page load
+        filterTable();
     });
 </script>

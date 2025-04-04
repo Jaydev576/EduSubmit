@@ -372,11 +372,31 @@ namespace EduSubmit.Controllers
         // GET: Submissions
         public async Task<IActionResult> Submissions()
         {
-            var submissions = await _context
-                .Submissions.Include(s => s.Assignment)
+            // 1. Get the email of the currently logged-in user
+            string? userEmail = User?.Claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Unauthorized("User email not found in claims.");
+            }
+
+            // 2. Get the corresponding StudentId from the Students table
+            var student = await _context.Students.FirstOrDefaultAsync(s => s.EmailAddress == userEmail);
+            if (student == null)
+            {
+                return NotFound("Student not found for the logged-in user.");
+            }
+
+            int studentId = student.StudentId;
+
+            // 3. Get submissions only made by this student
+            var submissions = await _context.Submissions
+                .Include(s => s.Assignment)
                 .Include(s => s.Student)
+                .Where(s => s.StudentId == studentId)
                 .ToListAsync();
 
+            // 4. Determine which assignments are coding assignments
             string codingAssignmentsPath = Path.Combine(_webHostEnvironment.WebRootPath, "CodingAssignments");
             var assignmentTypeDictionary = new Dictionary<int, bool>();
 
@@ -398,21 +418,41 @@ namespace EduSubmit.Controllers
         // GET: Grades
         public async Task<IActionResult> Grades()
         {
-            var grades = await _context
-                .Grades.Include(g => g.Student)
+            // 1. Get the email from claims
+            string? userEmail = User?.Claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return Unauthorized("User email not found in claims.");
+            }
+
+            // 2. Fetch the student by email
+            var student = await _context.Students.FirstOrDefaultAsync(s => s.EmailAddress == userEmail);
+            if (student == null)
+            {
+                return NotFound("Student not found for the logged-in user.");
+            }
+
+            int studentId = student.StudentId;
+
+            // 3. Get grades only for the current student
+            var grades = await _context.Grades
+                .Include(g => g.Student)
                 .Include(g => g.Assignment)
+                .Where(g => g.StudentId == studentId)
                 .ToListAsync();
 
+            // 4. Determine if the assignments are coding assignments
             var codingAssignments = new Dictionary<int, bool>();
+            string codingAssignmentsBasePath = Path.Combine(_webHostEnvironment.WebRootPath, "CodingAssignments");
 
             foreach (var grade in grades)
             {
-                if (grade.Assignment != null && grade.Student != null && grade.AssignmentId > 0)
+                if (grade.Assignment != null)
                 {
-                    string assignmentPath = Path.Combine(_webHostEnvironment.WebRootPath, "CodingAssignments", $"{grade.Student.ClassId}_{grade.AssignmentId}");
+                    string assignmentPath = Path.Combine(codingAssignmentsBasePath, $"{student.ClassId}_{grade.AssignmentId}");
 
                     bool isCoding = Directory.Exists(assignmentPath);
-
                     codingAssignments.TryAdd(grade.AssignmentId, isCoding);
                 }
             }
@@ -421,7 +461,6 @@ namespace EduSubmit.Controllers
 
             return View(grades);
         }
-
 
         // GET: Calendar
         public ActionResult Calendar()

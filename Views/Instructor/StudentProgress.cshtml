@@ -36,9 +36,6 @@
         margin-bottom: 15px;
     }
 
-
-
-
     /* Improved styling for the Student Progress page */
     .container {
         max-width: 90%;
@@ -59,9 +56,9 @@
         margin-bottom: 20px;
     }
 
-        .filter-dropdown label {
-            font-weight: 500;
-        }
+    .filter-dropdown label {
+        font-weight: 500;
+    }
 
     .form-select {
         width: auto;
@@ -77,8 +74,6 @@
         transition: all 0.3s ease-in-out;
         border: none;
     }
-
-        
 
     .card-header {
         background-color: #6e8efb;
@@ -100,29 +95,28 @@
         background: white;
     }
 
-        .table thead th {
-            background: #6e8efb;
-            color: white;
-            text-align: center;
-        }
+    .table thead th {
+        background: #6e8efb;
+        color: white;
+        text-align: center;
+    }
 
-        .table tbody tr:hover {
-            background-color: rgba(40, 167, 69, 0.1);
-        }
+    .table tbody tr:hover {
+        background-color: rgba(40, 167, 69, 0.1);
+    }
 
-        .table td, .table th {
-            padding: 12px;
-            text-align: center;
-            vertical-align: middle;
-        }
-
+    .table td, .table th {
+        padding: 12px;
+        text-align: center;
+        vertical-align: middle;
+    }
 </style>
 
 <div class="container mt-4">
     <h3 class="mb-3 text-dark">Student Progress</h3>
     <form method="get" class="filter-dropdown">
         <label for="classFilter">Filter by Class:</label>
-        <select name="classId" id="classFilter" class="form-select" onchange="this.form.submit()">
+        <select name="classId" id="classFilter" class="form-select pe-5" onchange="this.form.submit()">
             <option value="">All Classes</option>
             @foreach (var cls in classes)
             {
@@ -132,7 +126,6 @@
             }
         </select>
     </form>
-
 
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
@@ -146,7 +139,7 @@
                         <th>Class</th>
                         <th>Last Submission</th>
                         <th>Completion Rate</th>
-                        <th>Average Grade</th>
+                        <th>Average Grade Percentage</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -166,7 +159,7 @@
                                 }
                             </td>
                             <td>@Convert.ToDouble(student["SubmissionCompletionRate"])%</td>
-                            <td>@Convert.ToDouble(student["AverageGrade"])%</td>
+                            <td>@($"{Convert.ToDouble(student["AverageGrade"]):0.00}%")</td>
                         </tr>
                     }
                 </tbody>
