@@ -1,23 +1,29 @@
-# Stage 1: Build the app using .NET 9.0 SDK (Preview)
-FROM mcr.microsoft.com/dotnet/sdk:9.0-preview AS build
+# ==============================
+# Stage 1: Build the application
+# ==============================
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
 # Copy project and restore dependencies
 COPY *.csproj ./
 RUN dotnet restore
 
-# Copy everything else and publish
+# Copy the rest of the project and build the app
 COPY . ./
-RUN dotnet publish -c Release -o out
+RUN dotnet publish -c Release -o /out --no-restore
 
-# Stage 2: Run the app using ASP.NET Core Runtime
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-preview AS runtime
+# ==============================
+# Stage 2: Run the application
+# ==============================
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
-COPY --from=build /app/out ./
+# Copy built application from build stage
+COPY --from=build /out ./
 
-# Use environment variable for port binding (Railway compatibility)
-ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT}
+# Set environment variables (Railway compatibility)
+ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
+# Run the application
 ENTRYPOINT ["dotnet", "EduSubmit.dll"]
