@@ -27,7 +27,7 @@ namespace EduSubmit
 
             // Add services to the container.
             builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlServer(connectionString ?? throw new InvalidOperationException("Database connection string not found!")));
+                options.UseNpgsql(connectionString ?? throw new InvalidOperationException("Database connection string not found!")));
 
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
