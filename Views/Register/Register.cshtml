@@ -1,92 +1,289 @@
-﻿@{
+﻿@model Student
+
+@{
     ViewData["Title"] = "Register";
+    Layout = "~/Views/Shared/_RegisterLayout.cshtml";
 }
 
-<h2 class="text-center mb-4">Register As</h2>
+<style>
+    :root {
+        --primary: #007bff;
+        --success: #28a745;
+        --secondary: #6c757d;
+        --light-bg: #f8f9fa;
+    }
 
-<div class="d-flex justify-content-center mb-4">
-    <button id="studentBtn" class="btn btn-primary mx-2">Student</button>
-    <button id="instructorBtn" class="btn btn-outline-primary mx-2">Instructor</button>
-    <button id="adminBtn" class="btn btn-outline-primary mx-2">Admin</button>
-</div>
+    body {
+        background: var(--light-bg);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
 
-<div class="container">
+    .container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-    <!-- Student Registration Form -->
-    <form id="studentForm" class="needs-validation" novalidate>
-        <div class="card mb-3">
-            <div class="card-header bg-primary text-white">Student Registration</div>
-            <div class="card-body">
-                <div class="form-group">
-                    <label for="studentName">Name</label>
-                    <input type="text" class="form-control" id="studentName" name="studentName" required />
-                    <div class="invalid-feedback">Name is required.</div>
-                </div>
-                <div class="form-group">
-                    <label for="studentEmail">Email</label>
-                    <input type="email" class="form-control" id="studentEmail" name="studentEmail" required />
-                    <div class="invalid-feedback">Valid email is required.</div>
-                </div>
-                <div class="form-group">
-                    <label for="studentPassword">Password</label>
-                    <input type="password" class="form-control" id="studentPassword" name="studentPassword" required />
-                    <div class="invalid-feedback">Password is required.</div>
-                </div>
-                <button type="submit" class="btn btn-success mt-3">Register as Student</button>
+    .card {
+        max-width: 600px; /* Reduced from 900px to make it narrower */
+        width: 100%;
+        border-radius: 15px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, var(--primary), #0056b3);
+    }
+
+    .btn-group .btn {
+        border-radius: 10px;
+        padding: 0.75rem 2rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        border: none;
+    }
+
+    .btn-primary.active, .btn-primary:hover {
+        background: #0056b3;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    .btn-outline-primary {
+        border: 2px solid var(--primary);
+        color: var(--primary);
+    }
+
+    .btn-outline-primary:hover {
+        background: var(--primary);
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    .form-container {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .form-label {
+        color: #333;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        padding: 0.75rem;
+        border: 1px solid #ced4da;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .btn-success {
+        background: var(--success);
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-success:hover {
+        background: #218838;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-outline-secondary {
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-secondary:hover {
+        background: var(--secondary);
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+    .invalid-feedback {
+        display: none;
+        font-size: 0.875rem;
+        color: #dc3545;
+    }
+
+    .form-control:invalid:focus, .form-select:invalid:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+
+    .needs-validation.was-validated .form-control:invalid ~ .invalid-feedback,
+    .needs-validation.was-validated .form-select:invalid ~ .invalid-feedback {
+        display: block;
+    }
+
+</style>
+
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-gradient-primary text-white text-center">
+            <h2 class="mb-0 fw-bold">Create Your Account</h2>
+            <p class="text-light mt-1">Select your role to get started</p>
+        </div>
+        <div class="card-body p-4">
+            <!-- Role Selection -->
+            <div class="btn-group d-flex mb-4 justify-content-center gap-2" role="group">
+                <button type="button" class="btn btn-primary shadow-sm active" id="studentBtn">
+                    <i class="bi bi-person me-2"></i>Student
+                </button>
+                <button type="button" class="btn btn-outline-primary shadow-sm" id="instructorBtn">
+                    <i class="bi bi-person-gear me-2"></i>Instructor
+                </button>
+                <button type="button" class="btn btn-outline-primary shadow-sm" id="adminBtn">
+                    <i class="bi bi-shield-lock me-2"></i>Admin
+                </button>
+            </div>
+
+            <!-- Student Form -->
+            <div id="studentForm" class="form-container">
+                <form asp-action="RegisterStudent" asp-controller="Register" method="post" class="needs-validation" novalidate>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">First Name</label>
+                            <input type="text" class="form-control shadow-sm" name="FirstName" required />
+                            <div class="invalid-feedback">Please enter your first name.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Last Name</label>
+                            <input type="text" class="form-control shadow-sm" name="LastName" required />
+                            <div class="invalid-feedback">Please enter your last name.</div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email</label>
+                        <input type="email" class="form-control shadow-sm" name="EmailAddress" required />
+                        <div class="invalid-feedback">Please enter a valid email address.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Password</label>
+                        <input type="password" class="form-control shadow-sm" name="Password" required />
+                        <div class="invalid-feedback">Please enter a password.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Date of Birth</label>
+                        <input type="date" class="form-control shadow-sm" name="DateOfBirth" required />
+                        <div class="invalid-feedback">Please enter your date of birth.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Organization</label>
+                        <select id="OrganizationId" name="OrganizationId" class="form-select shadow-sm" required>
+                            <option value="">-- Select Organization --</option>
+                            @foreach (var org in ViewBag.Organizations)
+                            {
+                                <option value="@org.Value">@org.Text</option>
+                            }
+                        </select>
+                        <div class="invalid-feedback">Please select an organization.</div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Class</label>
+                        <select id="ClassId" name="ClassId" class="form-select shadow-sm" required>
+                            <option value="">-- Select Class --</option>
+                        </select>
+                        <div class="invalid-feedback">Please select a class.</div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button type="submit" class="btn btn-success shadow-sm px-4">
+                            <i class="bi bi-person-plus me-2"></i>Register as Student
+                        </button>
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary shadow-sm px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Instructor Form -->
+            <div id="instructorForm" class="form-container d-none">
+                <form asp-action="RegisterInstructor" asp-controller="Register" method="post" class="needs-validation" novalidate>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">First Name</label>
+                            <input type="text" class="form-control shadow-sm" name="FirstName" required />
+                            <div class="invalid-feedback">Please enter your first name.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Last Name</label>
+                            <input type="text" class="form-control shadow-sm" name="LastName" required />
+                            <div class="invalid-feedback">Please enter your last name.</div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email</label>
+                        <input type="email" class="form-control shadow-sm" name="EmailAddress" required />
+                        <div class="invalid-feedback">Please enter a valid email address.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Password</label>
+                        <input type="password" class="form-control shadow-sm" name="Password" required />
+                        <div class="invalid-feedback">Please enter a password.</div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Organization</label>
+                        <select name="OrganizationId" id="OrganizationId" class="form-select shadow-sm" asp-items="ViewBag.Organizations" required>
+                            <option value="">-- Select Organization --</option>
+                        </select>
+                        <div class="invalid-feedback">Please select an organization.</div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button type="submit" class="btn btn-success shadow-sm px-4">
+                            <i class="bi bi-person-plus me-2"></i>Register as Instructor
+                        </button>
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary shadow-sm px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Admin Form -->
+            <div id="adminForm" class="form-container d-none">
+                <form asp-action="RegisterAdmin" asp-controller="Register" method="post" class="needs-validation" novalidate>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Organization Name</label>
+                        <input type="text" class="form-control shadow-sm" name="OrganizationName" required />
+                        <div class="invalid-feedback">Please enter the organization name.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Username</label>
+                        <input type="text" class="form-control shadow-sm" name="Username" required />
+                        <div class="invalid-feedback">Please enter a username.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email</label>
+                        <input type="email" class="form-control shadow-sm" name="EmailAddress" required />
+                        <div class="invalid-feedback">Please enter a valid email address.</div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Password</label>
+                        <input type="password" class="form-control shadow-sm" name="Password" required />
+                        <div class="invalid-feedback">Please enter a password.</div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button type="submit" class="btn btn-success shadow-sm px-4">
+                            <i class="bi bi-person-plus me-2"></i>Register as Admin
+                        </button>
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary shadow-sm px-4">Cancel</a>
+                    </div>
+                </form>
             </div>
         </div>
-    </form>
-
-    <!-- Instructor Registration Form -->
-    <form id="instructorForm" class="needs-validation d-none" novalidate>
-        <div class="card mb-3">
-            <div class="card-header bg-primary text-white">Instructor Registration</div>
-            <div class="card-body">
-                <div class="form-group">
-                    <label for="instructorName">Name</label>
-                    <input type="text" class="form-control" id="instructorName" name="instructorName" required />
-                    <div class="invalid-feedback">Name is required.</div>
-                </div>
-                <div class="form-group">
-                    <label for="instructorEmail">Email</label>
-                    <input type="email" class="form-control" id="instructorEmail" name="instructorEmail" required />
-                    <div class="invalid-feedback">Valid email is required.</div>
-                </div>
-                <div class="form-group">
-                    <label for="instructorPassword">Password</label>
-                    <input type="password" class="form-control" id="instructorPassword" name="instructorPassword" required />
-                    <div class="invalid-feedback">Password is required.</div>
-                </div>
-                <button type="submit" class="btn btn-success mt-3">Register as Instructor</button>
-            </div>
-        </div>
-    </form>
-
-    <!-- Admin Registration Form -->
-    <form id="adminForm" class="needs-validation d-none" novalidate>
-        <div class="card mb-3">
-            <div class="card-header bg-primary text-white">Admin Registration</div>
-            <div class="card-body">
-                <div class="form-group">
-                    <label for="adminName">Name</label>
-                    <input type="text" class="form-control" id="adminName" name="adminName" required />
-                    <div class="invalid-feedback">Name is required.</div>
-                </div>
-                <div class="form-group">
-                    <label for="adminEmail">Email</label>
-                    <input type="email" class="form-control" id="adminEmail" name="adminEmail" required />
-                    <div class="invalid-feedback">Valid email is required.</div>
-                </div>
-                <div class="form-group">
-                    <label for="adminPassword">Password</label>
-                    <input type="password" class="form-control" id="adminPassword" name="adminPassword" required />
-                    <div class="invalid-feedback">Password is required.</div>
-                </div>
-                <button type="submit" class="btn btn-success mt-3">Register as Admin</button>
-            </div>
-        </div>
-    </form>
-
+    </div>
 </div>
 
 @section Scripts {
@@ -95,67 +292,66 @@
             const studentBtn = document.getElementById("studentBtn");
             const instructorBtn = document.getElementById("instructorBtn");
             const adminBtn = document.getElementById("adminBtn");
-
             const studentForm = document.getElementById("studentForm");
             const instructorForm = document.getElementById("instructorForm");
             const adminForm = document.getElementById("adminForm");
 
-            function resetButtons() {
+            function showForm(selectedBtn, formToShow) {
                 studentBtn.classList.remove("btn-primary", "active");
                 studentBtn.classList.add("btn-outline-primary");
-
                 instructorBtn.classList.remove("btn-primary", "active");
                 instructorBtn.classList.add("btn-outline-primary");
-
                 adminBtn.classList.remove("btn-primary", "active");
                 adminBtn.classList.add("btn-outline-primary");
-            }
 
-            function hideAllForms() {
+                selectedBtn.classList.remove("btn-outline-primary");
+                selectedBtn.classList.add("btn-primary", "active");
+
                 studentForm.classList.add("d-none");
                 instructorForm.classList.add("d-none");
                 adminForm.classList.add("d-none");
+
+                formToShow.classList.remove("d-none");
             }
 
-            studentBtn.addEventListener("click", function () {
-                resetButtons();
-                hideAllForms();
-                studentBtn.classList.add("btn-primary", "active");
-                studentBtn.classList.remove("btn-outline-primary");
-                studentForm.classList.remove("d-none");
+            studentBtn.addEventListener("click", () => showForm(studentBtn, studentForm));
+            instructorBtn.addEventListener("click", () => showForm(instructorBtn, instructorForm));
+            adminBtn.addEventListener("click", () => showForm(adminBtn, adminForm));
+
+            // Bootstrap-like form validation
+            document.querySelectorAll('.needs-validation').forEach(form => {
+                form.addEventListener('submit', (event) => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
             });
+        });
 
-            instructorBtn.addEventListener("click", function () {
-                resetButtons();
-                hideAllForms();
-                instructorBtn.classList.add("btn-primary", "active");
-                instructorBtn.classList.remove("btn-outline-primary");
-                instructorForm.classList.remove("d-none");
-            });
+        $(document).ready(function () {
+            $("#OrganizationId").change(function () {
+                var orgId = $(this).val();
+                $("#ClassId").empty();
 
-            adminBtn.addEventListener("click", function () {
-                resetButtons();
-                hideAllForms();
-                adminBtn.classList.add("btn-primary", "active");
-                adminBtn.classList.remove("btn-outline-primary");
-                adminForm.classList.remove("d-none");
-            });
-
-            // Enable Bootstrap validation styling
-            (() => {
-                'use strict';
-                const forms = document.querySelectorAll('.needs-validation');
-
-                Array.from(forms).forEach(form => {
-                    form.addEventListener('submit', event => {
-                        if (!form.checkValidity()) {
-                            event.preventDefault();
-                            event.stopPropagation();
+                if (orgId) {
+                    $.ajax({
+                        url: '/Register/GetClassesByOrganization',
+                        type: 'GET',
+                        data: { organizationId: orgId },
+                        success: function (response) {
+                            $("#ClassId").append('<option value="">-- Select Class --</option>');
+                            $.each(response, function (index, item) {
+                                $("#ClassId").append('<option value="' + item.classId + '">' + item.className + '</option>');
+                            });
+                        },
+                        error: function () {
+                            alert("Error loading classes.");
                         }
-                        form.classList.add('was-validated');
-                    }, false);
-                });
-            })();
+                    });
+                }
+            });
         });
     </script>
 }
