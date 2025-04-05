@@ -19,9 +19,15 @@
         overflow-x: auto;
     }
 
+    /* Force table cell wrapping on small screens */
+    table td, table th {
+        white-space: nowrap;
+        word-break: break-word;
+    }
+
     @@media (max-width: 768px) {
         table td, table th {
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             white-space: normal !important;
         }
 
@@ -40,7 +46,7 @@
     }
 </style>
 
-<div class="container grades-container mt-4">
+<div class="container-fluid grades-container mt-4">
     <!-- Header -->
     <div class="card border-primary shadow-sm mb-4">
         <div class="card-body text-center">
@@ -79,23 +85,23 @@
                 <table class="table table-hover align-middle text-center mb-0 w-100">
                     <thead class="text-white" style="background: linear-gradient(135deg, #007BFF, #0056b3);">
                         <tr>
-                            <th id="assignmentColumn" class="sortable" data-sort="assignment">Assignment 🔼</th>
-                            <th>Subject</th>
-                            <th id="scoreColumn" class="sortable" data-sort="score">Score 🔼</th>
-                            <th id="maxScoreColumn" class="sortable" data-sort="maxScore">Max Score 🔼</th>
-                            <th>Remarks</th>
-                            <th>Actions</th>
+                            <th id="assignmentColumn" class="sortable text-wrap" data-sort="assignment">Assignment 🔼</th>
+                            <th class="text-wrap">Subject</th>
+                            <th id="scoreColumn" class="sortable text-nowrap" data-sort="score">Score 🔼</th>
+                            <th id="maxScoreColumn" class="sortable text-nowrap" data-sort="maxScore">Max Score 🔼</th>
+                            <th class="text-wrap">Remarks</th>
+                            <th class="text-nowrap">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="gradesBody">
                         @foreach (var grade in Model) {
                             bool isCoding = isCodingAssignments.TryGetValue(grade.AssignmentId, out bool coding) && coding;
                             <tr data-subject="@grade.Assignment?.SubjectName" data-type="@(isCoding ? "coding" : "normal")">
-                                <td class="assignment">@grade.Assignment?.Title</td>
-                                <td>@grade.Assignment?.SubjectName</td>
+                                <td class="assignment text-break">@grade.Assignment?.Title</td>
+                                <td class="text-break">@grade.Assignment?.SubjectName</td>
                                 <td class="score">@grade.Score</td>
                                 <td class="maxScore">@grade.Assignment?.Points</td>
-                                <td>@grade.Remarks</td>
+                                <td class="text-break">@grade.Remarks</td>
                                 <td>
                                     <a asp-action="Details" asp-controller="Grade"
                                        asp-route-studentId="@grade.StudentId"
