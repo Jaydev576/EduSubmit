@@ -10,41 +10,36 @@
 }
 
 <div class="container mt-4">
-    <!-- Header Card -->
     <div class="card border border-primary shadow-sm mb-3">
         <div class="card-body text-center">
             <h2 class="text-primary">📊 Grades</h2>
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="card p-4 shadow-sm mb-4 border-0" style="background: #F8FEFF; border-radius: 12px;">
-        <div class="row gy-3">
-            <div class="col-12 col-md-6">
-                <label class="fw-bold text-dark" for="subjectDropdown">Filter by Subject:</label>
-                <select class="form-select border-0 shadow-sm bg-white" id="subjectDropdown">
-                    <option value="">📚 All Subjects</option>
-                    @foreach (var subject in subjects) {
-                        <option value="@subject">@subject</option>
-                    }
-                </select>
-            </div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex">
+            <label class="me-2 fw-bold align-self-center">Filter by Subject:</label>
+            <select class="form-select me-2" id="subjectDropdown">
+                <option value="">All Subjects</option>
+                @foreach (var subject in subjects) {
+                    <option value="@subject">@subject</option>
+                }
+            </select>
+        </div>
 
-            <div class="col-12 col-md-6">
-                <label class="fw-bold text-dark" for="typeDropdown">Filter by Type:</label>
-                <select class="form-select border-0 shadow-sm bg-white" id="typeDropdown">
-                    <option value="">🧾 All Assignments</option>
-                    <option value="coding">💻 Coding Assignments</option>
-                    <option value="normal">📝 Normal Assignments</option>
-                </select>
-            </div>
+        <div class="d-flex">
+            <label class="me-2 fw-bold align-self-center">Filter by Type:</label>
+            <select class="form-select" id="typeDropdown">
+                <option value="">All Assignments</option>
+                <option value="coding">Coding Assignments</option>
+                <option value="normal">Normal Assignments</option>
+            </select>
         </div>
     </div>
 
-    <!-- Grades Table -->
     <div class="card shadow-sm">
-        <div class="card-body table-responsive">
-            <table class="table table-hover text-center align-middle shadow-sm">
+        <div class="card-body">
+            <table class="table table-striped table-hover text-center" id="gradesTable">
                 <thead class="text-white" style="background: linear-gradient(135deg, #007BFF, #0056b3);">
                     <tr>
                         <th id="assignmentColumn" class="sortable" data-sort="assignment">Assignment 🔼</th>
@@ -59,23 +54,25 @@
                     @foreach (var grade in Model) {
                         bool isCoding = isCodingAssignments.TryGetValue(grade.AssignmentId, out bool coding) && coding;
                         <tr data-subject="@grade.Assignment?.SubjectName" data-type="@(isCoding ? "coding" : "normal")">
-                            <td class="assignment text-dark">@grade.Assignment?.Title</td>
-                            <td class="text-dark">@grade.Assignment?.SubjectName</td>
-                            <td class="score text-dark">@grade.Score</td>
-                            <td class="maxScore text-dark">@grade.Assignment?.Points</td>
-                            <td class="text-dark">@grade.Remarks</td>
+                            <td class="assignment">@grade.Assignment?.Title</td>
+                            <td>@grade.Assignment?.SubjectName</td>
+                            <td class="score">@grade.Score</td>
+                            <td class="maxScore">@grade.Assignment?.Points</td>
+                            <td>@grade.Remarks</td>
                             <td>
                                 <a asp-action="Details" asp-controller="Grade"
                                    asp-route-studentId="@grade.StudentId"
                                    asp-route-assignmentId="@grade.AssignmentId"
-                                   class="btn btn-info btn-sm shadow-sm">📖 Details</a>
+                                   class="btn btn-info btn-sm shadow-sm">
+                                    📖 Details
+                                </a>
                             </td>
                         </tr>
                     }
                 </tbody>
             </table>
 
-            <!-- No Grades Message -->
+            <!-- 📭 No Grades Message -->
             <div id="noGradesMessage" class="text-center text-muted my-3" style="display: none;">
                 <h5>📭 You haven't received any grades yet for your submitted assignments.</h5>
             </div>
@@ -83,7 +80,6 @@
     </div>
 </div>
 
-<!-- Filter & Sort Script -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const subjectDropdown = document.getElementById("subjectDropdown");
@@ -99,14 +95,19 @@
         function filterTable() {
             const selectedSubject = subjectDropdown.value.toLowerCase();
             const selectedType = typeDropdown.value.toLowerCase();
+
             let hasVisibleRow = false;
 
             document.querySelectorAll("#gradesBody tr").forEach(row => {
                 const rowSubject = row.getAttribute("data-subject")?.toLowerCase() || "";
                 const rowType = row.getAttribute("data-type")?.toLowerCase() || "";
-                const visible = (!selectedSubject || rowSubject === selectedSubject) &&
-                                (!selectedType || rowType === selectedType);
+
+                const subjectMatch = !selectedSubject || rowSubject === selectedSubject;
+                const typeMatch = !selectedType || rowType === selectedType;
+
+                const visible = subjectMatch && typeMatch;
                 row.style.display = visible ? "" : "none";
+
                 if (visible) hasVisibleRow = true;
             });
 
@@ -137,6 +138,7 @@
         scoreColumn.addEventListener("click", () => sortTable(scoreColumn, "score"));
         maxScoreColumn.addEventListener("click", () => sortTable(maxScoreColumn, "maxScore"));
 
-        filterTable(); // Initial filter
+        // Check on page load
+        filterTable();
     });
 </script>

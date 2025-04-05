@@ -5,61 +5,25 @@
     ViewData["Title"] = "Calendar";
     ViewData["ActivePage"] = "Calendar";
 
+    // Get selected month & year from query parameters
     int selectedYear = Context.Request.Query["year"].Count > 0 ? int.Parse(Context.Request.Query["year"]) : DateTime.Today.Year;
     int selectedMonth = Context.Request.Query["month"].Count > 0 ? int.Parse(Context.Request.Query["month"]) : DateTime.Today.Month;
 
     var daysInMonth = DateTime.DaysInMonth(selectedYear, selectedMonth);
     var firstDayOfMonth = new DateTime(selectedYear, selectedMonth, 1);
-    var monthName = firstDayOfMonth.ToString("MMMM yyyy");
+    var monthName = firstDayOfMonth.ToString("MMMM yyyy"); // Format: "March 2025"
 }
 
-<style>
-    .calendar-wrapper {
-        width: 100%;
-        max-width: 1000px;
-        margin: 0 auto;
-    }
-
-    .calendar-table td {
-        vertical-align: top;
-        padding: 6px;
-        height: 80px;
-        font-size: 0.95rem;
-        cursor: pointer;
-    }
-
-    @@media (max-width: 768px) {
-        .calendar-table td {
-            height: 65px;
-            font-size: 0.85rem;
-        }
-    }
-
-    @@media (max-width: 576px) {
-        .calendar-table td {
-            height: 55px;
-            font-size: 0.8rem;
-        }
-
-        .calendar-title {
-            font-size: 1.3rem;
-        }
-    }
-
-    .assignment-highlight {
-        background-color: #dc3545 !important;
-        color: white;
-    }
-</style>
-
-<div class="container mt-4 calendar-wrapper">
-    <!-- Header Card -->
-    <div class="card border border-primary shadow-sm mb-3">
-        <div class="card-body text-center">
-            <h2 class="text-primary calendar-title">📅 @monthName</h2>
-            <form method="get" class="row justify-content-center mt-3 gx-2">
-                <div class="col-auto">
-                    <select name="month" class="form-select">
+<div class="container mt-4 d-flex justify-content-center">
+    <div style="width: 70%;">
+        
+        <!-- Filter Section -->
+        <div class="card border border-primary shadow-sm mb-3">
+            <div class="card-body text-center">
+                <h2 class="text-primary">📅 @monthName</h2>
+                
+                <form method="get" class="d-flex justify-content-center align-items-center mt-3">
+                    <select name="month" class="form-select me-2" style="width: auto;">
                         @for (int i = 1; i <= 12; i++)
                         {
                             <option value="@i" selected="@(i == selectedMonth ? "selected" : null)">
@@ -67,9 +31,8 @@
                             </option>
                         }
                     </select>
-                </div>
-                <div class="col-auto">
-                    <select name="year" class="form-select">
+                    
+                    <select name="year" class="form-select me-2" style="width: auto;">
                         @for (int y = DateTime.Today.Year - 3; y <= DateTime.Today.Year + 1; y++)
                         {
                             <option value="@y" selected="@(y == selectedYear ? "selected" : null)">
@@ -77,112 +40,61 @@
                             </option>
                         }
                     </select>
-                </div>
-                <div class="col-auto">
+                    
                     <button type="submit" class="btn btn-primary">Filter</button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
 
-    <!-- Calendar Grid -->
-    <div class="table-responsive shadow-sm rounded border">
-        <table class="table table-bordered calendar-table text-center mb-0">
+        <!-- Calendar Table -->
+        <table class="table table-bordered text-center shadow-sm" style="table-layout: fixed; width: 100%;">
             <thead class="text-white" style="background: linear-gradient(135deg, #007BFF, #0056b3);">
                 <tr>
-                    <th>Sun</th>
-                    <th>Mon</th>
-                    <th>Tue</th>
-                    <th>Wed</th>
-                    <th>Thu</th>
-                    <th>Fri</th>
-                    <th>Sat</th>
+                    <th style="width: 14.28%;">Sun</th>
+                    <th style="width: 14.28%;">Mon</th>
+                    <th style="width: 14.28%;">Tue</th>
+                    <th style="width: 14.28%;">Wed</th>
+                    <th style="width: 14.28%;">Thu</th>
+                    <th style="width: 14.28%;">Fri</th>
+                    <th style="width: 14.28%;">Sat</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
+                    <!-- Empty cells before the first day -->
                     @for (int i = 0; i < (int)firstDayOfMonth.DayOfWeek; i++)
                     {
-                        <td></td>
+                        <td style="height: 50px;"></td>
                     }
 
                     @for (int day = 1; day <= daysInMonth; day++)
                     {
                         var currentDate = new DateTime(selectedYear, selectedMonth, day);
-                        var assignmentsDue = Model.Where(a => a.DueDate.Date == currentDate).ToList();
-                        var jsonAssignments = System.Text.Json.JsonSerializer.Serialize(assignmentsDue);
+                        var assignmentsDue = Model.Count(a => a.DueDate.Date == currentDate);
+                        string backgroundColor = assignmentsDue > 0 ? "red" : "white";
+                        string textColor = assignmentsDue > 0 ? "white" : "black";
 
-                        <td class="@(assignmentsDue.Any() ? "assignment-highlight" : "")"
-                            data-date="@currentDate.ToString("yyyy-MM-dd")"
-                            data-assignments='@Html.Raw(jsonAssignments)'
-                            onclick="showAssignmentsModal(this)">
+                        <td style="padding: 8px; height: 50px; border: 1px solid #ccc; background-color: @backgroundColor; color: @textColor;">
                             <strong>@day</strong>
-                            @if (assignmentsDue.Any())
+                            @if (assignmentsDue > 0)
                             {
-                                <div class="small fw-bold mt-1" style="font-size: 0.75rem;">@assignmentsDue.Count Due</div>
+                                <div class="small fw-bold" style="font-size: 12px;">@assignmentsDue Assignments Due</div>
                             }
                         </td>
 
-                        if ((day + (int)firstDayOfMonth.DayOfWeek) % 7 == 0 && day != daysInMonth)
+                        @if ((day + (int)firstDayOfMonth.DayOfWeek) % 7 == 0) 
                         {
                             @:</tr><tr>
                         }
                     }
 
+                    <!-- Fill remaining cells in the last row -->
                     @for (int i = (daysInMonth + (int)firstDayOfMonth.DayOfWeek) % 7; i < 7 && i > 0; i++)
                     {
-                        <td></td>
+                        <td style="height: 50px;"></td>
                     }
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
-
-<!-- Bootstrap Modal -->
-<div class="modal fade" id="assignmentModal" tabindex="-1" aria-labelledby="assignmentModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="assignmentModalLabel">Assignments on <span id="modalDate"></span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="modalBody">
-                <!-- Assignment details will be injected -->
-            </div>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    <script>
-        function showAssignmentsModal(cell) {
-            const date = cell.dataset.date;
-            const assignments = JSON.parse(cell.dataset.assignments || "[]");
-
-            const modalTitle = document.getElementById("modalDate");
-            const modalBody = document.getElementById("modalBody");
-
-            modalTitle.textContent = new Date(date).toDateString();
-            modalBody.innerHTML = "";
-
-            if (assignments.length === 0) {
-                modalBody.innerHTML = "<p class='text-muted'>No assignments due on this day.</p>";
-            } else {
-                assignments.forEach(a => {
-                    modalBody.innerHTML += `
-                        <div class="mb-4 border-start border-4 ps-3 border-primary">
-                            <h5 class="fw-bold mb-1">${a.title}</h5>
-                            <p class="mb-1"><strong>Subject:</strong> ${a.subjectName || "N/A"}</p>
-                            <p class="mb-1"><strong>Description:</strong> ${a.description || "No description"}</p>
-                            <p class="mb-0"><strong>Total Points:</strong> ${a.points}</p>
-                        </div>
-                    `;
-                });
-            }
-
-            const modal = new bootstrap.Modal(document.getElementById("assignmentModal"));
-            modal.show();
-        }
-    </script>
-}
