@@ -72,9 +72,7 @@
         }
     </style>
 </head>
-
-<!-- 👇 Make the body a flex column and minimum full height -->
-<body class="d-flex flex-column min-vh-100">
+<body>
     <!-- Header Section -->
     <header class="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-4">
         <a class="navbar-brand" href="@Url.Action("Index","Home")">EduSubmit</a>
@@ -115,8 +113,8 @@
         </div>
     </div>
 
-    <!-- 👇 Main layout should grow and push footer to bottom -->
-    <main class="flex-grow-1 d-flex">
+    <!-- Layout: Sidebar + Main -->
+    <div class="d-flex">
         <!-- Sidebar for Large Screens -->
         <nav class="bg-light p-3 vh-100 d-none d-lg-block" style="width: 250px;">
             <ul class="nav flex-column">
@@ -132,10 +130,9 @@
         <div class="flex-grow-1 p-4">
             @RenderBody()
         </div>
-    </main>
+    </div>
 
-    <!-- 👇 Footer stays at bottom due to flex layout above -->
-    <footer class="footer bg-light border-top py-4 shadow-sm">
+    <footer class="footer mt-auto bg-light border-top py-4 shadow-sm">
         <div class="container text-center">
             <h6 class="text-primary mb-3">📬 Contact Developers</h6>
             <div class="d-flex flex-column flex-md-row justify-content-center gap-3">
@@ -154,6 +151,7 @@
             </div>
         </div>
     </footer>
+
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
