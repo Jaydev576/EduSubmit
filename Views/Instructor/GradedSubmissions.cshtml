@@ -1,41 +1,57 @@
-﻿@{
+﻿
+
+@{
     Layout = "~/Views/Shared/_InstructorLayout.cshtml";
     ViewData["Title"] = "Graded Submissions";
     ViewData["ActivePage"] = "GradedSubmissions";
 }
 @model IEnumerable<EduSubmit.Models.Grade>
 
-<div class="container">
+<div class="container mt-4">
     <h3 class="mb-4">Graded Submissions</h3>
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th>Student</th>
-                <th>Subject</th>
-                <th>Assignment</th>
-                <th>Score</th>
-                <th>Max Score</th>
-                <th>Remarks</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var grade in Model)
-            {
+
+    <div class="table-responsive shadow-sm rounded bg-white p-3">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
                 <tr>
-                    <td>@grade.Student.FirstName @grade.Student.LastName</td>
-                    <td>@grade.Assignment.SubjectName</td>
-                    <td>@grade.Assignment.Title</td>
-                    <td>@grade.Score</td>
-                    <td>@grade.Assignment.Points</td>
-                    <td>@(string.IsNullOrEmpty(grade.Remarks) ? "No remarks" : grade.Remarks)</td>
-                    <td>
-                        <a href="@Url.Action("GradeAssignment", "Instructor", new { studentId = grade.StudentId, assignmentId = grade.AssignmentId })" class="text-primary"><button class="btn btn-primary">Edit Grade</button></a>
-                    </td>
+                    <th>Student</th>
+                    <th>Subject</th>
+                    <th>Assignment</th>
+                    <th>Score</th>
+                    <th>Max Score</th>
+                    <th>Remarks</th>
+                    <th>Action</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">No graded submissions available.</td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var grade in Model)
+                    {
+                        <tr>
+                            <td>@grade.Student.FirstName @grade.Student.LastName</td>
+                            <td>@grade.Assignment.SubjectName</td>
+                            <td>@grade.Assignment.Title</td>
+                            <td>@grade.Score</td>
+                            <td>@grade.Assignment.Points</td>
+                            <td>@(string.IsNullOrEmpty(grade.Remarks) ? "No remarks" : grade.Remarks)</td>
+                            <td>
+                                <a asp-controller="Instructor" asp-action="GradeAssignment" asp-route-studentId="@grade.StudentId" asp-route-assignmentId="@grade.AssignmentId" class="btn btn-sm btn-primary shadow-sm">
+                                    Edit Grade
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <style>
@@ -46,4 +62,33 @@
         display: inline-block;
         padding-bottom: 5px;
     }
+
+    .table-responsive {
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.12);
+        border-radius: 8px;
+        overflow-x: auto;
+    }
+
+    th {
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    td {
+        vertical-align: middle;
+    }
+
+    .btn-primary {
+        font-weight: 600;
+        border-radius: 5px;
+        padding: 6px 12px;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
 </style>
+
+<!-- FontAwesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+

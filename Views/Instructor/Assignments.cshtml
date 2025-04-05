@@ -1,4 +1,7 @@
-﻿@model List<EduSubmit.Models.Assignment>
+﻿
+
+
+@model List<EduSubmit.Models.Assignment>
 
 @{
     Layout = "~/Views/Shared/_InstructorLayout.cshtml";
@@ -7,55 +10,50 @@
 }
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 ps-3 pe-3">
-        <h3>Assignments</h3>
-        <div class="d-flex gap-3">
-            <a asp-controller="Instructor" asp-action="CreateAssignment" asp-route-isCoding="false" class="btn btn-primary">
-                + Create Assignment
-            </a>
-            <a asp-controller="Instructor" asp-action="CreateAssignment" asp-route-isCoding="true" class="btn btn-primary">
-                + Create Coding Assignment
-            </a>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 ps-3 pe-3 gap-3">
+        <h3 class="text-center text-md-start" style="font-size:2rem">Assignments</h3>
+        <div class="d-flex flex-column flex-sm-row gap-2">
+            <a asp-controller="Instructor" asp-action="CreateAssignment" asp-route-isCoding="false" class="btn btn-primary w-100 w-sm-auto full-width-sm">+ Create Assignment</a>
+            <a asp-controller="Instructor" asp-action="CreateAssignment" asp-route-isCoding="true" class="btn btn-primary w-100 w-sm-auto full-width-sm">+ Create Coding Assignment</a>
         </div>
     </div>
 
-    <form id="filterForm">
-        <div class="row">
-            <!-- Class Filter -->
-            <div class="col-md-3">
+    <form id="filterForm" class="mb-4">
+        <div class="row gy-3 gx-3">
+            <div class="col-12 col-md-3">
                 <label>Class</label>
                 <select id="classFilter" class="form-control">
                     <option value="">All Classes</option>
-                    @foreach (var cls in ViewBag.Classes) {
+                    @foreach (var cls in ViewBag.Classes)
+                    {
                         <option value="@cls.Value">@cls.Text</option>
                     }
                 </select>
             </div>
 
-            <!-- Subject Filter -->
-            <div class="col-md-3">
+            <div class="col-12 col-md-3">
                 <label>Subject Name</label>
                 <select id="subjectFilter" class="form-control">
                     <option value="">All Subjects</option>
-                    @foreach (var subject in Model.Select(a => a.SubjectName).Distinct()) {
+                    @foreach (var subject in Model.Select(a => a.SubjectName).Distinct())
+                    {
                         <option value="@subject">@subject</option>
                     }
                 </select>
             </div>
 
-            <!-- Due Month Dropdown -->
-            <div class="col-md-3">
+            <div class="col-12 col-md-3">
                 <label>Due Month</label>
                 <select id="dueMonthFilter" class="form-control">
                     <option value="">All Months</option>
-                    @foreach (var month in Model.Select(a => a.DueDate.ToString("yyyy-MM")).Distinct().OrderBy(m => m)) {
+                    @foreach (var month in Model.Select(a => a.DueDate.ToString("yyyy-MM")).Distinct().OrderBy(m => m))
+                    {
                         <option value="@month">@DateTime.ParseExact(month, "yyyy-MM", null).ToString("MMMM yyyy")</option>
                     }
                 </select>
             </div>
 
-            <!-- Sort by Points -->
-            <div class="col-md-3">
+            <div class="col-12 col-md-3">
                 <label>Sort by Points</label>
                 <select id="pointsSort" class="form-control">
                     <option value="">No Sorting</option>
@@ -66,11 +64,10 @@
         </div>
     </form>
 
-    <br />
-
     <div class="row" id="assignmentsContainer">
-        @foreach (var assignment in Model) {
-            <div class="col-md-4 assignment-card"
+        @foreach (var assignment in Model)
+        {
+            <div class="col-12 col-sm-6 col-md-4 assignment-card"
                  data-class="@assignment.ClassId"
                  data-subject="@assignment.SubjectName"
                  data-duemonth="@assignment.DueDate.ToString("yyyy-MM")">
@@ -78,14 +75,14 @@
                     <div class="card shadow-sm p-3 mb-4 bg-white rounded">
                         <div class="card-body">
                             <h5 class="card-title">@assignment.Title</h5>
-                            <p><i class="fas fa-book"></i> Subject: @assignment.SubjectName</p>
-                            <p><i class="fas fa-users"></i> Class: @assignment.Class?.ClassName</p>
+                            <p>Subject: @assignment.SubjectName</p>
+                            <p>Class: @assignment.Class?.ClassName</p>
                             <p>Points: @assignment.Points</p>
-                            <p><i class="fas fa-calendar-alt"></i> Due: @assignment.DueDate.ToString("yyyy-MM-dd")</p>
-                            <p><i class="fas fa-users"></i> Submissions: @(assignment.Submissions?.Count() ?? 0)</p>
-                            <div class="d-flex justify-content-between mt-3">
-                                <a asp-controller="Instructor" asp-action="EditAssignment" asp-route-id="@assignment.AssignmentId" class="btn btn-success shadow-sm">Edit</a>
-                                <a asp-controller="Instructor" asp-action="DeleteAssignment" asp-route-id="@assignment.AssignmentId" class="btn btn-danger shadow-sm">Delete</a>
+                            <p>Due: @assignment.DueDate.ToString("yyyy-MM-dd")</p>
+                            <p>Submissions: @(assignment.Submissions?.Count() ?? 0)</p>
+                            <div class="d-flex flex-column flex-md-row justify-content-between mt-3 gap-2">
+                                <a asp-controller="Instructor" asp-action="EditAssignment" asp-route-id="@assignment.AssignmentId" class="btn btn-success shadow-sm full-width-sm">Edit</a>
+                                <a asp-controller="Instructor" asp-action="DeleteAssignment" asp-route-id="@assignment.AssignmentId" class="btn btn-danger shadow-sm full-width-sm">Delete</a>
                             </div>
                         </div>
                     </div>
@@ -96,7 +93,7 @@
 </div>
 
 <script>
-        document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function () {
         const classFilter = document.getElementById("classFilter");
         const subjectFilter = document.getElementById("subjectFilter");
         const dueMonthFilter = document.getElementById("dueMonthFilter");
@@ -106,27 +103,24 @@
         function filterAssignments() {
             const selectedClass = classFilter.value;
             const selectedSubject = subjectFilter.value;
-            const selectedDueMonth = dueMonthFilter.value; // Now from dropdown
+            const selectedDueMonth = dueMonthFilter.value;
             const selectedSort = pointsSort.value;
 
             let assignments = Array.from(document.querySelectorAll(".assignment-card"));
 
-            // Filtering logic
             assignments.forEach(card => {
                 const cardClass = card.getAttribute("data-class");
                 const cardSubject = card.getAttribute("data-subject");
                 const cardDueMonth = card.getAttribute("data-duemonth");
 
                 let isVisible = true;
-
                 if (selectedClass && selectedClass !== cardClass) isVisible = false;
                 if (selectedSubject && selectedSubject !== cardSubject) isVisible = false;
-                if (selectedDueMonth && selectedDueMonth !== cardDueMonth && selectedDueMonth !== "") isVisible = false;
+                if (selectedDueMonth && selectedDueMonth !== cardDueMonth) isVisible = false;
 
                 card.style.display = isVisible ? "block" : "none";
             });
 
-            // Sorting logic
             if (selectedSort) {
                 assignments.sort((a, b) => {
                     let pointsA = parseInt(a.querySelector("p:nth-of-type(3)").textContent.replace("Points:", "").trim()) || 0;
@@ -134,19 +128,16 @@
                     return selectedSort === "asc" ? pointsA - pointsB : pointsB - pointsA;
                 });
 
-                // Clear the container and append sorted elements
                 assignmentsContainer.innerHTML = "";
                 assignments.forEach(card => assignmentsContainer.appendChild(card));
             }
 
-            // Store selected values in localStorage
             localStorage.setItem("classFilter", selectedClass);
             localStorage.setItem("subjectFilter", selectedSubject);
             localStorage.setItem("dueMonthFilter", selectedDueMonth);
             localStorage.setItem("pointsSort", selectedSort);
         }
 
-        // Load stored values
         classFilter.value = localStorage.getItem("classFilter") || "";
         subjectFilter.value = localStorage.getItem("subjectFilter") || "";
         dueMonthFilter.value = localStorage.getItem("dueMonthFilter") || "";
@@ -159,19 +150,19 @@
         dueMonthFilter.addEventListener("change", filterAssignments);
         pointsSort.addEventListener("change", filterAssignments);
     });
-
 </script>
 
 <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 
 <style>
-    /* General Container Styling */
     .container {
         max-width: 95%;
         margin: auto;
+        padding: 0px;
     }
 
     h3 {
+       
         font-weight: 600;
         color: #212529;
         border-bottom: 3px solid #6e8efb;
@@ -179,7 +170,6 @@
         padding-bottom: 5px;
     }
 
-    /* Filter Form Styling */
     form {
         background: #f8f9fa;
         padding: 15px;
@@ -198,6 +188,7 @@
         border: 1px solid #ced4da;
         padding: 10px;
         transition: border 0.3s ease-in-out;
+        font-size: 14px;
     }
 
         .form-control:focus {
@@ -205,7 +196,6 @@
             box-shadow: 0px 0px 5px rgba(76, 175, 80, 0.5);
         }
 
-    /* Assignments Cards */
     .card {
         border-radius: 10px;
         overflow: hidden;
@@ -220,7 +210,6 @@
             box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.2);
         }
 
-    /* Card Body */
     .card-body {
         padding: 20px;
     }
@@ -230,13 +219,6 @@
         color: #333;
     }
 
-    /* Muted Text */
-    .text-muted {
-        font-size: 14px;
-        color: #6c757d !important;
-    }
-
-    /* Button Styling */
     .btn-success, .btn-danger {
         border-radius: 5px;
         padding: 8px 15px;
@@ -262,7 +244,6 @@
             background: #C62828;
         }
 
-    /* Clickable Card Styling */
     a.text-decoration-none {
         text-decoration: none;
         color: inherit;
@@ -273,4 +254,37 @@
             transform: scale(1.02);
         }
 
+    @@media (max-width: 576px) {
+    
+            .btn.full-width-sm
+
+    {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    }
+
+
+    h3 {
+        font-size: 20px;
+        text-align: center;
+    }
+
+    .d-flex.justify-content-between.mt-3,
+    .d-flex.gap-3 {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    form .row > div {
+        margin-bottom: 15px;
+    }
+
+    }
 </style>
+
+
+<!-- FontAwesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+

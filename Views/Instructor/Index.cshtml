@@ -1,4 +1,5 @@
 ﻿
+
 @{
     Layout = "~/Views/Shared/_InstructorLayout.cshtml";
     ViewData["Title"] = "Dashboard";
@@ -7,13 +8,11 @@
     var activeAssignments = ViewData["ActiveAssignments"] as Dictionary<string, List<dynamic>>;
 }
 
-@* <h1 class="dashboard-title">Instructor Dashboard</h1> *@
-
 <!-- Class Performance Section -->
-<section class="class-performance">
+<section class="class-performance container-fluid">
     <h2 class="section-title">📊 Class Performance</h2>
-    <div class="table-container">
-        <table class="performance-table">
+    <div class="table-container table-responsive">
+        <table class="performance-table table table-bordered">
             <thead>
                 <tr>
                     <th>Class Name</th>
@@ -40,17 +39,17 @@
 </section>
 
 <!-- Active Assignments Section -->
-<section class="active-assignments">
+<section class="active-assignments container-fluid">
     <h2 class="section-title">📝 Active Assignments</h2>
 
     @foreach (var classEntry in activeAssignments)
     {
         <h3 class="class-heading">@classEntry.Key</h3>
 
-        <div class="assignment-container">
+        <div class="assignment-container d-flex flex-nowrap overflow-auto gap-3 pb-3">
             @foreach (var assignment in classEntry.Value)
             {
-                <div class="assignment-card">
+                <div class="assignment-card flex-shrink-0">
                     <h4>@assignment.Title</h4>
                     <p><i class="fas fa-calendar-alt"></i> <strong>Due:</strong> @assignment.DueDate.ToString("dd MMM yyyy")</p>
                     <p><i class="fas fa-file-upload"></i> <strong>Submissions:</strong> @assignment.SubmissionCount</p>
@@ -59,6 +58,7 @@
         </div>
     }
 </section>
+
 
 <!-- Styles -->
 <style>

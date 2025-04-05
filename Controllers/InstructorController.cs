@@ -818,23 +818,18 @@ namespace EduSubmit.Controllers
     };
             }).ToList();
 
-            if (filterLow)
-            {
-                studentProgressList = studentProgressList
-                    .Where(s => (double)s["SubmissionCompletionRate"] < 50)
-                    .ToList();
-            }
 
-            studentProgressList = sortBy switch
-            {
-                "grade" => studentProgressList
-                    .OrderByDescending(s => (double)s["AverageGrade"])
-                    .ToList(),
+            //if (filterLow)
+            //{
+            //    studentProgressList = studentProgressList.Where(s => (double)s["SubmissionCompletionRate"] < 50).ToList();
+            //}
 
-                _ => studentProgressList
-                    .OrderByDescending(s => (double)s["SubmissionCompletionRate"])
-                    .ToList()
-            };
+            //studentProgressList = sortBy switch
+            //{
+            //    "grade" => studentProgressList.OrderByDescending(s => (double)s["AverageGrade"]).ToList(),
+            //    _ => studentProgressList.OrderByDescending(s => (double)s["SubmissionCompletionRate"]).ToList()
+            //};
+
 
             var classList = await _context.Classes
                 .Where(c => instructorClassIds.Contains(c.ClassId))

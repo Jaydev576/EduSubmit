@@ -1,38 +1,63 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
     <title>EduSubmit - Instructor Dashboard</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-TzFt5N1he0Dw59/z4yY2Z1k4Hn8y4h+G+Xv9D3N9hCw5+gN6j6Vcz4UicG0aOBal1" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
     <style>
-        .nav-link {
-            color: #000;
-            transition: background-color 0.3s ease;
+        .nav-link.active {
+            background-color: #007bff !important;
+            color: white !important;
         }
 
-            .nav-link:hover {
-                background-color: #e0e0e0;
-            }
+        body {
+            padding-top: 70px;
+        }
 
-            .nav-link.active {
-                background-color: #007bff !important;
-                color: white !important;
-            }
+        @@media (max-width: 768px) {
+            #sidebar-wrapper
+
+        {
+            display: none;
+        }
+
+        #sidebar-wrapper.active {
+            display: block;
+            position: absolute;
+            z-index: 1000;
+            width: 250px;
+            background: #f8f9fa;
+            height: 100%;
+        }
+
+        }
     </style>
 
-    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleSidebar() {
+            document.getElementById("sidebar-wrapper").classList.toggle("active");
+        }
+    </script>
 </head>
 <body>
 
-    <header class="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-4">
-        <a class="navbar-brand" href="@Url.Action("Index","Home")">EduSubmit</a>
+    <!-- Header -->
+    <header class="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-4 fixed-top">
+        <button class="btn btn-outline-secondary sidebar-toggle d-lg-none" type="button" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+        <a class="navbar-brand ms-2" href="@Url.Action("Index", "Home")">EduSubmit</a>
         <div class="ms-auto d-flex align-items-center">
             <span class="me-2">Hello, @User.Identity?.Name</span>
             <div class="btn-group">
-                <button type="button" class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-weight: bold;"
-                        data-bs-toggle="dropdown">
+                <button type="button" class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                        style="width: 40px; height: 40px; font-weight: bold;" data-bs-toggle="dropdown">
                     @User.Identity?.Name?.Substring(0, 1).ToUpper()
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
@@ -48,28 +73,22 @@
         </div>
     </header>
 
-    <div class="d-flex">
+    <!-- Body Layout -->
+    <div class="d-flex mt-3">
         <!-- Sidebar -->
         <div class="bg-light border-end vh-100 p-3" id="sidebar-wrapper">
             <div class="list-group list-group-flush">
                 <a href="@Url.Action("Index", "Instructor")" class="list-group-item list-group-item-action @(ViewData["ActivePage"] == "Index" ? "active" : "")">Dashboard</a>
                 <a href="@Url.Action("Assignments", "Instructor")" class="list-group-item list-group-item-action @(ViewData["ActivePage"] == "Assignments" ? "active" : "")">Assignments</a>
-
                 <a href="@Url.Action("Submissions", "Instructor")" class="list-group-item list-group-item-action @(ViewData["ActivePage"] == "Submissions" ? "active" : "")">Student Submissions</a>
                 <a href="@Url.Action("GradedSubmissions", "Instructor")" class="list-group-item list-group-item-action @(ViewData["ActivePage"] == "GradedSubmissions" ? "active" : "")">Graded Submissions</a>
-
-
                 <a href="@Url.Action("StudentProgress", "Instructor")" class="list-group-item list-group-item-action @(ViewData["ActivePage"] == "StudentProgress" ? "active" : "")">Student Progress</a>
-                @* <a href="@Url.Action("Announcements", "Instructor")" class="list-group-item list-group-item-action">Announcements</a> *@
-                @* <a href="@Url.Action("Messages", "Instructor")" class="list-group-item list-group-item-action">Messages</a> *@
-                @* <a href="@Url.Action("ReportsAnalytics", "Instructor")" class="list-group-item list-group-item-action">Reports & Analytics</a> *@
-                @* <a href="@Url.Action("Settings", "Instructor")" class="list-group-item list-group-item-action">Settings</a> *@
                 <a href="@Url.Action("HelpSupport", "Instructor")" class="list-group-item list-group-item-action @(ViewData["ActivePage"] == "HelpSupport" ? "active" : "")">Help & Support</a>
             </div>
         </div>
 
         <!-- Page Content -->
-        <div class="container p-4">
+        <div class="container-fluid p-4">
             @RenderBody()
         </div>
     </div>

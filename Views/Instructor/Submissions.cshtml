@@ -6,33 +6,84 @@
 }
 @model IEnumerable<EduSubmit.Models.Submission>
 
-@if (Model == null || !Model.Any())
-{
-    <p>No pending submissions.</p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Student Name</th>
-                <th>Assignment Title</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var submission in Model)
-            {
-                <tr>
-                    <td>@submission.Student?.FirstName</td> <!-- ✅ Handle possible null values -->
-                    <td>@submission.Assignment?.Title</td>
-                    <td>
-                        <a asp-action="GradeAssignment" asp-route-studentId="@submission.StudentId" asp-route-assignmentId="@submission.AssignmentId" class="btn btn-primary">Assign Grade</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<div class="container mt-4">
+    <h3 class="mb-4">Pending Student Submissions</h3>
 
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info text-center shadow-sm">
+            No pending submissions available.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive shadow-sm rounded bg-white p-3">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Student Name</th>
+                        <th>Assignment Title</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var submission in Model)
+                    {
+                        <tr>
+                            <td>@(submission.Student?.FirstName ?? "N/A") @submission.Student?.LastName</td>
+                            <td>@(submission.Assignment?.Title ?? "Untitled")</td>
+                            <td>
+                                <a asp-action="GradeAssignment" asp-route-studentId="@submission.StudentId" asp-route-assignmentId="@submission.AssignmentId" class="btn btn-sm btn-primary shadow-sm">
+                                    Assign Grade
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<style>
+    h3 {
+        font-weight: 600;
+        color: #212529;
+        border-bottom: 3px solid #6e8efb;
+        display: inline-block;
+        padding-bottom: 5px;
+    }
+
+    .table-responsive {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        border-radius: 8px;
+        overflow-x: auto;
+    }
+
+    th {
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    td {
+        vertical-align: middle;
+    }
+
+    .btn-primary {
+        font-weight: 600;
+        border-radius: 5px;
+        padding: 6px 12px;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+    .alert-info {
+        border-radius: 8px;
+    }
+</style>
+
+<!-- FontAwesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
