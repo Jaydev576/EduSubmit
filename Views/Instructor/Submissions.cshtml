@@ -23,6 +23,9 @@
                     <tr>
                         <th>Student Name</th>
                         <th>Assignment Title</th>
+                        <th>Subject Name</th>
+                        <th>Assignment Description</th>
+                        <th>Total Points</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -32,6 +35,9 @@
                         <tr>
                             <td>@(submission.Student?.FirstName ?? "N/A") @submission.Student?.LastName</td>
                             <td>@(submission.Assignment?.Title ?? "Untitled")</td>
+                            <td>@(submission.Assignment?.SubjectName ?? "Undefined")</td>
+                            <td>@(submission.Assignment?.Description ?? "Undefined")</td>
+                            <td>@(submission.Assignment?.Points ?? 0)</td>
                             <td>
                                 <a asp-action="GradeAssignment" asp-route-studentId="@submission.StudentId" asp-route-assignmentId="@submission.AssignmentId" class="btn btn-sm btn-primary shadow-sm">
                                     Assign Grade

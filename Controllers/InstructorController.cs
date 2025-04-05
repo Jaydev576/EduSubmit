@@ -145,17 +145,17 @@ namespace EduSubmit.Controllers
 
             int instructorId = instructor.InstructorId;
 
-            // ✅ Fetch only classes that have assignments created by this instructor
+            // Fetch only classes that have assignments created by this instructor
             var instructorClasses = _context.Classes
                 .Where(c => _context.Assignments.Any(a => a.InstructorId == instructorId && a.ClassId == c.ClassId))
                 .ToList();
 
-            // ✅ Fetch ALL assignments (past + future) for performance calculation
+            // Fetch all assignments (past + future) for performance calculation
             var allAssignments = _context.Assignments
                 .Where(a => a.InstructorId == instructorId)
                 .ToList();
 
-            // ✅ Fetch only FUTURE assignments for the "Active Assignments" section
+            // Fetch only future assignments for the "Active Assignments" section
             var upcomingAssignments = allAssignments
                 .Where(a => a.DueDate > DateTime.Now)
                 .ToList();
@@ -163,24 +163,44 @@ namespace EduSubmit.Controllers
             var assignmentIds = allAssignments.Select(a => a.AssignmentId).ToList();
 
             var grades = _context.Grades
+                .Include(g => g.Assignment)
+                .Include(g => g.Student)
                 .Where(g => assignmentIds.Contains(g.AssignmentId))
                 .ToList();
+
+            // ✅ Get the logged-in student (to calculate personalized average grade)
+            var student = _context.Students.FirstOrDefault(s => s.EmailAddress == loggedInEmail);
+            int studentId = student?.StudentId ?? -1;
 
             var classPerformance = instructorClasses.ToDictionary(
                 c => c.ClassName,
                 c =>
                 {
-                    // ✅ Total assignments should include past & future assignments
+                    // Total assignments should include past & future
                     int totalAssignments = allAssignments.Count(a => a.ClassId == c.ClassId);
 
-                    var classAssignmentIds = allAssignments.Where(a => a.ClassId == c.ClassId)
-                                                           .Select(a => a.AssignmentId)
-                                                           .ToList();
+                    var classAssignmentIds = allAssignments
+                        .Where(a => a.ClassId == c.ClassId)
+                        .Select(a => a.AssignmentId)
+                        .ToList();
 
-                    // ✅ Fix avgGrade calculation
-                    double avgGrade = classAssignmentIds.Any() && grades.Any(g => classAssignmentIds.Contains(g.AssignmentId))
-                        ? grades.Where(g => classAssignmentIds.Contains(g.AssignmentId)).Average(g => g.Score)
-                        : 0;
+                    // ✅ Only consider grades of the logged-in student for average grade
+                    var studentGrades = grades
+                        .Where(g => classAssignmentIds.Contains(g.AssignmentId) &&
+                                    g.Student.StudentId == studentId)
+                        .ToList();
+
+                    double avgGrade = 0;
+
+                    if (studentGrades.Any())
+                    {
+                        double totalScore = studentGrades.Sum(g => g.Score);
+                        double totalMaxScore = studentGrades.Sum(g => g.Assignment.Points);
+
+                        avgGrade = totalMaxScore > 0
+                            ? Math.Round((totalScore / totalMaxScore) * 100, 2)
+                            : 0;
+                    }
 
                     int totalStudents = _context.Students.Count(s => s.ClassId == c.ClassId);
 
@@ -188,7 +208,6 @@ namespace EduSubmit.Controllers
                         .Where(s => classAssignmentIds.Contains(s.AssignmentId))
                         .Count();
 
-                    // ✅ Ensure expected submissions is correctly calculated
                     int expectedSubmissions = (totalStudents > 0 && totalAssignments > 0)
                         ? totalStudents * totalAssignments
                         : 1; // Prevent division by zero
@@ -201,7 +220,7 @@ namespace EduSubmit.Controllers
 
             ViewData["ClassPerformance"] = classPerformance;
 
-            // ✅ Ensure `activeAssignments` is always initialized
+            // Ensure activeAssignments is always initialized
             var activeAssignments = instructorClasses.ToDictionary(
                 c => c.ClassName,
                 c =>
@@ -225,9 +244,6 @@ namespace EduSubmit.Controllers
 
             return View("Index");
         }
-
-
-
 
 
         // Create Assignment (GET)
