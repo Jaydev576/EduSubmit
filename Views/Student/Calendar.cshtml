@@ -5,25 +5,26 @@
     ViewData["Title"] = "Calendar";
     ViewData["ActivePage"] = "Calendar";
 
-    // Get selected month & year from query parameters
     int selectedYear = Context.Request.Query["year"].Count > 0 ? int.Parse(Context.Request.Query["year"]) : DateTime.Today.Year;
     int selectedMonth = Context.Request.Query["month"].Count > 0 ? int.Parse(Context.Request.Query["month"]) : DateTime.Today.Month;
 
     var daysInMonth = DateTime.DaysInMonth(selectedYear, selectedMonth);
     var firstDayOfMonth = new DateTime(selectedYear, selectedMonth, 1);
-    var monthName = firstDayOfMonth.ToString("MMMM yyyy"); // Format: "March 2025"
+    var monthName = firstDayOfMonth.ToString("MMMM yyyy");
+    var groupedAssignments = Model.GroupBy(a => a.DueDate.Date)
+                                  .ToDictionary(g => g.Key, g => g.ToList());
 }
 
-<div class="container mt-4 d-flex justify-content-center">
-    <div style="width: 70%;">
-        
+<div class="container mt-4">
+    <div class="mx-auto" style="max-width: 100%;">
+
         <!-- Filter Section -->
-        <div class="card border border-primary shadow-sm mb-3">
+        <div class="card border border-primary shadow-sm mb-4">
             <div class="card-body text-center">
                 <h2 class="text-primary">📅 @monthName</h2>
-                
-                <form method="get" class="d-flex justify-content-center align-items-center mt-3">
-                    <select name="month" class="form-select me-2" style="width: auto;">
+
+                <form method="get" class="d-flex flex-wrap justify-content-center align-items-center mt-3 gap-2">
+                    <select name="month" class="form-select" style="width: auto;">
                         @for (int i = 1; i <= 12; i++)
                         {
                             <option value="@i" selected="@(i == selectedMonth ? "selected" : null)">
@@ -31,8 +32,8 @@
                             </option>
                         }
                     </select>
-                    
-                    <select name="year" class="form-select me-2" style="width: auto;">
+
+                    <select name="year" class="form-select" style="width: auto;">
                         @for (int y = DateTime.Today.Year - 3; y <= DateTime.Today.Year + 1; y++)
                         {
                             <option value="@y" selected="@(y == selectedYear ? "selected" : null)">
@@ -40,61 +41,114 @@
                             </option>
                         }
                     </select>
-                    
+
                     <button type="submit" class="btn btn-primary">Filter</button>
                 </form>
             </div>
         </div>
 
         <!-- Calendar Table -->
-        <table class="table table-bordered text-center shadow-sm" style="table-layout: fixed; width: 100%;">
-            <thead class="text-white" style="background: linear-gradient(135deg, #007BFF, #0056b3);">
-                <tr>
-                    <th style="width: 14.28%;">Sun</th>
-                    <th style="width: 14.28%;">Mon</th>
-                    <th style="width: 14.28%;">Tue</th>
-                    <th style="width: 14.28%;">Wed</th>
-                    <th style="width: 14.28%;">Thu</th>
-                    <th style="width: 14.28%;">Fri</th>
-                    <th style="width: 14.28%;">Sat</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <!-- Empty cells before the first day -->
-                    @for (int i = 0; i < (int)firstDayOfMonth.DayOfWeek; i++)
-                    {
-                        <td style="height: 50px;"></td>
-                    }
-
-                    @for (int day = 1; day <= daysInMonth; day++)
-                    {
-                        var currentDate = new DateTime(selectedYear, selectedMonth, day);
-                        var assignmentsDue = Model.Count(a => a.DueDate.Date == currentDate);
-                        string backgroundColor = assignmentsDue > 0 ? "red" : "white";
-                        string textColor = assignmentsDue > 0 ? "white" : "black";
-
-                        <td style="padding: 8px; height: 50px; border: 1px solid #ccc; background-color: @backgroundColor; color: @textColor;">
-                            <strong>@day</strong>
-                            @if (assignmentsDue > 0)
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-10 col-lg-8">
+                <table class="table table-bordered text-center shadow-sm mb-5" style="table-layout: fixed; width: 100%;">
+                    <thead class="text-white" style="background: linear-gradient(135deg, #007BFF, #0056b3);">
+                        <tr>
+                            <th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            @for (int i = 0; i < (int)firstDayOfMonth.DayOfWeek; i++)
                             {
-                                <div class="small fw-bold" style="font-size: 12px;">@assignmentsDue Assignments Due</div>
+                                <td style="height: 60px;"></td>
                             }
-                        </td>
 
-                        @if ((day + (int)firstDayOfMonth.DayOfWeek) % 7 == 0) 
-                        {
-                            @:</tr><tr>
-                        }
-                    }
+                            @for (int day = 1; day <= daysInMonth; day++)
+                            {
+                                var currentDate = new DateTime(selectedYear, selectedMonth, day);
+                                bool hasAssignments = groupedAssignments.ContainsKey(currentDate);
+                                var assignments = hasAssignments ? groupedAssignments[currentDate] : new List<EduSubmit.Models.Assignment>();
+                                string bgColor = hasAssignments ? "#dc3545" : "#fff";
+                                string textColor = hasAssignments ? "#fff" : "#000";
+                                var assignmentsJson = hasAssignments ? System.Text.Json.JsonSerializer.Serialize(assignments.Select(a => new {
+                                    a.Title,
+                                    a.Description,
+                                    a.SubjectName,
+                                    a.Points
+                                })) : "[]";
+                            <td 
+                                class="day-cell"
+                                style="cursor: @(hasAssignments ? "pointer" : "default"); background-color: @bgColor; color: @textColor; height: 60px; border: 1px solid #ccc;" 
+                                onclick="@(hasAssignments ? $"showAssignmentsModal('{currentDate:yyyy-MM-dd}', {assignmentsJson})" : "")">
+                                <strong>@day</strong>
+                                @if (hasAssignments)
+                                {
+                                    <div class="small fw-bold" style="font-size: 12px;">@assignments.Count Assignment(s)</div>
+                                }
+                            </td>
 
-                    <!-- Fill remaining cells in the last row -->
-                    @for (int i = (daysInMonth + (int)firstDayOfMonth.DayOfWeek) % 7; i < 7 && i > 0; i++)
-                    {
-                        <td style="height: 50px;"></td>
-                    }
-                </tr>
-            </tbody>
-        </table>
+                                if ((day + (int)firstDayOfMonth.DayOfWeek) % 7 == 0)
+                                {
+                                    @:</tr><tr>
+                                }
+                            }
+
+                            @for (int i = (daysInMonth + (int)firstDayOfMonth.DayOfWeek) % 7; i < 7 && i > 0; i++)
+                            {
+                                <td style="height: 60px;"></td>
+                            }
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- Modal -->
+<div class="modal fade" id="assignmentsModal" tabindex="-1" aria-labelledby="assignmentsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content rounded-3">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="assignmentsModalLabel">Assignments Due</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="assignmentsContent" class="px-2">
+          <!-- Assignment cards inserted here -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showAssignmentsModal(dateStr, assignments) {
+            const modalTitle = document.getElementById('assignmentsModalLabel');
+            modalTitle.textContent = `Assignments Due on ${new Date(dateStr).toDateString()}`;
+
+            const content = document.getElementById('assignmentsContent');
+            content.innerHTML = "";
+
+            if (!assignments || assignments.length === 0) {
+                content.innerHTML = `<p class="text-center text-muted">No assignments due on this date.</p>`;
+            } else {
+                assignments.forEach(a => {
+                    content.innerHTML += `
+                        <div class="card mb-3 shadow-sm border border-primary">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary">${a.Title}</h5>
+                                <p class="card-text mb-1"><strong>Description:</strong> ${a.Description}</p>
+                                <p class="card-text mb-1"><strong>Subject:</strong> ${a.Subject}</p>
+                                <p class="card-text"><strong>Total Points:</strong> ${a.TotalPoints}</p>
+                            </div>
+                        </div>`;
+                });
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('assignmentsModal'));
+            modal.show();
+        }
+    </script>
+}

@@ -6,8 +6,36 @@
     Layout = "~/Views/Shared/_StudentLayout.cshtml";
 }
 
+<!-- Responsive Fixes -->
+<style>
+    @@media (max-width: 768px) {
+        table td,
+        table th {
+            font-size: 0.9rem;
+            white-space: normal !important;
+        }
+
+        .card .form-label {
+            font-size: 1rem;
+        }
+
+        .card select {
+            font-size: 0.95rem;
+        }
+
+        .btn-sm {
+            font-size: 0.85rem;
+        }
+    }
+
+    body {
+        overflow-x: hidden;
+    }
+</style>
+
+<!-- Body -->
 <div class="container mt-4">
-    <!-- Floating Header -->
+    <!-- Header -->
     <div class="card border border-primary shadow-sm mb-3">
         <div class="card-body text-center">
             <h2 class="text-primary">📚 Assignments</h2>
@@ -16,11 +44,11 @@
 
     <!-- Filters -->
     <div class="card p-4 shadow-sm border-0" style="background: #F8FEFF; border-radius: 12px;">
-        <div class="row mb-3">
+        <div class="row gy-3">
             <!-- Subject Filter -->
-            <div class="col-md-6">
+            <div class="col-12 col-md-6">
                 <label for="subjectFilter" class="form-label fw-bold text-dark">Filter by Subject:</label>
-                <select id="subjectFilter" class="form-select border-0 shadow-sm" style="background-color: #ffffff;" onchange="filterAssignments()">
+                <select id="subjectFilter" class="form-select border-0 shadow-sm bg-white" onchange="filterAssignments()">
                     <option value="">📚 All Subjects</option>
                     @foreach (var subject in Model.Select(a => a.SubjectName).Distinct().Where(s => s != null)) {
                         <option value="@subject">@subject</option>
@@ -29,10 +57,10 @@
             </div>
 
             <!-- Due Date (Month) Filter -->
-            <div class="col-md-6">
+            <div class="col-12 col-md-6">
                 <label for="monthFilter" class="form-label fw-bold text-dark">Filter by Due Date (Month):</label>
-                <select id="monthFilter" class="form-select border-0 shadow-sm" style="background-color: #ffffff;" onchange="filterAssignments()">
-                    <option value="" selected>📅 All Months</option> <!-- Default selection -->
+                <select id="monthFilter" class="form-select border-0 shadow-sm bg-white" onchange="filterAssignments()">
+                    <option value="" selected>📅 All Months</option>
                     @for (int month = 1; month <= 12; month++) {
                         string monthName = new DateTime(DateTime.Now.Year, month, 1).ToString("MMMM");
                         <option value="@month">@monthName</option>
@@ -42,34 +70,33 @@
         </div>
     </div>
 
-    <!-- Assignments Table -->
+    <!-- Table -->
     @if (Model.Any()) {
-        <div class="table-responsive mt-3">
-            <table class="table table-hover table-bordered text-center shadow-sm rounded">
-                <thead style="background: linear-gradient(135deg, #66D9EF, #409EFF); color: white;">
+        <div class="table-responsive mt-4">
+            <table class="table table-hover table-bordered text-center shadow-sm rounded overflow-hidden">
+                <thead style="background: linear-gradient(to right, #56CCF2, #2F80ED); color: white;">
                     <tr>
-                        <th>@Html.DisplayNameFor(model => model.First().Title)</th>
-                        <th>📖 Subject</th>
-                        <th>@Html.DisplayNameFor(model => model.Description)</th>
-                        <th>@Html.DisplayNameFor(model => model.DueDate)</th>
-                        <th>Actions</th>
+                        <th class="align-middle">📌 @Html.DisplayNameFor(model => model.First().Title)</th>
+                        <th class="align-middle">📖 Subject</th>
+                        <th class="align-middle">@Html.DisplayNameFor(model => model.Description)</th>
+                        <th class="align-middle">📅 @Html.DisplayNameFor(model => model.DueDate)</th>
+                        <th class="align-middle">📤 Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var assignment in Model) {
-                        // ✅ Check if assignment has been submitted
                         bool isSubmitted = ViewBag.SubmittedAssignments != null &&
                         ((List<int>)ViewBag.SubmittedAssignments).Contains(assignment.AssignmentId);
 
-                        if (!isSubmitted) { // ✅ Only show assignments that are NOT submitted
+                        if (!isSubmitted) {
                             <tr class="assignment-row" data-subject="@assignment.SubjectName" data-duemonth="@assignment.DueDate.Month">
-                                <td class="align-middle">@assignment.Title</td>
-                                <td class="align-middle">@assignment.SubjectName</td>
-                                <td class="align-middle">@assignment.Description</td>
-                                <td class="align-middle">@assignment.DueDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td class="align-middle text-dark">@assignment.Title</td>
+                                <td class="align-middle text-dark">@assignment.SubjectName</td>
+                                <td class="align-middle text-break text-dark">@assignment.Description</td>
+                                <td class="align-middle text-dark">@assignment.DueDate.ToString("yyyy-MM-dd HH:mm")</td>
                                 <td class="align-middle">
                                     <a asp-controller="Submission" asp-action="Submit" asp-route-id="@assignment.AssignmentId"
-                                       class="btn btn-primary btn-sm shadow-sm">📤 Submit</a>
+                                       class="btn btn-outline-primary btn-sm shadow-sm">📤 Submit</a>
                                 </td>
                             </tr>
                         }
@@ -79,10 +106,9 @@
         </div>
     }
     else {
-        <p class="text-muted text-center fs-5 mt-3">No pending assignments. 🎉</p>
+        <p class="text-muted text-center fs-5 mt-4">No pending assignments. 🎉</p>
     }
 </div>
-
 
 <!-- JavaScript for Filtering -->
 <script>
@@ -92,21 +118,17 @@
         var rows = document.querySelectorAll(".assignment-row");
 
         rows.forEach(row => {
-            var subject = row.getAttribute("data-subject").toLowerCase();
+            var subject = row.getAttribute("data-subject")?.toLowerCase() ?? '';
             var dueMonth = row.getAttribute("data-duemonth");
 
             var subjectMatch = (selectedSubject === "" || subject === selectedSubject);
             var monthMatch = (selectedMonth === "" || dueMonth === selectedMonth);
 
-            if (subjectMatch && monthMatch) {
-                row.style.display = "";
-            } else {
-                row.style.display = "none";
-            }
+            row.style.display = (subjectMatch && monthMatch) ? "" : "none";
         });
     }
 
-    document.addEventListener("DOMContentLoaded", function() {
-        filterAssignments(); // Apply default filtering on page load
+    document.addEventListener("DOMContentLoaded", function () {
+        filterAssignments();
     });
 </script>
