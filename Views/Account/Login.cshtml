@@ -21,12 +21,11 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 15px;
     }
 
     .card {
-        width: 100%;
         max-width: 500px;
+        width: 100%;
         border-radius: 15px;
         overflow: hidden;
         background: #fff;
@@ -49,14 +48,14 @@
         transition: all 0.3s ease;
     }
 
-    .form-control:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-    }
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
 
+    /* Button Group Styling for User Type */
     .btn-group {
         justify-content: center;
-        flex-wrap: wrap;
     }
 
     .btn-check {
@@ -71,15 +70,14 @@
         color: var(--primary);
         background: #fff;
         transition: all 0.3s ease;
-        margin-bottom: 10px;
     }
 
-    .btn-outline-primary:hover {
-        background: var(--primary);
-        color: #fff;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-    }
+        .btn-outline-primary:hover {
+            background: var(--primary);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
 
     .btn-check:checked + .btn-outline-primary {
         background: var(--primary);
@@ -99,14 +97,13 @@
         border-radius: 8px;
         padding: 0.75rem 2rem;
         transition: all 0.3s ease;
-        color: #fff;
     }
 
-    .btn-success:hover {
-        background: #218838;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-    }
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
 
     .btn-outline-secondary {
         border-radius: 8px;
@@ -114,11 +111,11 @@
         transition: all 0.3s ease;
     }
 
-    .btn-outline-secondary:hover {
-        background: var(--secondary);
-        color: #fff;
-        transform: translateY(-2px);
-    }
+        .btn-outline-secondary:hover {
+            background: var(--secondary);
+            color: #fff;
+            transform: translateY(-2px);
+        }
 
     .alert-danger {
         border-radius: 8px;
@@ -143,11 +140,11 @@
 
 </style>
 
-<div class="container">
+<div class="container mt-5">
     <div class="card shadow-lg">
-        <div class="card-header bg-gradient-primary text-white text-center py-4">
+        <div class="card-header bg-gradient-primary text-white text-center">
             <h2 class="mb-0 fw-bold">Welcome Back</h2>
-            <p class="text-light mt-1 mb-0">Log in to your account</p>
+            <p class="text-light mt-1">Log in to your account</p>
         </div>
         <div class="card-body p-4">
             @if (ViewBag.Error != null) {
@@ -161,48 +158,79 @@
                 <div class="mb-4">
                     <label class="form-label fw-semibold">User Type</label>
                     <div class="btn-group d-flex gap-2" role="group">
-                        <input type="radio" class="btn-check" name="UserType" value="Student" id="student" autocomplete="off" checked>
-                        <label class="btn btn-outline-primary" for="student">Student</label>
+                        <input type="radio" class="btn-check" name="role" id="student" value="Student" required autocomplete="off">
+                        <label class="btn btn-outline-primary shadow-sm" for="student">
+                            <i class="bi bi-person me-2"></i>Student
+                        </label>
 
-                        <input type="radio" class="btn-check" name="UserType" value="Teacher" id="teacher" autocomplete="off">
-                        <label class="btn btn-outline-primary" for="teacher">Teacher</label>
+                        <input type="radio" class="btn-check" name="role" id="instructor" value="Instructor" autocomplete="off">
+                        <label class="btn btn-outline-primary shadow-sm" for="instructor">
+                            <i class="bi bi-person-gear me-2"></i>Instructor
+                        </label>
+
+                        <input type="radio" class="btn-check" name="role" id="admin" value="Organization" autocomplete="off">
+                        <label class="btn btn-outline-primary shadow-sm" for="admin">
+                            <i class="bi bi-shield-lock me-2"></i>Admin
+                        </label>
+                    </div>
+                    <div class="invalid-feedback d-block mt-2" id="role-error" style="display: none;">
+                        Please select a user type.
                     </div>
                 </div>
-
                 <div class="mb-3">
-                    <label for="Email" class="form-label">Email</label>
-                    <input type="email" class="form-control" name="Email" id="Email" required />
-                    <div class="invalid-feedback">Please enter your email.</div>
+                    <label for="email" class="form-label fw-semibold">Email</label>
+                    <input type="email" class="form-control shadow-sm" name="email" id="email" required />
+                    <div class="invalid-feedback">Please enter a valid email address.</div>
                 </div>
-
                 <div class="mb-4">
-                    <label for="Password" class="form-label">Password</label>
-                    <input type="password" class="form-control" name="Password" id="Password" required />
+                    <label for="password" class="form-label fw-semibold">Password</label>
+                    <input type="password" class="form-control shadow-sm" name="password" id="password" required />
                     <div class="invalid-feedback">Please enter your password.</div>
                 </div>
-
-                <div class="d-flex justify-content-between">
-                    <button type="submit" class="btn btn-success">Login</button>
-                    <a class="btn btn-outline-secondary" asp-controller="Account" asp-action="Register">Register</a>
+                <div class="d-flex justify-content-between align-items-center">
+                    <button type="submit" class="btn btn-success shadow-sm px-4">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                    </button>
+                    <a href="@Url.Action("Register", "Register")" class="btn btn-outline-secondary shadow-sm px-4">
+                        Register
+                    </a>
                 </div>
+                <a href="@Url.Action("ChangePassword", "Account")" class="btn btn-warning shadow-sm px-4">
+                    Change Password
+                </a>
             </form>
         </div>
     </div>
 </div>
 
-<script>
-    // Bootstrap form validation
-    (() => {
-        'use strict';
-        const forms = document.querySelectorAll('.needs-validation');
-        Array.from(forms).forEach(form => {
-            form.addEventListener('submit', event => {
-                if (!form.checkValidity()) {
+@section Scripts {
+    <script>
+                document.addEventListener("DOMContentLoaded", function () {
+            const form = document.querySelector(".needs-validation");
+            const roleError = document.getElementById("role-error");
+            const roleInputs = document.querySelectorAll('input[name="role"]');
+
+            form.addEventListener("submit", function (event) {
+                const roleSelected = document.querySelector('input[name="role"]:checked');
+
+                if (!roleSelected) {
                     event.preventDefault();
                     event.stopPropagation();
+                    roleError.style.display = "block";
+                } else {
+                    roleError.style.display = "none"; // Hide error when valid
                 }
-                form.classList.add('was-validated');
-            }, false);
+
+                form.classList.add("was-validated");
+            });
+
+            // Hide error message and mark radio inputs valid when any is selected
+            roleInputs.forEach((radio) => {
+                radio.addEventListener("change", function () {
+                    roleError.classList.remove("d-block"); // Remove Bootstrap's display block class
+                    roleError.classList.add("d-none");    // Add Bootstrap's display none class
+                });
+            });
         });
-    })();
-</script>
+    </script>
+}

@@ -5,9 +5,7 @@
     Layout = "~/Views/Shared/_RegisterLayout.cshtml";
 }
 
-<!-- Styles (same as you shared) -->
 <style>
-    /* All your previous CSS remains unchanged */
     :root {
         --primary: #007bff;
         --success: #28a745;
@@ -28,7 +26,7 @@
     }
 
     .card {
-        max-width: 600px;
+        max-width: 600px; /* Reduced from 900px to make it narrower */
         width: 100%;
         border-radius: 15px;
         overflow: hidden;
@@ -51,23 +49,23 @@
         border: none;
     }
 
-        .btn-primary.active, .btn-primary:hover {
-            background: #0056b3;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-        }
+    .btn-primary.active, .btn-primary:hover {
+        background: #0056b3;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
 
     .btn-outline-primary {
         border: 2px solid var(--primary);
         color: var(--primary);
     }
 
-        .btn-outline-primary:hover {
-            background: var(--primary);
-            color: #fff;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-        }
+    .btn-outline-primary:hover {
+        background: var(--primary);
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
 
     .form-container {
         animation: fadeIn 0.3s ease-in-out;
@@ -86,10 +84,10 @@
         transition: all 0.3s ease;
     }
 
-        .form-control:focus, .form-select:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-        }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
 
     .btn-success {
         background: var(--success);
@@ -99,11 +97,11 @@
         transition: all 0.3s ease;
     }
 
-        .btn-success:hover {
-            background: #218838;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-        }
+    .btn-success:hover {
+        background: #218838;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
 
     .btn-outline-secondary {
         border-radius: 8px;
@@ -111,11 +109,11 @@
         transition: all 0.3s ease;
     }
 
-        .btn-outline-secondary:hover {
-            background: var(--secondary);
-            color: #fff;
-            transform: translateY(-2px);
-        }
+    .btn-outline-secondary:hover {
+        background: var(--secondary);
+        color: #fff;
+        transform: translateY(-2px);
+    }
 
     .invalid-feedback {
         display: none;
@@ -132,9 +130,9 @@
     .needs-validation.was-validated .form-select:invalid ~ .invalid-feedback {
         display: block;
     }
+
 </style>
 
-<!-- Content -->
 <div class="container mt-5">
     <div class="card shadow-lg">
         <div class="card-header bg-gradient-primary text-white text-center">
@@ -144,9 +142,15 @@
         <div class="card-body p-4">
             <!-- Role Selection -->
             <div class="btn-group d-flex mb-4 justify-content-center gap-2" role="group">
-                <button type="button" class="btn btn-primary shadow-sm active" id="studentBtn"><i class="bi bi-person me-2"></i>Student</button>
-                <button type="button" class="btn btn-outline-primary shadow-sm" id="instructorBtn"><i class="bi bi-person-gear me-2"></i>Instructor</button>
-                <button type="button" class="btn btn-outline-primary shadow-sm" id="adminBtn"><i class="bi bi-shield-lock me-2"></i>Admin</button>
+                <button type="button" class="btn btn-primary shadow-sm active" id="studentBtn">
+                    <i class="bi bi-person me-2"></i>Student
+                </button>
+                <button type="button" class="btn btn-outline-primary shadow-sm" id="instructorBtn">
+                    <i class="bi bi-person-gear me-2"></i>Instructor
+                </button>
+                <button type="button" class="btn btn-outline-primary shadow-sm" id="adminBtn">
+                    <i class="bi bi-shield-lock me-2"></i>Admin
+                </button>
             </div>
 
             <!-- Student Form -->
@@ -183,7 +187,8 @@
                         <label class="form-label fw-semibold">Organization</label>
                         <select id="OrganizationId" name="OrganizationId" class="form-select shadow-sm" required>
                             <option value="">-- Select Organization --</option>
-                            @foreach (var org in ViewBag.Organizations) {
+                            @foreach (var org in ViewBag.Organizations)
+                            {
                                 <option value="@org.Value">@org.Text</option>
                             }
                         </select>
@@ -208,8 +213,6 @@
             <!-- Instructor Form -->
             <div id="instructorForm" class="form-container d-none">
                 <form asp-action="RegisterInstructor" asp-controller="Register" method="post" class="needs-validation" novalidate>
-                    <!-- Form fields as before -->
-                    <!-- First Name, Last Name, Email, Password, Organization -->
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">First Name</label>
@@ -234,7 +237,7 @@
                     </div>
                     <div class="mb-4">
                         <label class="form-label fw-semibold">Organization</label>
-                        <select name="OrganizationId" id="InstructorOrgId" class="form-select shadow-sm" asp-items="ViewBag.Organizations" required>
+                        <select name="OrganizationId" id="OrganizationId" class="form-select shadow-sm" asp-items="ViewBag.Organizations" required>
                             <option value="">-- Select Organization --</option>
                         </select>
                         <div class="invalid-feedback">Please select an organization.</div>
@@ -293,43 +296,61 @@
             const instructorForm = document.getElementById("instructorForm");
             const adminForm = document.getElementById("adminForm");
 
-            function switchForm(button, form) {
-                [studentBtn, instructorBtn, adminBtn].forEach(btn => btn.classList.remove("btn-primary", "active"));
-                [studentBtn, instructorBtn, adminBtn].forEach(btn => btn.classList.add("btn-outline-primary"));
-                [studentForm, instructorForm, adminForm].forEach(frm => frm.classList.add("d-none"));
+            function showForm(selectedBtn, formToShow) {
+                studentBtn.classList.remove("btn-primary", "active");
+                studentBtn.classList.add("btn-outline-primary");
+                instructorBtn.classList.remove("btn-primary", "active");
+                instructorBtn.classList.add("btn-outline-primary");
+                adminBtn.classList.remove("btn-primary", "active");
+                adminBtn.classList.add("btn-outline-primary");
 
-                button.classList.remove("btn-outline-primary");
-                button.classList.add("btn-primary", "active");
-                form.classList.remove("d-none");
+                selectedBtn.classList.remove("btn-outline-primary");
+                selectedBtn.classList.add("btn-primary", "active");
+
+                studentForm.classList.add("d-none");
+                instructorForm.classList.add("d-none");
+                adminForm.classList.add("d-none");
+
+                formToShow.classList.remove("d-none");
             }
 
-            studentBtn.addEventListener("click", () => switchForm(studentBtn, studentForm));
-            instructorBtn.addEventListener("click", () => switchForm(instructorBtn, instructorForm));
-            adminBtn.addEventListener("click", () => switchForm(adminBtn, adminForm));
+            studentBtn.addEventListener("click", () => showForm(studentBtn, studentForm));
+            instructorBtn.addEventListener("click", () => showForm(instructorBtn, instructorForm));
+            adminBtn.addEventListener("click", () => showForm(adminBtn, adminForm));
 
-            // Populate class dropdown when organization changes
-            const orgDropdown = document.getElementById("OrganizationId");
-            const classDropdown = document.getElementById("ClassId");
+            // Bootstrap-like form validation
+            document.querySelectorAll('.needs-validation').forEach(form => {
+                form.addEventListener('submit', (event) => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        });
 
-            orgDropdown.addEventListener("change", function () {
-                const orgId = this.value;
-                if (!orgId) {
-                    classDropdown.innerHTML = '<option value="">-- Select Class --</option>';
-                    return;
+        $(document).ready(function () {
+            $("#OrganizationId").change(function () {
+                var orgId = $(this).val();
+                $("#ClassId").empty();
+
+                if (orgId) {
+                    $.ajax({
+                        url: '/Register/GetClassesByOrganization',
+                        type: 'GET',
+                        data: { organizationId: orgId },
+                        success: function (response) {
+                            $("#ClassId").append('<option value="">-- Select Class --</option>');
+                            $.each(response, function (index, item) {
+                                $("#ClassId").append('<option value="' + item.classId + '">' + item.className + '</option>');
+                            });
+                        },
+                        error: function () {
+                            alert("Error loading classes.");
+                        }
+                    });
                 }
-
-                fetch(`/Register/GetClassesByOrganization?orgId=${orgId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        classDropdown.innerHTML = '<option value="">-- Select Class --</option>';
-                        data.forEach(cls => {
-                            const option = document.createElement("option");
-                            option.value = cls.value;
-                            option.textContent = cls.text;
-                            classDropdown.appendChild(option);
-                        });
-                    })
-                    .catch(error => console.error("Failed to load classes:", error));
             });
         });
     </script>
