@@ -49,6 +49,31 @@
     .assignment-highlight {
         background-color: #dc3545 !important;
         color: white;
+        font-weight: 600;
+    }
+
+    .modal-body .assignment-card {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-left: 5px solid #007bff;
+    }
+
+    .assignment-status {
+        font-weight: bold;
+    }
+
+    .status-past {
+        color: #6c757d;
+    }
+
+    .status-today {
+        color: #ffc107;
+    }
+
+    .status-upcoming {
+        color: #28a745;
     }
 </style>
 
@@ -148,7 +173,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="modalBody">
-                <!-- Assignment details will be injected -->
+                <!-- Assignment details will be injected here -->
             </div>
         </div>
     </div>
@@ -169,13 +194,30 @@
             if (assignments.length === 0) {
                 modalBody.innerHTML = "<p class='text-muted'>No assignments due on this day.</p>";
             } else {
+                const today = new Date().toISOString().split("T")[0];
+
                 assignments.forEach(a => {
+                    const dueDate = new Date(a.dueDate).toISOString().split("T")[0];
+
+                    let statusClass = "status-upcoming";
+                    let statusText = "Upcoming";
+
+                    if (dueDate === today) {
+                        statusClass = "status-today";
+                        statusText = "Due Today";
+                    } else if (dueDate < today) {
+                        statusClass = "status-past";
+                        statusText = "Past Due";
+                    }
+
                     modalBody.innerHTML += `
-                        <div class="mb-4 border-start border-4 ps-3 border-primary">
-                            <h5 class="fw-bold mb-1">${a.title}</h5>
-                            <p class="mb-1"><strong>Subject:</strong> ${a.subjectName || "N/A"}</p>
-                            <p class="mb-1"><strong>Description:</strong> ${a.description || "No description"}</p>
-                            <p class="mb-0"><strong>Total Points:</strong> ${a.points}</p>
+                        <div class="assignment-card">
+                            <h5 class="fw-bold">${a.title}</h5>
+                            <p><strong>Subject:</strong> ${a.subjectName || "N/A"}</p>
+                            <p><strong>Description:</strong> ${a.description || "No description"}</p>
+                            <p><strong>Total Points:</strong> ${a.points}</p>
+                            <p><strong>Due Date:</strong> ${new Date(a.dueDate).toLocaleString()}</p>
+                            <p class="assignment-status ${statusClass}">${statusText}</p>
                         </div>
                     `;
                 });

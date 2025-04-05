@@ -33,41 +33,65 @@
         .fade-in.visible {
             opacity: 1;
         }
+
+        @@media (max-width: 576px) {
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            .card p,
+            .card ul {
+                font-size: 0.95rem;
+            }
+
+            .card h4 {
+                font-size: 1.2rem;
+            }
+        }
     </style>
 </head>
 <body class="font-roboto bg-light">
-    <header class="d-flex justify-content-between align-items-center p-4 bg-white shadow">
-        <h1 class="fw-bold"><span class="text-primary">EduSubmit</span></h1>
+    <header class="d-flex flex-column flex-md-row justify-content-between align-items-center p-3 p-md-4 bg-white shadow text-center text-md-start">
+        <h1 class="fw-bold mb-3 mb-md-0"><span class="text-primary">EduSubmit</span></h1>
         <div>
-            <a href="@Url.Action("Login","Account")" class="btn btn-outline-primary me-3">Login</a>
+            <a href="@Url.Action("Login","Account")" class="btn btn-outline-primary me-0 me-md-3 mb-2 mb-md-0">Login</a>
             <a href="@Url.Action("Register","Register")" class="btn btn-primary">Sign Up</a>
         </div>
     </header>
+
     <main class="text-center py-5 bg-white shadow">
-        <h2 class="fw-bold slide-up">Transform Your Academic Experience with</h2>
-        <h2 class="fw-bold text-primary mt-2 slide-up">Smart Assignment Management</h2>
-        <p class="text-muted mt-3 slide-up">Streamline assignment submissions, track progress, and achieve academic excellence with our comprehensive platform.</p>
-        <div class="d-flex justify-content-center mt-4 gap-3">
-            <div class="card p-4 hover-card slide-up">
-                <i class="fas fa-tasks text-primary display-6 mb-2"></i>
-                <p class="fw-semibold">Assignment Tracking</p>
+        <h2 class="fw-bold slide-up fs-4 fs-md-2">Transform Your Academic Experience with</h2>
+        <h2 class="fw-bold text-primary mt-2 slide-up fs-4 fs-md-2">Smart Assignment Management</h2>
+        <p class="text-muted mt-3 slide-up px-2 px-md-0">Streamline assignment submissions, track progress, and achieve academic excellence with our comprehensive platform.</p>
+
+        <div class="row justify-content-center mt-4 px-2 px-md-0">
+            <div class="col-12 col-sm-6 col-md-4 mb-4">
+                <div class="card p-4 hover-card slide-up h-100 text-center">
+                    <i class="fas fa-tasks text-primary display-6 mb-2"></i>
+                    <p class="fw-semibold">Assignment Tracking</p>
+                </div>
             </div>
-            <div class="card p-4 hover-card slide-up">
-                <i class="fas fa-comments text-primary display-6 mb-2"></i>
-                <p class="fw-semibold">Instant Feedback</p>
+            <div class="col-12 col-sm-6 col-md-4 mb-4">
+                <div class="card p-4 hover-card slide-up h-100 text-center">
+                    <i class="fas fa-comments text-primary display-6 mb-2"></i>
+                    <p class="fw-semibold">Instant Feedback</p>
+                </div>
             </div>
-            <div class="card p-4 hover-card slide-up">
-                <i class="fas fa-chart-line text-primary display-6 mb-2"></i>
-                <p class="fw-semibold">Progress Analytics</p>
+            <div class="col-12 col-sm-6 col-md-4 mb-4">
+                <div class="card p-4 hover-card slide-up h-100 text-center">
+                    <i class="fas fa-chart-line text-primary display-6 mb-2"></i>
+                    <p class="fw-semibold">Progress Analytics</p>
+                </div>
             </div>
         </div>
     </main>
+
     <section class="bg-light py-5">
-        <h3 class="text-center fw-bold mb-4 fade-in">Why Choose EduSubmit?</h3>
+        <h3 class="text-center fw-bold mb-4 fade-in fs-4 fs-md-3">Why Choose EduSubmit?</h3>
         <div class="container">
             <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="card p-4 hover-card fade-in">
+                <div class="col-12 col-md-4">
+                    <div class="card p-4 hover-card fade-in h-100 text-center text-md-start">
                         <i class="fas fa-upload text-primary fs-2 mb-3"></i>
                         <h4 class="fw-bold">Smart Submission</h4>
                         <p class="text-muted">Upload assignments with ease. Support for multiple file formats and automatic deadline tracking.</p>
@@ -78,8 +102,8 @@
                         </ul>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card p-4 bg-primary text-white hover-card fade-in">
+                <div class="col-12 col-md-4">
+                    <div class="card p-4 bg-primary text-white hover-card fade-in h-100 text-center text-md-start">
                         <i class="fas fa-bolt fs-2 mb-3"></i>
                         <h4 class="fw-bold">Real-time Grading</h4>
                         <p>Get instant feedback and grades. Track your progress with detailed analytics and insights.</p>
@@ -90,8 +114,8 @@
                         </ul>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card p-4 hover-card fade-in">
+                <div class="col-12 col-md-4">
+                    <div class="card p-4 hover-card fade-in h-100 text-center text-md-start">
                         <i class="fas fa-tasks text-primary fs-2 mb-3"></i>
                         <h4 class="fw-bold">Automated Submission Grading</h4>
                         <p class="text-muted">Get instant feedback with automated grading, reducing manual effort and ensuring accuracy.</p>
@@ -105,29 +129,5 @@
             </div>
         </div>
     </section>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const slideUpElements = document.querySelectorAll('.slide-up');
-            const fadeInElements = document.querySelectorAll('.fade-in');
-            const observer = new IntersectionObserver(entries => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
-                });
-            }, { threshold: 0.1 });
-
-            slideUpElements.forEach(element => {
-                observer.observe(element);
-            });
-
-            fadeInElements.forEach(element => {
-                observer.observe(element);
-            });
-        });
-    </script>
-
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
