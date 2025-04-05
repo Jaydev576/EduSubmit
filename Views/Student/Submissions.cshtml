@@ -7,26 +7,29 @@
 }
 
 <div class="container mt-4">
+    <!-- Header -->
     <div class="card border border-primary shadow-sm mb-3">
         <div class="card-body text-center">
             <h2 class="text-primary">📜 Submissions</h2>
         </div>
     </div>
 
+    <!-- Filters -->
     <div class="card p-4 shadow-sm border-0" style="background: #F8FEFF; border-radius: 12px;">
-        <div class="row mb-3">
-            <div class="col-md-6">
+        <div class="row gy-3">
+            <div class="col-12 col-md-6">
                 <label for="subjectFilter" class="form-label fw-bold text-dark">Filter by Subject:</label>
-                <select id="subjectFilter" class="form-select border-0 shadow-sm" style="background-color: #ffffff;" onchange="filterSubmissions()">
+                <select id="subjectFilter" class="form-select border-0 shadow-sm bg-white" onchange="filterSubmissions()">
                     <option value="">📚 All Subjects</option>
                     @foreach (var subject in Model.Select(s => s.Assignment?.SubjectName).Distinct().Where(s => s != null)) {
                         <option value="@subject">@subject</option>
                     }
                 </select>
             </div>
-            <div class="col-md-6">
+
+            <div class="col-12 col-md-6">
                 <label for="monthFilter" class="form-label fw-bold text-dark">Filter by Due Date (Month):</label>
-                <select id="monthFilter" class="form-select border-0 shadow-sm" style="background-color: #ffffff;" onchange="filterSubmissions()">
+                <select id="monthFilter" class="form-select border-0 shadow-sm bg-white" onchange="filterSubmissions()">
                     <option value="" selected>📅 All Months</option>
                     @for (int month = 1; month <= 12; month++) {
                         string monthName = new DateTime(DateTime.Now.Year, month, 1).ToString("MMMM");
@@ -37,35 +40,44 @@
         </div>
     </div>
 
+    <!-- Table -->
     @if (Model != null && Model.Any()) {
         <div class="table-responsive mt-4">
-            <table class="table table-hover text-center shadow-sm border-light" id="submissionsTable" style="border-radius: 12px;">
+            <table class="table table-hover table-bordered text-center shadow-sm rounded overflow-hidden">
                 <thead style="background: linear-gradient(to right, #56CCF2, #2F80ED); color: white;">
                     <tr>
-                        <th>@Html.DisplayNameFor(model => model.First().Assignment.Title)</th>
-                        <th>📖 Subject</th>
-                        <th>📅 Due Date</th>
-                        <th>📅 Submission Date</th>
-                        <th>📂 Submission File</th>
-                        <th>✏ Actions</th>
+                        <th class="align-middle">📌 @Html.DisplayNameFor(model => model.First().Assignment.Title)</th>
+                        <th class="align-middle">📖 Subject</th>
+                        <th class="align-middle">📅 Due Date</th>
+                        <th class="align-middle">📅 Submitted On</th>
+                        <th class="align-middle">📂 File</th>
+                        <th class="align-middle">✏ Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var submission in Model) {
-                        bool isCodingAssignment = ViewBag.IsCodingAssignment != null && ViewBag.IsCodingAssignment.ContainsKey(submission.AssignmentId) && ViewBag.IsCodingAssignment[submission.AssignmentId];
+                        bool isCodingAssignment = ViewBag.IsCodingAssignment != null &&
+                        ViewBag.IsCodingAssignment.ContainsKey(submission.AssignmentId) &&
+                        ViewBag.IsCodingAssignment[submission.AssignmentId];
+
                         <tr class="submission-row" data-subject="@submission.Assignment?.SubjectName" data-duemonth="@submission.Assignment?.DueDate.Month">
                             <td class="align-middle text-dark">@submission.Assignment?.Title</td>
                             <td class="align-middle text-dark">@submission.Assignment?.SubjectName</td>
                             <td class="align-middle text-dark">@submission.Assignment?.DueDate.ToString("yyyy-MM-dd")</td>
                             <td class="align-middle text-dark">@submission.SubmissionDate.ToString("yyyy-MM-dd HH:mm")</td>
                             <td class="align-middle">
-                                <a href="@submission.FilePath" target="_blank" class="btn btn-outline-primary btn-sm shadow-sm">📂 View File</a>
+                                <a href="@submission.FilePath" target="_blank" class="btn btn-outline-primary btn-sm shadow-sm">📂 View</a>
                             </td>
                             <td class="align-middle">
                                 @if (isCodingAssignment) {
-                                    <a asp-controller="Submission" asp-action="Submit" asp-route-id="@submission.AssignmentId" class="btn btn-outline-warning btn-sm shadow-sm">✏ Edit</a>
-                                } else {
-                                    <a asp-controller="Submission" asp-action="Edit" asp-route-assignmentId="@submission.AssignmentId" asp-route-studentId="@submission.StudentId" class="btn btn-outline-primary btn-sm shadow-sm">✏ Edit</a>
+                                    <a asp-controller="Submission" asp-action="Submit" asp-route-id="@submission.AssignmentId"
+                                       class="btn btn-outline-warning btn-sm shadow-sm">✏ Edit</a>
+                                }
+                                else {
+                                    <a asp-controller="Submission" asp-action="Edit"
+                                       asp-route-assignmentId="@submission.AssignmentId"
+                                       asp-route-studentId="@submission.StudentId"
+                                       class="btn btn-outline-primary btn-sm shadow-sm">✏ Edit</a>
                                 }
                             </td>
                         </tr>
@@ -79,6 +91,7 @@
     }
 </div>
 
+<!-- Filtering JS -->
 <script>
     function filterSubmissions() {
         var selectedSubject = document.getElementById("subjectFilter").value.toLowerCase();
@@ -86,21 +99,15 @@
         var rows = document.querySelectorAll(".submission-row");
 
         rows.forEach(row => {
-            var subject = row.getAttribute("data-subject").toLowerCase();
+            var subject = row.getAttribute("data-subject")?.toLowerCase();
             var dueMonth = row.getAttribute("data-duemonth");
 
             var subjectMatch = (selectedSubject === "" || subject === selectedSubject);
             var monthMatch = (selectedMonth === "" || dueMonth === selectedMonth);
 
-            if (subjectMatch && monthMatch) {
-                row.style.display = "";
-            } else {
-                row.style.display = "none";
-            }
+            row.style.display = (subjectMatch && monthMatch) ? "" : "none";
         });
     }
 
-    document.addEventListener("DOMContentLoaded", function() {
-        filterSubmissions();
-    });
+    document.addEventListener("DOMContentLoaded", filterSubmissions);
 </script>
