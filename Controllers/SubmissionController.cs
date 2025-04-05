@@ -147,44 +147,36 @@ namespace EduSubmit.Controllers
                 .FirstOrDefaultAsync(s => s.AssignmentId == assignmentId && s.StudentId == studentId);
 
             if (existingSubmission == null || existingSubmission.Assignment == null || existingSubmission.Assignment.Class == null)
-            {
                 return NotFound();
-            }
 
             if (newFile != null && newFile.Length > 0)
             {
-                string sanitizedClassName = string.Concat(existingSubmission.Assignment.Class.ClassName.Split(Path.GetInvalidFileNameChars()));
-                string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", sanitizedClassName);
-
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-
-                // Delete the old file if it exists
-                if (!string.IsNullOrEmpty(existingSubmission.FilePath))
-                {
-                    string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, existingSubmission.FilePath.TrimStart('/'));
-                    if (System.IO.File.Exists(oldFilePath))
-                    {
-                        System.IO.File.Delete(oldFilePath);
-                    }
-                }
-
-                // Generate a new unique filename
+                string className = existingSubmission.Assignment.Class.ClassName;
+                string sanitizedClassName = string.Concat(className.Split(Path.GetInvalidFileNameChars()));
+                string folderPrefix = $"CodingAssignments/{sanitizedClassName}";
                 string uniqueIdentifier = Guid.NewGuid().ToString("N");
                 string originalFileName = Path.GetFileName(newFile.FileName);
                 string newFileName = $"{uniqueIdentifier}_{studentId}_{assignmentId}_{originalFileName}";
-                string newFilePath = Path.Combine(uploadsFolder, newFileName);
+                string supabasePath = $"{folderPrefix}/{newFileName}";
 
-                // Save the new file
-                using (var stream = new FileStream(newFilePath, FileMode.Create))
+                // 🔹 Delete old file from Supabase (if it exists)
+                if (!string.IsNullOrEmpty(existingSubmission.FilePath))
                 {
-                    await newFile.CopyToAsync(stream);
+                    string oldPath = existingSubmission.FilePath.Replace("https://", "").Split('/', 2)[1]; // Extract path after bucket name
+                    await DeleteFileFromSupabase(oldPath); // Assumes you have a helper like this
                 }
 
-                // Update file path and submission date
-                existingSubmission.FilePath = $"/uploads/{sanitizedClassName}/{newFileName}";
+                // 🔹 Upload new file
+                using (var stream = newFile.OpenReadStream())
+                {
+                    var uploadSuccess = await UploadFileToSupabase(supabasePath, stream, newFile.ContentType);
+                    if (!uploadSuccess)
+                        return BadRequest("Failed to upload new file to Supabase.");
+                }
+
+                // 🔹 Update file path and timestamp
+                string publicUrl = $"{_supabaseUrl}/storage/v1/object/public/edusubmit/{supabasePath}";
+                existingSubmission.FilePath = publicUrl;
                 existingSubmission.SubmissionDate = DateTime.Now;
             }
 
@@ -196,13 +188,8 @@ namespace EduSubmit.Controllers
             catch (DbUpdateConcurrencyException)
             {
                 if (!_context.Submissions.Any(s => s.AssignmentId == assignmentId && s.StudentId == studentId))
-                {
                     return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                throw;
             }
 
             return RedirectToAction("Submissions", "Student");
@@ -214,6 +201,29 @@ namespace EduSubmit.Controllers
             return _context.Submissions.Any(s => s.AssignmentId == assignmentId && s.StudentId == studentId);
         }
 
+        private async Task<bool> UploadFileToSupabase(string filePath, Stream fileStream, string contentType)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{_supabaseUrl}/storage/v1/object/edusubmit/{filePath}")
+            {
+                Content = new StreamContent(fileStream)
+            };
+            request.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+            request.Headers.Add("apikey", _supabaseKey);
+            request.Headers.Add("Authorization", $"Bearer {_supabaseKey}");
+
+            var response = await _httpClient.SendAsync(request);
+            return response.IsSuccessStatusCode;
+        }
+
+        private async Task<bool> DeleteFileFromSupabase(string filePath)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"{_supabaseUrl}/storage/v1/object/edusubmit/{filePath}");
+            request.Headers.Add("apikey", _supabaseKey);
+            request.Headers.Add("Authorization", $"Bearer {_supabaseKey}");
+
+            var response = await _httpClient.SendAsync(request);
+            return response.IsSuccessStatusCode;
+        }
 
 
 
