@@ -21,11 +21,55 @@
                 background-color: #007bff !important;
                 color: white !important;
             }
+
+        @media (max-width: 768px) {
+            #sidebar
+
+        {
+            position: fixed;
+            top: 0;
+            left: -250px;
+            width: 250px;
+            height: 100%;
+            background-color: #f8f9fa;
+            z-index: 1040;
+            padding: 1rem;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            transition: left 0.3s ease;
+        }
+
+        #sidebar.show {
+            left: 0;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1030;
+            display: none;
+        }
+
+            #overlay.show {
+                display: block;
+            }
+
+        }
     </style>
 </head>
 <body>
+    <!-- Overlay for small screen sidebar -->
+    <div id="overlay" onclick="toggleSidebar()"></div>
+
     <!-- Header Section -->
     <header class="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-4">
+        <!-- Mobile toggle button -->
+        <button class="d-md-none btn btn-outline-primary me-2" type="button" onclick="toggleSidebar()">
+            ☰
+        </button>
         <a class="navbar-brand" href="@Url.Action("Index","Home")">EduSubmit</a>
         <div class="ms-auto d-flex align-items-center">
             <span class="me-2">Hello, @User.Identity?.Name</span>
@@ -42,7 +86,7 @@
 
     <div class="d-flex">
         <!-- Sidebar -->
-        <nav class="bg-light p-3 vh-100" style="width: 250px;">
+        <nav id="sidebar" class="bg-light p-3 vh-100 d-none d-md-block">
             <ul class="nav flex-column">
                 <li class="nav-item"><a href="@Url.Action("Index", "Student")" class="nav-link @(ViewData["ActivePage"] == "Dashboard" ? "active" : "")">Dashboard</a></li>
                 <li class="nav-item"><a href="@Url.Action("Assignments", "Student")" class="nav-link @(ViewData["ActivePage"] == "Assignments" ? "active" : "")">Assignments</a></li>
@@ -67,6 +111,18 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- Responsive Sidebar Script -->
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+
+            sidebar.classList.toggle('show');
+            overlay.classList.toggle('show');
+        }
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
