@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using EduSubmit.Models;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EduSubmit.Data
 {
@@ -149,6 +150,31 @@ namespace EduSubmit.Data
             modelBuilder.Entity<Class>()
                 .Property(c => c.ClassName)
                 .HasColumnType("varchar(50)"); // Ensure PostgreSQL-compatible type
+
+            var dateTimeConverter = new ValueConverter<DateTime, DateTime>(
+                v => v.Kind == DateTimeKind.Utc ? v : v.ToUniversalTime(),
+                v => DateTime.SpecifyKind(v, DateTimeKind.Utc)
+            );
+
+            var dateTimeNullableConverter = new ValueConverter<DateTime?, DateTime?>(
+                v => v.HasValue ? (v.Value.Kind == DateTimeKind.Utc ? v : v.Value.ToUniversalTime()) : v,
+                v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v
+            );
+
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                foreach (var property in entityType.GetProperties())
+                {
+                    if (property.ClrType == typeof(DateTime))
+                    {
+                        property.SetValueConverter(dateTimeConverter);
+                    }
+                    else if (property.ClrType == typeof(DateTime?))
+                    {
+                        property.SetValueConverter(dateTimeNullableConverter);
+                    }
+                }
+            }
         }
     }
 }
