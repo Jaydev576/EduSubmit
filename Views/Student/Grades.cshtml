@@ -10,13 +10,13 @@
 }
 
 <style>
-    .container {
-        max-width: 100vw;
-        padding-right: 1rem;
+    .grades-container {
         padding-left: 1rem;
-        margin-right: auto;
-        margin-left: auto;
-        overflow-x: hidden;
+        padding-right: 1rem;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
     }
 
     @@media (max-width: 768px) {
@@ -40,7 +40,7 @@
     }
 </style>
 
-<div class="container mt-4">
+<div class="container grades-container mt-4">
     <!-- Header -->
     <div class="card border-primary shadow-sm mb-4">
         <div class="card-body text-center">
@@ -76,7 +76,7 @@
     <div class="card shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle text-center mb-0">
+                <table class="table table-hover align-middle text-center mb-0 w-100">
                     <thead class="text-white" style="background: linear-gradient(135deg, #007BFF, #0056b3);">
                         <tr>
                             <th id="assignmentColumn" class="sortable" data-sort="assignment">Assignment 🔼</th>
