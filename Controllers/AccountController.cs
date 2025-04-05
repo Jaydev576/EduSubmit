@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace EduSubmit.Controllers
 {
@@ -85,5 +86,59 @@ namespace EduSubmit.Controllers
                 return builder.ToString();
             }
         }
+
+
+
+
+        // GET: Show Change Password Form
+        public IActionResult ChangePassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(string EmailAddress, string OldPassword, string NewPassword, string ConfirmPassword)
+        {
+            if (string.IsNullOrEmpty(EmailAddress))
+            {
+                ViewBag.Message = "Email is required!";
+                ViewBag.IsSuccess = false;
+                return View();
+            }
+
+            if (NewPassword != ConfirmPassword)
+            {
+                ViewBag.Message = "New Password and Confirm Password do not match!";
+                ViewBag.IsSuccess = false;
+                return View();
+            }
+
+            var student = await _context.Students.FirstOrDefaultAsync(s => s.EmailAddress == EmailAddress);
+            if (student == null)
+            {
+                ViewBag.Message = "User not found!";
+                ViewBag.IsSuccess = false;
+                return View();
+            }
+
+            string hashedOldPassword = HashPassword(OldPassword);
+            if (student.Password != hashedOldPassword)
+            {
+                ViewBag.Message = "Old password is incorrect!";
+                ViewBag.IsSuccess = false;
+                return View();
+            }
+
+            // Hash and update the password
+            student.Password = HashPassword(NewPassword);
+            _context.Students.Update(student);
+            await _context.SaveChangesAsync();
+
+            ViewBag.Message = "Password changed successfully!";
+            ViewBag.IsSuccess = true;
+            return View();
+        }
+
+
     }
 }
