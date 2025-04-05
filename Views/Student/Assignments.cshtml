@@ -6,8 +6,27 @@
     Layout = "~/Views/Shared/_StudentLayout.cshtml";
 }
 
-<!-- Responsive Fixes -->
+<!-- Overflow Fixes & Responsive Adjustments -->
 <style>
+    html, body {
+        overflow-x: hidden;
+        max-width: 100vw;
+    }
+
+    .container {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    table {
+        width: 100% !important;
+        max-width: 100%;
+        overflow-x: auto;
+        display: block;
+    }
+
     @@media (max-width: 768px) {
         table td,
         table th {
@@ -26,10 +45,14 @@
         .btn-sm {
             font-size: 0.85rem;
         }
-    }
 
-    body {
-        overflow-x: hidden;
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .table {
+            display: block;
+        }
     }
 </style>
 
