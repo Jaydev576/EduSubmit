@@ -15,20 +15,27 @@
         padding-right: 1rem;
     }
 
+    /* Scroll container for table only */
     .table-responsive {
+        width: 100%;
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
-    /* Force table cell wrapping on small screens */
-    table td, table th {
+    /* Prevent column contents from stacking on small screens */
+    table th, table td {
         white-space: nowrap;
-        word-break: break-word;
     }
 
+    /* Optional: Add min-width to table to prevent excessive shrinking */
+    .grades-table {
+        min-width: 700px; /* Adjust based on column count */
+    }
+
+    /* For better viewing on smaller screens */
     @@media (max-width: 768px) {
-        table td, table th {
+        table th, table td {
             font-size: 0.85rem;
-            white-space: normal !important;
         }
 
         .form-label,
@@ -82,7 +89,7 @@
     <div class="card shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle text-center mb-0 w-100">
+                <table class="table table-hover align-middle text-center mb-0 w-100 grades-table">
                     <thead class="text-white" style="background: linear-gradient(135deg, #007BFF, #0056b3);">
                         <tr>
                             <th id="assignmentColumn" class="sortable text-wrap" data-sort="assignment">Assignment 🔼</th>
