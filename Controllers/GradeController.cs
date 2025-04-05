@@ -7,18 +7,22 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using EduSubmit.Data;
 using EduSubmit.Models;
+using System.Net.Http;
 
 namespace EduSubmit.Controllers
 {
     public class GradeController : Controller
     {
         private readonly AppDbContext _context;
-        private IWebHostEnvironment _webHostEnvironment;
+        private HttpClient _httpClient;
 
-        public GradeController(AppDbContext context, IWebHostEnvironment webHostEnvironment)
+        string SUPABASE_URL = Environment.GetEnvironmentVariable("SUPABASE_URL");
+        string SUPABASE_SERVICE_KEY = Environment.GetEnvironmentVariable("SUPABASE_SERVICE_KEY");
+
+        public GradeController(AppDbContext context, HttpClient httpClient)
         {
             _context = context;
-            _webHostEnvironment = webHostEnvironment;
+            _httpClient = httpClient;
         }
 
         // GET: Grades
@@ -156,24 +160,43 @@ namespace EduSubmit.Controllers
         }
 
         // GET: Grade/Details?studentId&&assignmentId
-        public IActionResult Details(int studentId, int assignmentId)
+        public async Task<IActionResult> Details(int studentId, int assignmentId)
         {
-            var grade = _context.Grades
+            var grade = await _context.Grades
                 .Include(g => g.Student)
                 .Include(g => g.Assignment)
                 .Include(g => g.Instructor)
-                .FirstOrDefault(g => g.StudentId == studentId && g.AssignmentId == assignmentId);
+                .FirstOrDefaultAsync(g => g.StudentId == studentId && g.AssignmentId == assignmentId);
 
             if (grade == null)
             {
                 return NotFound();
             }
 
-            // Check if the assignment is a coding assignment
-            string codingAssignmentPath = Path.Combine(_webHostEnvironment.WebRootPath, "CodingAssignments", $"{grade.Student.ClassId}_{assignmentId}");
-            ViewBag.IsCodingAssignment = Directory.Exists(codingAssignmentPath);
+            // 🔸 Supabase Path Check for Coding Assignment
+            string codingAssignmentPrefix = $"CodingAssignments/{grade.Student.ClassId}_{assignmentId}/";
+            bool isCodingAssignment = await SupabaseFolderExists(codingAssignmentPrefix);
 
+            ViewBag.IsCodingAssignment = isCodingAssignment;
             return View(grade);
+        }
+
+        // Helper method
+        public async Task<bool> SupabaseFolderExists(string folderPrefix)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get,
+                $"{SUPABASE_URL}/storage/v1/object/list/edusubmit?prefix={folderPrefix}&limit=1");
+
+            request.Headers.Add("apikey", SUPABASE_SERVICE_KEY);
+            request.Headers.Add("Authorization", $"Bearer {SUPABASE_SERVICE_KEY}");
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+                return false;
+
+            var content = await response.Content.ReadAsStringAsync();
+            return content.Contains("name"); // optionally, parse as JSON for stricter validation
         }
     }
 }

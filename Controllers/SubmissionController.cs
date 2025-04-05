@@ -13,6 +13,9 @@ using System.Security.Claims;
 using Newtonsoft.Json;
 using EduSubmit.Services;
 using System.Text.RegularExpressions;
+using System.Net.Http.Headers;
+using System.Net.Http;
+using System.Text;
 
 namespace EduSubmit.Controllers
 {
@@ -21,12 +24,21 @@ namespace EduSubmit.Controllers
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly CodeExecutionService _codeExecutionService;
+        private readonly HttpClient _httpClient;
+        private readonly string _supabaseUrl;
+        private readonly string _supabaseKey;
+        private readonly string _bucket;
 
-        public SubmissionController(AppDbContext context, IWebHostEnvironment webHostEnvironment, CodeExecutionService codeExecutionService)
+        public SubmissionController(AppDbContext context, IWebHostEnvironment webHostEnvironment, CodeExecutionService codeExecutionService, HttpClient httpClient)
         {
             _context = context;
             _webHostEnvironment = webHostEnvironment;
             _codeExecutionService = codeExecutionService;
+            _httpClient = httpClient;
+
+            _supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL")!;
+            _supabaseKey = Environment.GetEnvironmentVariable("SUPABASE_SERVICE_KEY")!;
+            _bucket = "edusubmit";
         }
 
         // GET: Submission
@@ -242,39 +254,30 @@ namespace EduSubmit.Controllers
         }
 
         // GET: Submission/Submit/{id}
-        [HttpGet]
         public async Task<IActionResult> Submit(int id)
         {
             var assignment = await _context.Assignments.FindAsync(id);
             if (assignment == null)
-            {
                 return NotFound();
-            }
 
-            string assignmentFolder = Path.Combine("wwwroot/CodingAssignments", $"{assignment.ClassId.ToString()}_{id.ToString()}");
-            bool isCodingAssignment = Directory.Exists(assignmentFolder);
+            string folderPath = $"CodingAssignments/{assignment.ClassId}_{assignment.AssignmentId}";
+            bool isCodingAssignment = await SupabaseFileExists($"{folderPath}/ProgrammingLanguage.txt");
 
             ViewBag.IsCodingAssignment = isCodingAssignment;
 
             if (isCodingAssignment)
             {
-                string testCasesPath = Path.Combine(assignmentFolder, "TestCases.json");
-                string languagePath = Path.Combine(assignmentFolder, "ProgrammingLanguage.txt");
+                string testCasesJson = await DownloadFileAsString($"{folderPath}/TestCases.json");
+                string programmingLanguage = await DownloadFileAsString($"{folderPath}/ProgrammingLanguage.txt");
 
-                if (System.IO.File.Exists(testCasesPath) && System.IO.File.Exists(languagePath))
-                {
-                    string testCasesJson = await System.IO.File.ReadAllTextAsync(testCasesPath);
-                    ViewBag.ProgrammingLanguage = await System.IO.File.ReadAllTextAsync(languagePath);
-                    ViewBag.TestCases = JsonConvert.DeserializeObject<List<string>>(testCasesJson);
-                }
+                ViewBag.TestCases = JsonConvert.DeserializeObject<List<string>>(testCasesJson);
+                ViewBag.ProgrammingLanguage = programmingLanguage;
             }
-            var submission = new Submission
-            {
-                AssignmentId = assignment.AssignmentId
-            };
 
+            var submission = new Submission { AssignmentId = assignment.AssignmentId };
             return View(submission);
         }
+
 
         // POST: Submission/Submit
         [HttpPost]
@@ -283,67 +286,74 @@ namespace EduSubmit.Controllers
         {
             var userEmail = User.Identity?.Name;
             var student = await _context.Students.FirstOrDefaultAsync(s => s.EmailAddress == userEmail);
-
             if (student == null)
-            {
                 return Unauthorized("Student profile not found.");
-            }
 
-            // 🔹 Define Paths
-            string assignmentPath = Path.Combine(_webHostEnvironment.WebRootPath, "CodingAssignments", $"{student.ClassId}_{assignmentId}");
-            string resultPath = Path.Combine(assignmentPath, "Results");
-            string submissionPath = Path.Combine(assignmentPath, "Submissions");
-            string teacherResultFile = Path.Combine(resultPath, "teacher_result.json");
+            string baseFolder = $"CodingAssignments/{student.ClassId}_{assignmentId}";
+            string resultFolder = $"{baseFolder}/Results";
+            string submissionFolder = $"{baseFolder}/Submissions";
+            string teacherResultPath = $"{resultFolder}/teacher_result.json";
 
-            // 🔹 Ensure Directories Exist
-            Directory.CreateDirectory(resultPath);
-            Directory.CreateDirectory(submissionPath);
+            // 🔍 Check if Coding Assignment
+            if (!await SupabaseFileExists($"{baseFolder}/ProgrammingLanguage.txt"))
+                return await HandleNormalAssignmentSubmission(student.StudentId, assignmentId, file);
 
-            // 🔹 Check if Coding Assignment
-            bool isCodingAssignment = System.IO.File.Exists(Path.Combine(assignmentPath, "ProgrammingLanguage.txt"));
-            if (!isCodingAssignment)
+            // 📁 Load metadata
+            string programmingLanguage = await DownloadFileAsString($"{baseFolder}/ProgrammingLanguage.txt");
+            string testCasesJson = await DownloadFileAsString($"{baseFolder}/TestCases.json");
+
+            var testCaseStrings = JsonConvert.DeserializeObject<List<string>>(testCasesJson);
+            var testCases = testCaseStrings.Select(tc => new TestCase(tc)).ToList();
+
+            // 🧪 Run Teacher Code if Needed
+            if (!await SupabaseFileExists(teacherResultPath))
             {
-                return await HandleNormalAssignmentSubmission(student.StudentId, assignmentId, file, submissionPath);
-            }
-
-            // 🔹 Retrieve Programming Language
-            string languagePath = Path.Combine(assignmentPath, "ProgrammingLanguage.txt");
-            if (!System.IO.File.Exists(languagePath))
-            {
-                return BadRequest("Programming language file not found.");
-            }
-            string programmingLanguage = await System.IO.File.ReadAllTextAsync(languagePath);
-
-            // 🔹 Retrieve Test Cases
-            string testCasesPath = Path.Combine(assignmentPath, "TestCases.json");
-            if (!System.IO.File.Exists(testCasesPath))
-            {
-                return BadRequest("Test cases file not found.");
-            }
-            var testCaseStrings = JsonConvert.DeserializeObject<List<string>>(await System.IO.File.ReadAllTextAsync(testCasesPath));
-            var testCases = testCaseStrings.Select(input => new TestCase(input)).ToList();
-
-            // 🔹 Check if Teacher's Sample Code is Executed
-            if (!System.IO.File.Exists(teacherResultFile))
-            {
-                string teacherCodePath = Path.Combine(assignmentPath, $"SampleSolution{GetFileExtension(programmingLanguage)}");
-                if (!System.IO.File.Exists(teacherCodePath))
-                {
+                string teacherCodePath = $"{baseFolder}/SampleSolution{GetFileExtension(programmingLanguage)}";
+                if (!await SupabaseFileExists(teacherCodePath))
                     return BadRequest("Teacher's sample code not found.");
-                }
 
-                string teacherCode = await System.IO.File.ReadAllTextAsync(teacherCodePath);
-                Console.WriteLine(teacherCode);
+                string teacherCode = await DownloadFileAsString(teacherCodePath);
                 var teacherResult = await _codeExecutionService.ExecuteCodeAndFetchResults(programmingLanguage, teacherCode, testCases);
-                await System.IO.File.WriteAllTextAsync(teacherResultFile, JsonConvert.SerializeObject(teacherResult));
+
+                await UploadStringToSupabase(teacherResultPath, JsonConvert.SerializeObject(teacherResult), "application/json");
             }
 
-            // 🔹 Handle Student Submission
-            return await HandleCodingAssignmentSubmission(student.StudentId, assignmentId, file, submissionPath, assignmentPath, programmingLanguage, testCases);
+            // 🧾 Student Submission Handling
+            return await HandleCodingAssignmentSubmission(student.StudentId, assignmentId, file, submissionFolder, baseFolder, programmingLanguage, testCases);
+        }
+
+        // Helper methods for Supabase
+        private async Task<bool> SupabaseFileExists(string path)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Head, $"{_supabaseUrl}/storage/v1/object/{_bucket}/{path}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _supabaseKey);
+            var response = await _httpClient.SendAsync(request);
+            return response.IsSuccessStatusCode;
+        }
+
+        private async Task<string> DownloadFileAsString(string path)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_supabaseUrl}/storage/v1/object/{_bucket}/{path}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _supabaseKey);
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        private async Task UploadStringToSupabase(string path, string content, string contentType)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Put, $"{_supabaseUrl}/storage/v1/object/{_bucket}/{path}")
+            {
+                Content = new StringContent(content, Encoding.UTF8, contentType)
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _supabaseKey);
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
         }
 
 
-        private async Task<IActionResult> HandleNormalAssignmentSubmission(int studentId, int assignmentId, IFormFile file, string submissionPath)
+
+        private async Task<IActionResult> HandleNormalAssignmentSubmission(int studentId, int assignmentId, IFormFile file)
         {
             if (file == null || file.Length == 0)
             {
@@ -359,6 +369,7 @@ namespace EduSubmit.Controllers
                 return BadRequest("Invalid assignment or class.");
             }
 
+            // ✅ Check if already submitted
             bool submissionExists = await _context.Submissions
                 .AnyAsync(s => s.AssignmentId == assignmentId && s.StudentId == studentId);
 
@@ -367,28 +378,27 @@ namespace EduSubmit.Controllers
                 return BadRequest("You have already submitted this assignment.");
             }
 
+            // ✅ Prepare Supabase path
             string uniqueIdentifier = Guid.NewGuid().ToString("N");
             string sanitizedClassName = string.Concat(assignment.Class.ClassName.Split(Path.GetInvalidFileNameChars()));
-            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", sanitizedClassName);
-
-            Directory.CreateDirectory(uploadsFolder);
-
             string originalFileName = Path.GetFileName(file.FileName);
             string uniqueFileName = $"{uniqueIdentifier}_{studentId}_{assignmentId}_{originalFileName}";
-            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+            string supabasePath = $"NormalAssignments/{sanitizedClassName}/{uniqueFileName}";
 
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            // ✅ Upload to Supabase
+            bool uploadSuccess = await UploadFileToSupabase(supabasePath, file);
+            if (!uploadSuccess)
             {
-                await file.CopyToAsync(stream);
+                return StatusCode(500, "Failed to upload file to Supabase.");
             }
 
-            // Save submission to the database
+            // ✅ Save submission to database
             var submission = new Submission
             {
                 StudentId = studentId,
                 AssignmentId = assignmentId,
                 ClassId = assignment.Class.ClassId,
-                FilePath = $"/uploads/{sanitizedClassName}/{uniqueFileName}",
+                FilePath = $"{_supabaseUrl}/storage/v1/object/public/{_bucket}/{supabasePath}", // Direct URL
                 SubmissionDate = DateTime.Now
             };
 
@@ -398,36 +408,57 @@ namespace EduSubmit.Controllers
             return RedirectToAction("Submissions", "Student");
         }
 
+        // Uploading file to Supabase
+        private async Task<bool> UploadFileToSupabase(string path, IFormFile file)
+        {
+            using (var content = new StreamContent(file.OpenReadStream()))
+            {
+                var request = new HttpRequestMessage(HttpMethod.Post, $"{_supabaseUrl}/storage/v1/object/{_bucket}/{path}")
+                {
+                    Content = content
+                };
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _supabaseKey);
+                content.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
 
-        private async Task<IActionResult> HandleCodingAssignmentSubmission(int studentId, int assignmentId, IFormFile file, string submissionPath, string assignmentPath, string programmingLanguage, List<TestCase> testCases)
+                var response = await _httpClient.SendAsync(request);
+                return response.IsSuccessStatusCode;
+            }
+        }
+
+
+
+        private async Task<IActionResult> HandleCodingAssignmentSubmission(
+            int studentId, int assignmentId, IFormFile file, string submissionPath, string assignmentPath, string programmingLanguage, List<TestCase> testCases)
         {
             if (file == null || file.Length == 0)
-            {
                 return BadRequest("Invalid file upload.");
-            }
 
             var assignment = await _context.Assignments
                                            .Include(a => a.Class)
                                            .FirstOrDefaultAsync(a => a.AssignmentId == assignmentId);
-
             if (assignment == null || assignment.Class == null)
-            {
                 return BadRequest("Invalid assignment or class.");
-            }
 
+            // 🔹 Generate Supabase paths
             string extension = GetFileExtension(programmingLanguage);
-            string studentFilePath = Path.Combine(submissionPath, $"student_{studentId}{extension}");
+            string studentFileName = $"student_{studentId}{extension}";
+            string studentFilePath = $"{submissionPath}/{studentFileName}";
 
-            using (var stream = new FileStream(studentFilePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
+            // 🔹 Upload student file to Supabase
+            bool uploadSuccess = await UploadFileToSupabase(studentFilePath, file);
+            if (!uploadSuccess)
+                return StatusCode(500, "Failed to upload student code file to Supabase.");
 
             // 🔹 Read Student Code
-            string studentCode = await System.IO.File.ReadAllTextAsync(studentFilePath);
+            string studentCode;
+            using (var reader = new StreamReader(file.OpenReadStream()))
+            {
+                studentCode = await reader.ReadToEndAsync();
+            }
+
             Console.WriteLine(studentCode);
 
-            // 🔹 Execute code using Judge0
+            // 🔹 Execute student code using Judge0
             var studentExecutionResults = await _codeExecutionService.ExecuteCodeAndFetchResults(programmingLanguage, studentCode, testCases);
             if (studentExecutionResults != null && studentExecutionResults.Count > 0)
             {
@@ -441,20 +472,49 @@ namespace EduSubmit.Controllers
                 Console.WriteLine("No results found in the execution results.");
             }
 
-            // 🔹 Load Teacher's Results
-            string resultPath = Path.Combine(assignmentPath, "Results");
-            string teacherResultFile = Path.Combine(resultPath, "teacher_result.json");
+            // 🔹 Load Teacher Results from Supabase
+            // 🔹 Load or Generate Teacher Results from Supabase
+            string teacherResultPath = $"{assignmentPath}/Results/teacher_result.json";
             Dictionary<string, string> teacherExecutionResults = new();
 
-            if (System.IO.File.Exists(teacherResultFile))
+            if (await SupabaseFileExists(teacherResultPath))
             {
-                string teacherResultJson = await System.IO.File.ReadAllTextAsync(teacherResultFile);
-                teacherExecutionResults = JsonConvert.DeserializeObject<Dictionary<string, string>>(teacherResultJson) ?? new Dictionary<string, string>();
+                string teacherResultJson = await DownloadFileAsString(teacherResultPath);
+                teacherExecutionResults = JsonConvert.DeserializeObject<Dictionary<string, string>>(teacherResultJson)
+                                          ?? new Dictionary<string, string>();
             }
             else
             {
-                return BadRequest("Teacher's result file not found.");
+                // 🔸 Teacher result missing → run teacher code
+
+                string teacherFilePath = $"{assignmentPath}/SampleSolution{GetFileExtension(programmingLanguage)}";
+
+                if (!await SupabaseFileExists(teacherFilePath))
+                    return BadRequest("Teacher's code not found in Supabase.");
+
+                string teacherCode = await DownloadFileAsString(teacherFilePath);
+
+                var executionResults = await _codeExecutionService.ExecuteCodeAndFetchResults(programmingLanguage, teacherCode, testCases);
+                if (executionResults == null || executionResults.Count == 0)
+                    return StatusCode(500, "Failed to execute teacher's code.");
+
+                teacherExecutionResults = executionResults;
+
+                // 🔸 Save teacher results to Supabase
+                string serializedTeacherResults = JsonConvert.SerializeObject(teacherExecutionResults);
+                using var teacherResultStream = new MemoryStream(Encoding.UTF8.GetBytes(serializedTeacherResults));
+
+                var resultFormFile = new FormFile(teacherResultStream, 0, teacherResultStream.Length, null, "teacher_result.json")
+                {
+                    Headers = new HeaderDictionary(),
+                    ContentType = "application/json"
+                };
+
+                bool uploadSuccessTeacher = await UploadFileToSupabase(teacherResultPath, resultFormFile);
+                if (!uploadSuccessTeacher)
+                    return StatusCode(500, "Failed to upload teacher result to Supabase.");
             }
+
 
             // 🔹 Compare Outputs
             var finalResults = new List<object>();
@@ -475,18 +535,32 @@ namespace EduSubmit.Controllers
                 });
             }
 
-            // 🔹 Save Student Results
-            Directory.CreateDirectory(resultPath);
-            string studentResultFile = Path.Combine(resultPath, $"student_{studentId}_result.json");
-            await System.IO.File.WriteAllTextAsync(studentResultFile, JsonConvert.SerializeObject(finalResults));
+            // 🔹 Save Student Result to Supabase
+            string studentResultPath = $"{assignmentPath}/Results/student_{studentId}_result.json";
+            var resultJson = JsonConvert.SerializeObject(finalResults);
+            using (var resultStream = new MemoryStream(Encoding.UTF8.GetBytes(resultJson)))
+            {
+                var formFile = new FormFile(resultStream, 0, resultStream.Length, null, "result.json")
+                {
+                    Headers = new HeaderDictionary(),
+                    ContentType = "application/json"
+                };
 
-            studentFilePath = studentFilePath.Replace(_webHostEnvironment.WebRootPath, "").Replace("\\", "/");
+                bool resultUploadSuccess = await UploadFileToSupabase(studentResultPath, formFile);
+                if (!resultUploadSuccess)
+                    return StatusCode(500, "Failed to upload student result to Supabase.");
+            }
 
-            // 🔹 Check if submission already exists
-            var existingSubmission = await _context.Submissions.FirstOrDefaultAsync(s => s.AssignmentId == assignmentId && s.StudentId == studentId);
+            // 🔹 Store student file path (as public Supabase URL)
+            string publicStudentFileUrl = $"{_supabaseUrl}/storage/v1/object/public/{_bucket}/{studentFilePath}";
+
+            // 🔹 Check for existing submission
+            var existingSubmission = await _context.Submissions
+                                                   .FirstOrDefaultAsync(s => s.AssignmentId == assignmentId && s.StudentId == studentId);
+
             if (existingSubmission != null)
             {
-                existingSubmission.FilePath = studentFilePath;
+                existingSubmission.FilePath = publicStudentFileUrl;
                 existingSubmission.SubmissionDate = DateTime.Now;
                 _context.Submissions.Update(existingSubmission);
             }
@@ -497,13 +571,15 @@ namespace EduSubmit.Controllers
                     StudentId = studentId,
                     AssignmentId = assignmentId,
                     ClassId = assignment.Class.ClassId,
-                    FilePath = studentFilePath,
+                    FilePath = publicStudentFileUrl,
                     SubmissionDate = DateTime.Now
                 };
                 _context.Submissions.Add(submission);
             }
+
             await _context.SaveChangesAsync();
 
+            // 🔹 Grade assignment
             await AutoGradeAssignment(studentId, assignmentId, assignmentPath, assignment.InstructorId, assignment.Points);
 
             return RedirectToAction("Grades", "Student");
@@ -512,22 +588,32 @@ namespace EduSubmit.Controllers
 
         private async Task AutoGradeAssignment(int studentId, int assignmentId, string assignmentPath, int instructorId, int totalScore)
         {
-            string resultPath = Path.Combine(assignmentPath, "Results");
-            string studentResultFile = Path.Combine(resultPath, $"student_{studentId}_result.json");
+            string studentResultFilePath = $"{assignmentPath}/Results/student_{studentId}_result.json";
 
-            if (!System.IO.File.Exists(studentResultFile))
+            // 🔸 Check existence of result file in Supabase
+            bool exists = await SupabaseFileExists(studentResultFilePath);
+            if (!exists)
             {
-                Console.WriteLine("[ERROR] Student result file not found!");
+                Console.WriteLine("[ERROR] Student result file not found in Supabase!");
                 return;
             }
 
-            var studentResults = JsonConvert.DeserializeObject<List<dynamic>>(await System.IO.File.ReadAllTextAsync(studentResultFile));
+            // 🔸 Download and deserialize result file
+            string resultJson = await DownloadFileAsString(studentResultFilePath);
+            if (string.IsNullOrWhiteSpace(resultJson))
+            {
+                Console.WriteLine("[ERROR] Empty result file.");
+                return;
+            }
+
+            var studentResults = JsonConvert.DeserializeObject<List<dynamic>>(resultJson);
             if (studentResults == null || studentResults.Count == 0)
             {
                 Console.WriteLine("[ERROR] No test cases found in student result file!");
                 return;
             }
 
+            // 🔸 Score calculation
             int totalTestCases = studentResults.Count;
             int passedTestCases = studentResults.Count(tc => tc.IsCorrect == true);
             float obtainedScore = ((float)passedTestCases / totalTestCases) * totalScore;
@@ -538,10 +624,11 @@ namespace EduSubmit.Controllers
                 >= 90 => "Excellent performance!",
                 >= 75 => "Great job! Keep it up!",
                 >= 60 => "Satisfactory, but room for improvement.",
-                >= 45 => "Needs improvement. Keep practicing!",
+                >= 50 => "Needs improvement. Keep practicing!",
                 _ => "Poor performance. Consider reviewing the concepts."
             };
 
+            // 🔸 Save grade in database
             var existingGrade = await _context.Grades.FirstOrDefaultAsync(g => g.AssignmentId == assignmentId && g.StudentId == studentId);
             if (existingGrade != null)
             {
@@ -561,6 +648,7 @@ namespace EduSubmit.Controllers
                 };
                 _context.Grades.Add(grade);
             }
+
             await _context.SaveChangesAsync();
         }
 

@@ -9,6 +9,8 @@ using EduSubmit.Data;
 using EduSubmit.Models;
 using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json;
+using System.Net.Http.Headers;
+using System.Text;
 
 namespace EduSubmit.Controllers
 {
@@ -17,6 +19,9 @@ namespace EduSubmit.Controllers
     public class InstructorController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly string supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL");
+        private readonly string supabaseServiceKey = Environment.GetEnvironmentVariable("SUPABASE_SERVICE_KEY");
+        private readonly string supabaseBucket = "edusubmit";
 
         public InstructorController(AppDbContext context)
         {
@@ -358,48 +363,59 @@ namespace EduSubmit.Controllers
         }
 
         // Helper function to handle file storage
+
         private async Task SaveCodingAssignmentFiles(int assignmentId, int classId, string programmingLanguage, string testCases, IFormFile sampleSolution)
         {
-            // Define the folder path based on AssignmentId
-            string assignmentFolder = Path.Combine("wwwroot/CodingAssignments", $"{classId.ToString()}_{assignmentId.ToString()}");
+            string baseFolder = $"CodingAssignments/{classId}_{assignmentId}";
 
-            if (!Directory.Exists(assignmentFolder))
-            {
-                Directory.CreateDirectory(assignmentFolder);
-            }
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", supabaseServiceKey);
 
-            // Save Test Cases as JSON file
+            // 1. Upload TestCases.json
             if (!string.IsNullOrWhiteSpace(testCases))
             {
-                // Convert line-separated test cases into a JSON array
                 string[] testCasesArray = testCases.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
                                                    .Select(tc => tc.Trim())
                                                    .ToArray();
 
-                // Convert to JSON format
-                string jsonTestCases = JsonConvert.SerializeObject(testCasesArray, Formatting.Indented);
+                string jsonContent = JsonConvert.SerializeObject(testCasesArray, Formatting.Indented);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-                string testCasesPath = Path.Combine(assignmentFolder, "TestCases.json");
-                await System.IO.File.WriteAllTextAsync(testCasesPath, jsonTestCases);
+                string objectPath = $"{baseFolder}/TestCases.json";
+                await UploadFileToSupabase(httpClient, objectPath, content);
             }
 
-            // Save Programming Language
+            // 2. Upload ProgrammingLanguage.txt
             if (!string.IsNullOrWhiteSpace(programmingLanguage))
             {
-                string languagePath = Path.Combine(assignmentFolder, "ProgrammingLanguage.txt");
-                await System.IO.File.WriteAllTextAsync(languagePath, programmingLanguage);
+                var langContent = new StringContent(programmingLanguage, Encoding.UTF8, "text/plain");
+                string objectPath = $"{baseFolder}/ProgrammingLanguage.txt";
+                await UploadFileToSupabase(httpClient, objectPath, langContent);
             }
 
-            // Save Sample Solution with correct extension
+            // 3. Upload SampleSolution
             if (sampleSolution != null && sampleSolution.Length > 0)
             {
                 string extension = GetFileExtension(programmingLanguage);
-                string solutionFilePath = Path.Combine(assignmentFolder, $"SampleSolution{extension}");
+                string objectPath = $"{baseFolder}/SampleSolution{extension}";
 
-                using (var fileStream = new FileStream(solutionFilePath, FileMode.Create))
-                {
-                    await sampleSolution.CopyToAsync(fileStream);
-                }
+                using var stream = sampleSolution.OpenReadStream();
+                var byteContent = new StreamContent(stream);
+                byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+
+                await UploadFileToSupabase(httpClient, objectPath, byteContent);
+            }
+        }
+
+        private async Task UploadFileToSupabase(HttpClient httpClient, string objectPath, HttpContent content)
+        {
+            var uploadUrl = $"{supabaseUrl}/storage/v1/object/{supabaseBucket}/{objectPath}";
+            var response = await httpClient.PostAsync(uploadUrl, content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Upload failed ({objectPath}): {error}");
             }
         }
 

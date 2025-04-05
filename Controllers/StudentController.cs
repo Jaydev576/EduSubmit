@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using EduSubmit.Data;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace EduSubmit.Controllers
 {
@@ -18,6 +20,9 @@ namespace EduSubmit.Controllers
     {
         private readonly AppDbContext _context;
         private IWebHostEnvironment _webHostEnvironment;
+        string supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL");
+        string supabaseServiceKey = Environment.GetEnvironmentVariable("SUPABASE_SERVICE_KEY");
+        string bucket = "edusubmit";
 
         public StudentController(AppDbContext context, IWebHostEnvironment webHostEnvironment)
         {
@@ -396,17 +401,37 @@ namespace EduSubmit.Controllers
                 .Where(s => s.StudentId == studentId)
                 .ToListAsync();
 
-            // 4. Determine which assignments are coding assignments
-            string codingAssignmentsPath = Path.Combine(_webHostEnvironment.WebRootPath, "CodingAssignments");
+            // 4. Check if each assignment has a corresponding folder in Supabase Storage
             var assignmentTypeDictionary = new Dictionary<int, bool>();
+
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", supabaseServiceKey);
 
             foreach (var submission in submissions)
             {
                 if (submission.Assignment != null)
                 {
-                    string folderPath = Path.Combine(codingAssignmentsPath, $"{submission.Assignment.ClassId}_{submission.Assignment.AssignmentId}");
-                    bool isCodingAssignment = Directory.Exists(folderPath);
-                    assignmentTypeDictionary[submission.Assignment.AssignmentId] = isCodingAssignment;
+                    int classId = submission.Assignment.ClassId;
+                    int assignmentId = submission.Assignment.AssignmentId;
+                    string prefix = $"CodingAssignments/{classId}_{assignmentId}/";
+
+                    // List objects in the folder to check if it exists
+                    var requestUri = $"{supabaseUrl}/storage/v1/object/list/{bucket}?prefix={Uri.EscapeDataString(prefix)}&limit=1";
+                    var response = await httpClient.GetAsync(requestUri);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var content = await response.Content.ReadAsStringAsync();
+                        var files = JsonConvert.DeserializeObject<List<object>>(content);
+
+                        bool folderExists = files != null && files.Count > 0;
+                        assignmentTypeDictionary[assignmentId] = folderExists;
+                    }
+                    else
+                    {
+                        // Optional: log or handle failure to query Supabase
+                        assignmentTypeDictionary[assignmentId] = false;
+                    }
                 }
             }
 
@@ -442,18 +467,35 @@ namespace EduSubmit.Controllers
                 .Where(g => g.StudentId == studentId)
                 .ToListAsync();
 
-            // 4. Determine if the assignments are coding assignments
+            // 4. Check Supabase for coding assignments
             var codingAssignments = new Dictionary<int, bool>();
-            string codingAssignmentsBasePath = Path.Combine(_webHostEnvironment.WebRootPath, "CodingAssignments");
+
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", supabaseServiceKey);
 
             foreach (var grade in grades)
             {
                 if (grade.Assignment != null)
                 {
-                    string assignmentPath = Path.Combine(codingAssignmentsBasePath, $"{student.ClassId}_{grade.AssignmentId}");
+                    int classId = student.ClassId;
+                    int assignmentId = grade.AssignmentId;
+                    string prefix = $"CodingAssignments/{classId}_{assignmentId}/";
 
-                    bool isCoding = Directory.Exists(assignmentPath);
-                    codingAssignments.TryAdd(grade.AssignmentId, isCoding);
+                    string requestUri = $"{supabaseUrl}/storage/v1/object/list/{bucket}?prefix={Uri.EscapeDataString(prefix)}&limit=1";
+
+                    var response = await httpClient.GetAsync(requestUri);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var content = await response.Content.ReadAsStringAsync();
+                        var files = JsonConvert.DeserializeObject<List<object>>(content);
+
+                        bool folderExists = files != null && files.Count > 0;
+                        codingAssignments.TryAdd(assignmentId, folderExists);
+                    }
+                    else
+                    {
+                        codingAssignments.TryAdd(assignmentId, false);
+                    }
                 }
             }
 
