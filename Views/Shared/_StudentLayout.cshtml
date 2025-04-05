@@ -14,14 +14,14 @@
             transition: background-color 0.3s ease;
         }
 
-        .nav-link:hover {
-            background-color: #e0e0e0;
-        }
+            .nav-link:hover {
+                background-color: #e0e0e0;
+            }
 
-        .nav-link.active {
-            background-color: #007bff !important;
-            color: white !important;
-        }
+            .nav-link.active {
+                background-color: #007bff !important;
+                color: white !important;
+            }
 
         @@media (max-width: 768px) {
             #sidebar {
@@ -37,9 +37,9 @@
                 transition: left 0.3s ease;
             }
 
-            #sidebar.show {
-                left: 0;
-            }
+                #sidebar.show {
+                    left: 0;
+                }
 
             #overlay {
                 position: fixed;
@@ -52,9 +52,9 @@
                 display: none;
             }
 
-            #overlay.show {
-                display: block;
-            }
+                #overlay.show {
+                    display: block;
+                }
         }
 
         .footer a:hover {
@@ -70,9 +70,14 @@
                 font-size: 0.9rem;
             }
         }
+
+        main {
+            padding-bottom: 2rem; /* Ensures space above the footer */
+        }
     </style>
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
+
     <!-- Header Section -->
     <header class="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-4">
         <a class="navbar-brand" href="@Url.Action("Index","Home")">EduSubmit</a>
@@ -113,26 +118,29 @@
         </div>
     </div>
 
-    <!-- Layout: Sidebar + Main -->
-    <div class="d-flex">
-        <!-- Sidebar for Large Screens -->
-        <nav class="bg-light p-3 vh-100 d-none d-lg-block" style="width: 250px;">
-            <ul class="nav flex-column">
-                <li class="nav-item"><a href="@Url.Action("Index", "Student")" class="nav-link @(ViewData["ActivePage"] == "Dashboard" ? "active" : "")">Dashboard</a></li>
-                <li class="nav-item"><a href="@Url.Action("Assignments", "Student")" class="nav-link @(ViewData["ActivePage"] == "Assignments" ? "active" : "")">Assignments</a></li>
-                <li class="nav-item"><a href="@Url.Action("Submissions", "Student")" class="nav-link @(ViewData["ActivePage"] == "Submissions" ? "active" : "")">Submissions</a></li>
-                <li class="nav-item"><a href="@Url.Action("Grades", "Student")" class="nav-link @(ViewData["ActivePage"] == "Grades" ? "active" : "")">Grades</a></li>
-                <li class="nav-item"><a href="@Url.Action("Calendar", "Student")" class="nav-link @(ViewData["ActivePage"] == "Calendar" ? "active" : "")">Calendar</a></li>
-            </ul>
-        </nav>
+    <!-- Main Layout -->
+    <main class="flex-grow-1">
+        <div class="d-flex">
+            <!-- Sidebar for Large Screens -->
+            <nav class="bg-light p-3 vh-100 d-none d-lg-block" style="width: 250px;">
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a href="@Url.Action("Index", "Student")" class="nav-link @(ViewData["ActivePage"] == "Dashboard" ? "active" : "")">Dashboard</a></li>
+                    <li class="nav-item"><a href="@Url.Action("Assignments", "Student")" class="nav-link @(ViewData["ActivePage"] == "Assignments" ? "active" : "")">Assignments</a></li>
+                    <li class="nav-item"><a href="@Url.Action("Submissions", "Student")" class="nav-link @(ViewData["ActivePage"] == "Submissions" ? "active" : "")">Submissions</a></li>
+                    <li class="nav-item"><a href="@Url.Action("Grades", "Student")" class="nav-link @(ViewData["ActivePage"] == "Grades" ? "active" : "")">Grades</a></li>
+                    <li class="nav-item"><a href="@Url.Action("Calendar", "Student")" class="nav-link @(ViewData["ActivePage"] == "Calendar" ? "active" : "")">Calendar</a></li>
+                </ul>
+            </nav>
 
-        <!-- Main Content Area -->
-        <div class="flex-grow-1 p-4">
-            @RenderBody()
+            <!-- Main Content -->
+            <div class="flex-grow-1 p-4">
+                @RenderBody()
+            </div>
         </div>
-    </div>
+    </main>
 
-    <footer class="footer bg-light border-top py-3 shadow-sm position-absolute bottom-0 start-0 end-0">
+    <!-- Footer -->
+    <footer class="footer bg-light border-top py-3 shadow-sm mt-auto">
         <div class="container text-center">
             <h6 class="text-primary mb-3">📬 Contact Developers</h6>
             <div class="d-flex flex-column flex-md-row justify-content-center gap-3">
@@ -142,8 +150,8 @@
                 <a href="mailto:rohitdhruv205@gmail.com" class="text-decoration-none text-dark">
                     <i class="bi bi-envelope-fill me-1 text-primary"></i> rohitdhruv205@gmail.com
                 </a>
-                <a href="mailto:het212005@gmail.com" class="text-decoration-none text-dark">
-                    <i class="bi bi-envelope-fill me-1 text-primary"></i> het212005@gmail.com
+                <a href="mailto:het2122005@gmail.com" class="text-decoration-none text-dark">
+                    <i class="bi bi-envelope-fill me-1 text-primary"></i> het2122005@gmail.com
                 </a>
             </div>
             <div class="mt-3 small text-muted">
@@ -151,7 +159,6 @@
             </div>
         </div>
     </footer>
-
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

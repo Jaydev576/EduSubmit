@@ -21,7 +21,7 @@
         <!-- Filter Section -->
         <div class="card border border-primary shadow-sm mb-4">
             <div class="card-body text-center">
-                <h2 class="text-primary">📅 @monthName</h2>
+                <h2 class="text-primary">🗕️ @monthName</h2>
 
                 <form method="get" class="d-flex flex-wrap justify-content-center align-items-center mt-3 gap-2">
                     <select name="month" class="form-select" style="width: auto;">
@@ -107,26 +107,33 @@
 
 <!-- Modal -->
 <div class="modal fade" id="assignmentsModal" tabindex="-1" aria-labelledby="assignmentsModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content rounded-3">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="assignmentsModalLabel">Assignments Due</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div id="assignmentsContent" class="px-2">
-          <!-- Assignment cards inserted here -->
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-3">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="assignmentsModalLabel">Assignments Due</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="assignmentsContent" class="px-2">
+                    <!-- JavaScript will insert assignment cards here -->
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 </div>
 
 @section Scripts {
     <script>
         function showAssignmentsModal(dateStr, assignments) {
             const modalTitle = document.getElementById('assignmentsModalLabel');
-            modalTitle.textContent = `Assignments Due on ${new Date(dateStr).toDateString()}`;
+            const formattedDate = new Date(dateStr).toLocaleDateString(undefined, {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            modalTitle.textContent = `Assignments Due on ${formattedDate}`;
 
             const content = document.getElementById('assignmentsContent');
             content.innerHTML = "";
@@ -140,8 +147,8 @@
                             <div class="card-body">
                                 <h5 class="card-title text-primary">${a.Title}</h5>
                                 <p class="card-text mb-1"><strong>Description:</strong> ${a.Description}</p>
-                                <p class="card-text mb-1"><strong>Subject:</strong> ${a.Subject}</p>
-                                <p class="card-text"><strong>Total Points:</strong> ${a.TotalPoints}</p>
+                                <p class="card-text mb-1"><strong>Subject:</strong> ${a.SubjectName ?? 'N/A'}</p>
+                                <p class="card-text"><strong>Total Points:</strong> ${a.Points ?? 'N/A'}</p>
                             </div>
                         </div>`;
                 });
