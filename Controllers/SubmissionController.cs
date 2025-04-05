@@ -153,30 +153,68 @@ namespace EduSubmit.Controllers
             {
                 string className = existingSubmission.Assignment.Class.ClassName;
                 string sanitizedClassName = string.Concat(className.Split(Path.GetInvalidFileNameChars()));
-                string folderPrefix = $"CodingAssignments/{sanitizedClassName}";
-                string uniqueIdentifier = Guid.NewGuid().ToString("N");
+                int classId = existingSubmission.Assignment.ClassId;
+
+                bool isCodingAssignment = await IsCodingAssignmentAsync(sanitizedClassName, assignmentId);
+
+                string folderPrefix = isCodingAssignment
+                    ? $"CodingAssignments/{classId}_{assignmentId}"
+                    : $"NormalAssignments/{sanitizedClassName}";
+
+                string extension = Path.GetExtension(newFile.FileName);
                 string originalFileName = Path.GetFileName(newFile.FileName);
+                string uniqueIdentifier = Guid.NewGuid().ToString("N");
                 string newFileName = $"{uniqueIdentifier}_{studentId}_{assignmentId}_{originalFileName}";
                 string supabasePath = $"{folderPrefix}/{newFileName}";
 
-                // 🔹 Delete old file from Supabase (if it exists)
-                if (!string.IsNullOrEmpty(existingSubmission.FilePath))
+                if (isCodingAssignment)
                 {
-                    string oldPath = existingSubmission.FilePath.Replace("https://", "").Split('/', 2)[1]; // Extract path after bucket name
-                    await DeleteFileFromSupabase(oldPath); // Assumes you have a helper like this
+                    // 🔹 Delete old coding submission: student_{studentId}.{ext}
+                    string oldSubmissionPath = $"{folderPrefix}/Submission/student_{studentId}{extension}";
+                    await DeleteFileFromSupabase(oldSubmissionPath);
+
+                    // 🔹 Upload new file to Submission folder
+                    string codingSubmissionPath = $"{folderPrefix}/Submission/student_{studentId}{extension}";
+                    using (var stream = newFile.OpenReadStream())
+                    {
+                        var uploadSuccess = await UploadFileToSupabase(codingSubmissionPath, stream, newFile.ContentType);
+                        if (!uploadSuccess)
+                            return BadRequest("Failed to upload coding assignment to Supabase.");
+                    }
+
+                    // 🔹 Delete old result file
+                    string resultPath = $"{folderPrefix}/Result/student_{studentId}_result.json";
+                    await DeleteFileFromSupabase(resultPath);
+
+                    // 🔹 Generate and upload new result (example: placeholder content for now)
+                    var resultData = new { status = "Pending", timestamp = DateTime.UtcNow };
+                    string resultJson = JsonConvert.SerializeObject(resultData);
+                    using (var resultStream = new MemoryStream(Encoding.UTF8.GetBytes(resultJson)))
+                    {
+                        var uploadSuccess = await UploadFileToSupabase(resultPath, resultStream, "application/json");
+                        if (!uploadSuccess)
+                            return BadRequest("Failed to upload result file to Supabase.");
+                    }
+
+                    // 🔹 Update FilePath to point to student's actual file in "Submission" folder
+                    existingSubmission.FilePath = $"{_supabaseUrl}/storage/v1/object/public/edusubmit/{codingSubmissionPath}";
+                }
+                else
+                {
+                    // 🔹 Delete existing file(s) for normal assignment
+                    await DeletePreviousMatchingFiles(folderPrefix, studentId, assignmentId);
+
+                    // 🔹 Upload file to normal path
+                    using (var stream = newFile.OpenReadStream())
+                    {
+                        var uploadSuccess = await UploadFileToSupabase(supabasePath, stream, newFile.ContentType);
+                        if (!uploadSuccess)
+                            return BadRequest("Failed to upload new file to Supabase.");
+                    }
+
+                    existingSubmission.FilePath = $"{_supabaseUrl}/storage/v1/object/public/edusubmit/{supabasePath}";
                 }
 
-                // 🔹 Upload new file
-                using (var stream = newFile.OpenReadStream())
-                {
-                    var uploadSuccess = await UploadFileToSupabase(supabasePath, stream, newFile.ContentType);
-                    if (!uploadSuccess)
-                        return BadRequest("Failed to upload new file to Supabase.");
-                }
-
-                // 🔹 Update file path and timestamp
-                string publicUrl = $"{_supabaseUrl}/storage/v1/object/public/edusubmit/{supabasePath}";
-                existingSubmission.FilePath = publicUrl;
                 existingSubmission.SubmissionDate = DateTime.Now;
             }
 
@@ -196,6 +234,34 @@ namespace EduSubmit.Controllers
         }
 
         // Helper Method
+        private async Task<bool> IsCodingAssignmentAsync(string className, int assignmentId)
+        {
+            string prefix = $"CodingAssignments/{className}_{assignmentId}/";
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_supabaseUrl}/storage/v1/object/list/edusubmit?prefix={prefix}&limit=1");
+            request.Headers.Add("apikey", _supabaseKey);
+            request.Headers.Add("Authorization", $"Bearer {_supabaseKey}");
+
+            var response = await _httpClient.SendAsync(request);
+            if (!response.IsSuccessStatusCode) return false;
+
+            var content = await response.Content.ReadAsStringAsync();
+            var files = JsonConvert.DeserializeObject<List<dynamic>>(content);
+            return files != null && files.Count > 0;
+        }
+
+        private async Task DeleteFileFromSupabase(string filePath)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{_supabaseUrl}/storage/v1/object/delete/edusubmit");
+            request.Headers.Add("apikey", _supabaseKey);
+            request.Headers.Add("Authorization", $"Bearer {_supabaseKey}");
+
+            var payload = JsonConvert.SerializeObject(new[] { filePath });
+            request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
+
+            await _httpClient.SendAsync(request);
+        }
+
+
         private bool SubmissionExists(int assignmentId, int studentId)
         {
             return _context.Submissions.Any(s => s.AssignmentId == assignmentId && s.StudentId == studentId);
@@ -215,16 +281,33 @@ namespace EduSubmit.Controllers
             return response.IsSuccessStatusCode;
         }
 
-        private async Task<bool> DeleteFileFromSupabase(string filePath)
+        private async Task DeletePreviousMatchingFiles(string folderPrefix, int studentId, int assignmentId)
         {
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"{_supabaseUrl}/storage/v1/object/edusubmit/{filePath}");
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_supabaseUrl}/storage/v1/object/list/edusubmit?prefix={folderPrefix}/");
             request.Headers.Add("apikey", _supabaseKey);
             request.Headers.Add("Authorization", $"Bearer {_supabaseKey}");
 
             var response = await _httpClient.SendAsync(request);
-            return response.IsSuccessStatusCode;
-        }
+            if (!response.IsSuccessStatusCode) return;
 
+            var content = await response.Content.ReadAsStringAsync();
+            var files = JsonConvert.DeserializeObject<List<dynamic>>(content);
+
+            var matchingFiles = files?
+                .Where(f => f.name != null && f.name.ToString().Contains($"_{studentId}_{assignmentId}_"))
+                .Select(f => $"{folderPrefix}/{f.name}")
+                .ToList();
+
+            if (matchingFiles != null && matchingFiles.Count > 0)
+            {
+                var deleteRequest = new HttpRequestMessage(HttpMethod.Post, $"{_supabaseUrl}/storage/v1/object/delete/edusubmit");
+                deleteRequest.Headers.Add("apikey", _supabaseKey);
+                deleteRequest.Headers.Add("Authorization", $"Bearer {_supabaseKey}");
+                deleteRequest.Content = new StringContent(JsonConvert.SerializeObject(matchingFiles), Encoding.UTF8, "application/json");
+
+                await _httpClient.SendAsync(deleteRequest);
+            }
+        }
 
 
         // GET: Submission/Delete/5
@@ -423,12 +506,15 @@ namespace EduSubmit.Controllers
         {
             using (var content = new StreamContent(file.OpenReadStream()))
             {
+                content.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+
                 var request = new HttpRequestMessage(HttpMethod.Post, $"{_supabaseUrl}/storage/v1/object/{_bucket}/{path}")
                 {
                     Content = content
                 };
+
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _supabaseKey);
-                content.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+                request.Headers.Add("x-upsert", "true"); // 🧠 Enable overwriting existing files
 
                 var response = await _httpClient.SendAsync(request);
                 return response.IsSuccessStatusCode;
