@@ -11,178 +11,200 @@
 
 <style>
     .grades-container {
-        padding-left: 1rem;
-        padding-right: 1rem;
+        padding: 0.5rem;
+        max-width: 100%;
     }
 
-    /* Scroll container for table only */
     .table-responsive {
-        width: 100%;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
 
-    /* Prevent column contents from stacking on small screens */
-    table th, table td {
-        white-space: nowrap;
-    }
-
-    /* Optional: Add min-width to table to prevent excessive shrinking */
     .grades-table {
-        min-width: 700px; /* Adjust based on column count */
+        width: 100%;
+        min-width: 300px;
     }
 
-    /* For better viewing on smaller screens */
-    @@media (max-width: 768px) {
-        table th, table td {
-            font-size: 0.85rem;
+    th, td {
+        padding: 0.5rem;
+        vertical-align: middle;
+    }
+
+    /* Mobile-first approach */
+    @@media (max-width: 576px) {
+        .grades-table {
+            display: block;
+            overflow-x: auto;
         }
 
-        .form-label,
-        label {
-            font-size: 1rem;
+        thead {
+            display: none; /* Hide header on very small screens */
         }
 
-        .form-select {
-            font-size: 0.95rem;
+        tbody tr {
+            display: block;
+            margin-bottom: 1rem;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
         }
+
+        tbody td {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+            tbody td::before {
+                content: attr(data-label);
+                font-weight: bold;
+                margin-right: 0.5rem;
+            }
 
         .btn-sm {
-            font-size: 0.85rem;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .card-body {
+            padding: 0.5rem !important;
+        }
+    }
+
+    @@media (min-width: 577px) {
+        th, td {
+            white-space: nowrap;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .form-select, label {
+            font-size: 0.9rem;
         }
     }
 </style>
 
-<div class="container-fluid grades-container mt-4">
-    <!-- Header -->
-    <div class="card border-primary shadow-sm mb-4">
-        <div class="card-body text-center">
-            <h2 class="text-primary">📊 Grades</h2>
+<div class="container-fluid grades-container mt-3">
+    <div class="card border-primary shadow-sm mb-3">
+        <div class="card-body text-center py-2">
+            <h2 class="text-primary mb-0">📊 Grades</h2>
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="card p-4 shadow-sm mb-4" style="background: #F8FEFF; border-radius: 12px;">
-        <div class="row g-3">
+    <div class="card p-3 shadow-sm mb-3" style="background: #F8FEFF; border-radius: 12px;">
+        <div class="row g-2">
             <div class="col-12 col-md-6">
-                <label class="fw-bold" for="subjectDropdown">Filter by Subject:</label>
-                <select class="form-select shadow-sm bg-white border-0" id="subjectDropdown">
+                <label class="fw-bold mb-1" for="subjectDropdown">Subject:</label>
+                <select class="form-select shadow-sm border-0" id="subjectDropdown">
                     <option value="">📚 All Subjects</option>
                     @foreach (var subject in subjects) {
                         <option value="@subject">@subject</option>
                     }
                 </select>
             </div>
-
             <div class="col-12 col-md-6">
-                <label class="fw-bold" for="typeDropdown">Filter by Type:</label>
-                <select class="form-select shadow-sm bg-white border-0" id="typeDropdown">
+                <label class="fw-bold mb-1" for="typeDropdown">Type:</label>
+                <select class="form-select shadow-sm border-0" id="typeDropdown">
                     <option value="">🧾 All Assignments</option>
-                    <option value="coding">💻 Coding Assignments</option>
-                    <option value="normal">📝 Normal Assignments</option>
+                    <option value="coding">💻 Coding</option>
+                    <option value="normal">📝 Normal</option>
                 </select>
             </div>
         </div>
     </div>
 
-    <!-- Grades Table -->
     <div class="card shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle text-center mb-0 w-100 grades-table">
-                    <thead class="text-white" style="background: linear-gradient(135deg, #007BFF, #0056b3);">
-                        <tr>
-                            <th id="assignmentColumn" class="sortable text-wrap" data-sort="assignment">Assignment 🔼</th>
-                            <th class="text-wrap">Subject</th>
-                            <th id="scoreColumn" class="sortable text-nowrap" data-sort="score">Score 🔼</th>
-                            <th id="maxScoreColumn" class="sortable text-nowrap" data-sort="maxScore">Max Score 🔼</th>
-                            <th class="text-wrap">Remarks</th>
-                            <th class="text-nowrap">Actions</th>
+                <table class="table table-hover text-center mb-0 grades-table">
+                    <thead style="background: linear-gradient(135deg, #007BFF, #0056b3);">
+                        <tr class="text-white">
+                            <th class="sortable" data-sort="assignment">Assignment 🔼</th>
+                            <th>Subject</th>
+                            <th class="sortable" data-sort="score">Score 🔼</th>
+                            <th class="sortable" data-sort="maxScore">Max 🔼</th>
+                            <th>Remarks</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="gradesBody">
                         @foreach (var grade in Model) {
                             bool isCoding = isCodingAssignments.TryGetValue(grade.AssignmentId, out bool coding) && coding;
                             <tr data-subject="@grade.Assignment?.SubjectName" data-type="@(isCoding ? "coding" : "normal")">
-                                <td class="assignment text-break">@grade.Assignment?.Title</td>
-                                <td class="text-break">@grade.Assignment?.SubjectName</td>
-                                <td class="score">@grade.Score</td>
-                                <td class="maxScore">@grade.Assignment?.Points</td>
-                                <td class="text-break">@grade.Remarks</td>
-                                <td>
+                                <td data-label="Assignment" class="assignment">@grade.Assignment?.Title</td>
+                                <td data-label="Subject">@grade.Assignment?.SubjectName</td>
+                                <td data-label="Score" class="score">@grade.Score</td>
+                                <td data-label="Max" class="maxScore">@grade.Assignment?.Points</td>
+                                <td data-label="Remarks">@grade.Remarks</td>
+                                <td data-label="Actions">
                                     <a asp-action="Details" asp-controller="Grade"
                                        asp-route-studentId="@grade.StudentId"
                                        asp-route-assignmentId="@grade.AssignmentId"
-                                       class="btn btn-info btn-sm shadow-sm">📖 Details</a>
+                                       class="btn btn-info btn-sm shadow-sm">📖</a>
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
-
-            <!-- No Grades Message -->
-            <div id="noGradesMessage" class="text-center text-muted my-4 d-none">
-                <h5>📭 You haven't received any grades yet for your submitted assignments.</h5>
+            <div id="noGradesMessage" class="text-center text-muted my-3 d-none">
+                <h5>📭 No grades yet</h5>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Scripts -->
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const subjectDropdown = document.getElementById("subjectDropdown");
-        const typeDropdown = document.getElementById("typeDropdown");
-        const gradesBody = document.getElementById("gradesBody");
-        const assignmentColumn = document.getElementById("assignmentColumn");
-        const scoreColumn = document.getElementById("scoreColumn");
-        const maxScoreColumn = document.getElementById("maxScoreColumn");
-        const noGradesMessage = document.getElementById("noGradesMessage");
+    document.addEventListener("DOMContentLoaded", () => {
+        const elements = {
+            subject: document.getElementById("subjectDropdown"),
+            type: document.getElementById("typeDropdown"),
+            body: document.getElementById("gradesBody"),
+            noGrades: document.getElementById("noGradesMessage")
+        };
 
+        const sortElements = document.querySelectorAll(".sortable");
         let sortOrder = { assignment: true, score: true, maxScore: true };
+        const rows = Array.from(elements.body.querySelectorAll("tr"));
 
-        function filterTable() {
-            const selectedSubject = subjectDropdown.value.toLowerCase();
-            const selectedType = typeDropdown.value.toLowerCase();
-            let hasVisibleRow = false;
+        const filterTable = () => {
+            const subject = elements.subject.value.toLowerCase();
+            const type = elements.type.value.toLowerCase();
+            let visibleCount = 0;
 
-            gradesBody.querySelectorAll("tr").forEach(row => {
-                const rowSubject = row.getAttribute("data-subject")?.toLowerCase() || "";
-                const rowType = row.getAttribute("data-type")?.toLowerCase() || "";
-                const visible = (!selectedSubject || rowSubject === selectedSubject) &&
-                                (!selectedType || rowType === selectedType);
-
-                row.style.display = visible ? "" : "none";
-                if (visible) hasVisibleRow = true;
+            rows.forEach(row => {
+                const rowSubject = row.dataset.subject?.toLowerCase() || "";
+                const rowType = row.dataset.type?.toLowerCase() || "";
+                const isVisible = (!subject || rowSubject === subject) && (!type || rowType === type);
+                row.style.display = isVisible ? "" : "none";
+                if (isVisible) visibleCount++;
             });
 
-            noGradesMessage.classList.toggle("d-none", hasVisibleRow);
-        }
+            elements.noGrades.classList.toggle("d-none", visibleCount > 0);
+        };
 
-        function sortTable(column, key) {
-            let rows = Array.from(gradesBody.querySelectorAll("tr"));
+        const sortTable = (key, element) => {
             rows.sort((a, b) => {
-                let valA = key === "assignment"
+                const valA = key === "assignment"
                     ? a.querySelector("." + key).textContent.trim().toLowerCase()
                     : parseFloat(a.querySelector("." + key).textContent) || 0;
-                let valB = key === "assignment"
+                const valB = key === "assignment"
                     ? b.querySelector("." + key).textContent.trim().toLowerCase()
                     : parseFloat(b.querySelector("." + key).textContent) || 0;
-
-                return sortOrder[key] ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
+                return sortOrder[key] ? valA > valB ? 1 : -1 : valA < valB ? 1 : -1;
             });
 
-            rows.forEach(row => gradesBody.appendChild(row));
+            rows.forEach(row => elements.body.appendChild(row));
             sortOrder[key] = !sortOrder[key];
-            column.innerHTML = `${column.textContent.replace(/[🔼🔽]/g, '')} ${sortOrder[key] ? "🔼" : "🔽"}`;
-        }
+            element.innerHTML = `${element.textContent.replace(/[🔼🔽]/g, '')} ${sortOrder[key] ? "🔼" : "🔽"}`;
+        };
 
-        subjectDropdown.addEventListener("change", filterTable);
-        typeDropdown.addEventListener("change", filterTable);
-        assignmentColumn.addEventListener("click", () => sortTable(assignmentColumn, "assignment"));
-        scoreColumn.addEventListener("click", () => sortTable(scoreColumn, "score"));
-        maxScoreColumn.addEventListener("click", () => sortTable(maxScoreColumn, "maxScore"));
+        elements.subject.addEventListener("change", filterTable);
+        elements.type.addEventListener("change", filterTable);
+        sortElements.forEach(el => {
+            el.addEventListener("click", () => sortTable(el.dataset.sort, el));
+            el.style.cursor = "pointer";
+        });
 
         filterTable();
     });
