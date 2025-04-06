@@ -404,32 +404,38 @@ namespace EduSubmit.Controllers
             // 4. Check if each assignment has a corresponding folder in Supabase Storage
             var assignmentTypeDictionary = new Dictionary<int, bool>();
 
-            using var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", supabaseServiceKey);
+            var config = new Amazon.S3.AmazonS3Config
+            {
+                ServiceURL = $"{supabaseUrl}/storage/v1/s3",
+                ForcePathStyle = true,
+                AuthenticationRegion = "us-east-1" // Region is still needed but not used
+            };
+
+            using var s3Client = new Amazon.S3.AmazonS3Client(supabaseServiceKey, supabaseServiceKey, config);
 
             foreach (var submission in submissions)
             {
                 if (submission.Assignment != null)
                 {
                     int classId = submission.Assignment.ClassId;
-                    int assignmentId = submission.Assignment.AssignmentId;
+                    int assignmentId = submission.AssignmentId;
                     string prefix = $"CodingAssignments/{classId}_{assignmentId}/";
 
-                    // List objects in the folder to check if it exists
-                    var requestUri = $"{supabaseUrl}/storage/v1/object/list/{bucket}?prefix={Uri.EscapeDataString(prefix)}&limit=1";
-                    var response = await httpClient.GetAsync(requestUri);
-
-                    if (response.IsSuccessStatusCode)
+                    var listRequest = new Amazon.S3.Model.ListObjectsV2Request
                     {
-                        var content = await response.Content.ReadAsStringAsync();
-                        var files = JsonConvert.DeserializeObject<List<object>>(content);
+                        BucketName = "edusubmit",
+                        Prefix = prefix,
+                        MaxKeys = 1
+                    };
 
-                        bool folderExists = files != null && files.Count > 0;
-                        assignmentTypeDictionary[assignmentId] = folderExists;
+                    try
+                    {
+                        var listResponse = await s3Client.ListObjectsV2Async(listRequest);
+                        assignmentTypeDictionary[assignmentId] = listResponse.S3Objects.Any();
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        // Optional: log or handle failure to query Supabase
+                        // Optional: Log error
                         assignmentTypeDictionary[assignmentId] = false;
                     }
                 }

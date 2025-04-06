@@ -52,7 +52,8 @@
                 </thead>
                 <tbody>
                     @foreach (var submission in Model) {
-                        bool isCodingAssignment = ViewBag.IsCodingAssignment != null && ViewBag.IsCodingAssignment.ContainsKey(submission.AssignmentId) && ViewBag.IsCodingAssignment[submission.AssignmentId];
+                        int assignmentId = submission.Assignment?.AssignmentId ?? 0;
+                        bool isCodingAssignment = ViewBag.IsCodingAssignment != null && ViewBag.IsCodingAssignment.ContainsKey(assignmentId) && ViewBag.IsCodingAssignment[assignmentId];
                         <tr class="submission-row" data-subject="@submission.Assignment?.SubjectName" data-duemonth="@submission.Assignment?.DueDate.Month">
                             <td class="align-middle text-dark">@submission.Assignment?.Title</td>
                             <td class="align-middle text-dark">@submission.Assignment?.SubjectName</td>
