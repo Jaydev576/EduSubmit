@@ -25,7 +25,8 @@ namespace EduSubmit.Controllers
         private IWebHostEnvironment _webHostEnvironment;
         string supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL");
         string supabaseServiceKey = Environment.GetEnvironmentVariable("SUPABASE_SERVICE_KEY");
-        string bucket = "edusubmit";
+        string accessKey = Environment.GetEnvironmentVariable("ACCESS_KEY");
+        string projectRef = Environment.GetEnvironmentVariable("PROJECT_REF");
 
         public StudentController(AppDbContext context, IWebHostEnvironment webHostEnvironment)
         {
@@ -380,15 +381,14 @@ namespace EduSubmit.Controllers
         // GET: Submissions
         public async Task<IActionResult> Submissions()
         {
-            // 1. Get the email of the currently logged-in user
+            // 1. Get user email from claims
             string? userEmail = User?.Claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
-
             if (string.IsNullOrEmpty(userEmail))
             {
                 return Unauthorized("User email not found in claims.");
             }
 
-            // 2. Get the corresponding StudentId from the Students table
+            // 2. Get corresponding StudentId
             var student = await _context.Students.FirstOrDefaultAsync(s => s.EmailAddress == userEmail);
             if (student == null)
             {
@@ -397,24 +397,29 @@ namespace EduSubmit.Controllers
 
             int studentId = student.StudentId;
 
-            // 3. Get submissions only made by this student
+            // 3. Get student submissions
             var submissions = await _context.Submissions
                 .Include(s => s.Assignment)
                 .Include(s => s.Student)
                 .Where(s => s.StudentId == studentId)
                 .ToListAsync();
 
-            // 4. Check if each assignment has a corresponding folder in Supabase Storage
+            // 4. Prepare S3 client using Supabase S3-compatible API
             var assignmentTypeDictionary = new Dictionary<int, bool>();
+
+            var credentials = new Amazon.Runtime.BasicAWSCredentials(
+                accessKey: projectRef,
+                secretKey: accessKey
+            );
 
             var config = new Amazon.S3.AmazonS3Config
             {
                 ServiceURL = $"{supabaseUrl}/storage/v1/s3",
                 ForcePathStyle = true,
-                AuthenticationRegion = "us-east-1" // Region is still needed but not used
+                RegionEndpoint = Amazon.RegionEndpoint.USEast1 // required by SDK, ignored by Supabase
             };
 
-            using var s3Client = new Amazon.S3.AmazonS3Client(supabaseServiceKey, supabaseServiceKey, config);
+            using var s3Client = new Amazon.S3.AmazonS3Client(credentials, config);
 
             foreach (var submission in submissions)
             {
@@ -436,16 +441,14 @@ namespace EduSubmit.Controllers
                         var listResponse = await s3Client.ListObjectsV2Async(listRequest);
                         assignmentTypeDictionary[assignmentId] = listResponse.S3Objects.Any();
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        // Optional: Log error
                         assignmentTypeDictionary[assignmentId] = false;
                     }
                 }
             }
 
             ViewBag.IsCodingAssignment = assignmentTypeDictionary;
-
             return View(submissions);
         }
 
@@ -490,7 +493,7 @@ namespace EduSubmit.Controllers
                     int assignmentId = grade.AssignmentId;
                     string prefix = $"CodingAssignments/{classId}_{assignmentId}/";
 
-                    string requestUri = $"{supabaseUrl}/storage/v1/object/list/{bucket}?prefix={Uri.EscapeDataString(prefix)}&limit=1";
+                    string requestUri = $"{supabaseUrl}/storage/v1/object/list/edusubmit?prefix={Uri.EscapeDataString(prefix)}&limit=1";
 
                     var response = await httpClient.GetAsync(requestUri);
                     if (response.IsSuccessStatusCode)
