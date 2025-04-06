@@ -11,6 +11,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Amazon;
+using Amazon.S3;
+using Amazon.S3.Model;
 
 namespace EduSubmit.Controllers
 {
