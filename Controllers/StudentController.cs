@@ -404,47 +404,19 @@ namespace EduSubmit.Controllers
                 .Where(s => s.StudentId == studentId)
                 .ToListAsync();
 
-            // 4. Prepare S3 client using Supabase S3-compatible API
+            // 4. Build a dictionary to track coding assignment status
             var assignmentTypeDictionary = new Dictionary<int, bool>();
-
-            var credentials = new Amazon.Runtime.BasicAWSCredentials(
-                accessKey: projectRef,
-                secretKey: accessKey
-            );
-
-            var config = new Amazon.S3.AmazonS3Config
-            {
-                ServiceURL = $"{supabaseUrl}/storage/v1/s3",
-                ForcePathStyle = true,
-                RegionEndpoint = Amazon.RegionEndpoint.USEast1 // required by SDK, ignored by Supabase
-            };
-
-            using var s3Client = new Amazon.S3.AmazonS3Client(credentials, config);
 
             foreach (var submission in submissions)
             {
                 if (submission.Assignment != null)
                 {
                     int classId = submission.Assignment.ClassId;
-                    int assignmentId = submission.AssignmentId;
+                    int assignmentId = submission.Assignment.AssignmentId;
                     string prefix = $"CodingAssignments/{classId}_{assignmentId}/";
 
-                    var listRequest = new Amazon.S3.Model.ListObjectsV2Request
-                    {
-                        BucketName = "edusubmit",
-                        Prefix = prefix,
-                        MaxKeys = 1
-                    };
-
-                    try
-                    {
-                        var listResponse = await s3Client.ListObjectsV2Async(listRequest);
-                        assignmentTypeDictionary[assignmentId] = listResponse.S3Objects.Any();
-                    }
-                    catch (Exception)
-                    {
-                        assignmentTypeDictionary[assignmentId] = false;
-                    }
+                    bool exists = await FolderExistsAsync("edusubmit", prefix);
+                    assignmentTypeDictionary[assignmentId] = exists;
                 }
             }
 
@@ -471,6 +443,7 @@ namespace EduSubmit.Controllers
             }
 
             int studentId = student.StudentId;
+            int classId = student.ClassId;
 
             // 3. Get grades only for the current student
             var grades = await _context.Grades
@@ -479,40 +452,22 @@ namespace EduSubmit.Controllers
                 .Where(g => g.StudentId == studentId)
                 .ToListAsync();
 
-            // 4. Check Supabase for coding assignments
+            // 4. Check Supabase for coding assignments folder
             var codingAssignments = new Dictionary<int, bool>();
-
-            using var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", supabaseServiceKey);
 
             foreach (var grade in grades)
             {
                 if (grade.Assignment != null)
                 {
-                    int classId = student.ClassId;
-                    int assignmentId = grade.AssignmentId;
+                    int assignmentId = grade.Assignment.AssignmentId;
                     string prefix = $"CodingAssignments/{classId}_{assignmentId}/";
 
-                    string requestUri = $"{supabaseUrl}/storage/v1/object/list/edusubmit?prefix={Uri.EscapeDataString(prefix)}&limit=1";
-
-                    var response = await httpClient.GetAsync(requestUri);
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var content = await response.Content.ReadAsStringAsync();
-                        var files = JsonConvert.DeserializeObject<List<object>>(content);
-
-                        bool folderExists = files != null && files.Count > 0;
-                        codingAssignments.TryAdd(assignmentId, folderExists);
-                    }
-                    else
-                    {
-                        codingAssignments.TryAdd(assignmentId, false);
-                    }
+                    bool folderExists = await FolderExistsAsync("edusubmit", prefix);
+                    codingAssignments.TryAdd(assignmentId, folderExists);
                 }
             }
 
             ViewBag.IsCodingAssignments = codingAssignments;
-
             return View(grades);
         }
 
@@ -543,5 +498,38 @@ namespace EduSubmit.Controllers
             return View(assignments);
         }
 
+        // Helper method
+        private async Task<bool> FolderExistsAsync(string bucket, string prefix)
+        {
+            using var client = new HttpClient();
+
+            if (string.IsNullOrEmpty(supabaseUrl) || string.IsNullOrEmpty(supabaseServiceKey))
+            {
+                throw new InvalidOperationException("Missing Supabase configuration in environment variables.");
+            }
+
+            string url = $"{supabaseUrl}/storage/v1/object/list/{bucket}?prefix={Uri.EscapeDataString(prefix)}&limit=1";
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", supabaseServiceKey);
+            client.DefaultRequestHeaders.Add("apikey", supabaseServiceKey);
+
+            try
+            {
+                var response = await client.GetAsync(url);
+                if (!response.IsSuccessStatusCode)
+                {
+                    return false;
+                }
+
+                string content = await response.Content.ReadAsStringAsync();
+                var files = JsonConvert.DeserializeObject<List<dynamic>>(content);
+
+                return files != null && files.Count > 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }
