@@ -503,24 +503,42 @@ namespace EduSubmit.Controllers
         // Uploading file to Supabase
         private async Task<bool> UploadFileToSupabase(string path, IFormFile file)
         {
-            using (var content = new StreamContent(file.OpenReadStream()))
+            try
             {
-                content.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+                if (file == null || file.Length == 0)
+                {
+                    Console.WriteLine("Upload failed: File is null or empty.");
+                    return false;
+                }
 
-                var request = new HttpRequestMessage(HttpMethod.Post, $"{_supabaseUrl}/storage/v1/object/{_bucket}/{path}")
+                using var stream = file.OpenReadStream();
+                using var content = new StreamContent(stream);
+                content.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType ?? "application/octet-stream");
+
+                var request = new HttpRequestMessage(HttpMethod.Put, $"{_supabaseUrl}/storage/v1/object/{_bucket}/{Uri.EscapeUriString(path)}")
                 {
                     Content = content
                 };
 
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _supabaseKey);
-                request.Headers.Add("x-upsert", "true"); // 🧠 Enable overwriting existing files
+                request.Headers.Add("x-upsert", "true");
 
                 var response = await _httpClient.SendAsync(request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    string errorBody = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Upload failed ({response.StatusCode}): {errorBody}");
+                }
+
                 return response.IsSuccessStatusCode;
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception in UploadFileToSupabase: {ex.Message}");
+                return false;
+            }
         }
-
-
 
         private async Task<IActionResult> HandleCodingAssignmentSubmission(
             int studentId, int assignmentId, IFormFile file, string submissionPath, string assignmentPath, string programmingLanguage, List<TestCase> testCases)
