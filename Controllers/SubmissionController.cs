@@ -177,7 +177,7 @@ namespace EduSubmit.Controllers
                     string codingSubmissionPath = $"{folderPrefix}/Submission/student_{studentId}{extension}";
                     using (var stream = newFile.OpenReadStream())
                     {
-                        var uploadSuccess = await UploadFileToSupabase(codingSubmissionPath, stream, newFile.ContentType);
+                        var uploadSuccess = await UploadFileToSupabaseAsStream(codingSubmissionPath, stream, newFile.ContentType);
                         if (!uploadSuccess)
                             return BadRequest("Failed to upload coding assignment to Supabase.");
                     }
@@ -191,7 +191,7 @@ namespace EduSubmit.Controllers
                     string resultJson = JsonConvert.SerializeObject(resultData);
                     using (var resultStream = new MemoryStream(Encoding.UTF8.GetBytes(resultJson)))
                     {
-                        var uploadSuccess = await UploadFileToSupabase(resultPath, resultStream, "application/json");
+                        var uploadSuccess = await UploadFileToSupabaseAsStream(resultPath, resultStream, "application/json");
                         if (!uploadSuccess)
                             return BadRequest("Failed to upload result file to Supabase.");
                     }
@@ -207,7 +207,7 @@ namespace EduSubmit.Controllers
                     // 🔹 Upload file to normal path
                     using (var stream = newFile.OpenReadStream())
                     {
-                        var uploadSuccess = await UploadFileToSupabase(supabasePath, stream, newFile.ContentType);
+                        var uploadSuccess = await UploadFileToSupabaseAsStream(supabasePath, stream, newFile.ContentType);
                         if (!uploadSuccess)
                             return BadRequest("Failed to upload new file to Supabase.");
                     }
@@ -267,7 +267,7 @@ namespace EduSubmit.Controllers
             return _context.Submissions.Any(s => s.AssignmentId == assignmentId && s.StudentId == studentId);
         }
 
-        private async Task<bool> UploadFileToSupabase(string filePath, Stream fileStream, string contentType)
+        private async Task<bool> UploadFileToSupabaseAsStream(string filePath, Stream fileStream, string contentType)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, $"{_supabaseUrl}/storage/v1/object/edusubmit/{filePath}")
             {
@@ -478,7 +478,7 @@ namespace EduSubmit.Controllers
             string supabasePath = $"NormalAssignments/{sanitizedClassName}/{uniqueFileName}";
 
             // ✅ Upload to Supabase
-            bool uploadSuccess = await UploadFileToSupabase(supabasePath, file);
+            bool uploadSuccess = await UploadFileToSupabaseAsFile(supabasePath, file);
             if (!uploadSuccess)
             {
                 return StatusCode(500, "Failed to upload file to Supabase.");
@@ -501,7 +501,7 @@ namespace EduSubmit.Controllers
         }
 
         // Uploading file to Supabase
-        private async Task<bool> UploadFileToSupabase(string path, IFormFile file)
+        private async Task<bool> UploadFileToSupabaseAsFile(string path, IFormFile file)
         {
             try
             {
@@ -515,7 +515,7 @@ namespace EduSubmit.Controllers
                 using var content = new StreamContent(stream);
                 content.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType ?? "application/octet-stream");
 
-                var request = new HttpRequestMessage(HttpMethod.Put, $"{_supabaseUrl}/storage/v1/object/{_bucket}/{Uri.EscapeUriString(path)}")
+                var request = new HttpRequestMessage(HttpMethod.Put, $"{_supabaseUrl}/storage/v1/object/{_bucket}/{path}")
                 {
                     Content = content
                 };
@@ -558,7 +558,7 @@ namespace EduSubmit.Controllers
             string studentFilePath = $"{submissionPath}/{studentFileName}";
 
             // 🔹 Upload student file to Supabase
-            bool uploadSuccess = await UploadFileToSupabase(studentFilePath, file);
+            bool uploadSuccess = await UploadFileToSupabaseAsFile(studentFilePath, file);
             if (!uploadSuccess)
                 return StatusCode(500, "Failed to upload student code file to Supabase.");
 
@@ -623,7 +623,7 @@ namespace EduSubmit.Controllers
                     ContentType = "application/json"
                 };
 
-                bool uploadSuccessTeacher = await UploadFileToSupabase(teacherResultPath, resultFormFile);
+                bool uploadSuccessTeacher = await UploadFileToSupabaseAsFile(teacherResultPath, resultFormFile);
                 if (!uploadSuccessTeacher)
                     return StatusCode(500, "Failed to upload teacher result to Supabase.");
             }
@@ -659,7 +659,7 @@ namespace EduSubmit.Controllers
                     ContentType = "application/json"
                 };
 
-                bool resultUploadSuccess = await UploadFileToSupabase(studentResultPath, formFile);
+                bool resultUploadSuccess = await UploadFileToSupabaseAsFile(studentResultPath, formFile);
                 if (!resultUploadSuccess)
                     return StatusCode(500, "Failed to upload student result to Supabase.");
             }
