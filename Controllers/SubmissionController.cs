@@ -274,7 +274,6 @@ namespace EduSubmit.Controllers
                 Content = new StreamContent(fileStream)
             };
             request.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
-            request.Headers.Add("apikey", _supabaseKey);
             request.Headers.Add("Authorization", $"Bearer {_supabaseKey}");
 
             var response = await _httpClient.SendAsync(request);
