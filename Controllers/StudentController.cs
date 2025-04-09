@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using Amazon;
 using Amazon.S3;
 using Amazon.S3.Model;
+using System.Net.Http;
 
 namespace EduSubmit.Controllers
 {
@@ -23,15 +24,16 @@ namespace EduSubmit.Controllers
     {
         private readonly AppDbContext _context;
         private IWebHostEnvironment _webHostEnvironment;
+        private HttpClient _httpClient;
+
         string supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL");
         string supabaseServiceKey = Environment.GetEnvironmentVariable("SUPABASE_SERVICE_KEY");
-        string accessKey = Environment.GetEnvironmentVariable("ACCESS_KEY");
-        string projectRef = Environment.GetEnvironmentVariable("PROJECT_REF");
 
-        public StudentController(AppDbContext context, IWebHostEnvironment webHostEnvironment)
+        public StudentController(AppDbContext context, IWebHostEnvironment webHostEnvironment, HttpClient httpClient)
         {
             _context = context;
             _webHostEnvironment = webHostEnvironment;
+            _httpClient = httpClient;
         }
 
         // GET: Student
@@ -415,7 +417,7 @@ namespace EduSubmit.Controllers
                     int assignmentId = submission.Assignment.AssignmentId;
                     string prefix = $"CodingAssignments/{classId}_{assignmentId}/";
 
-                    bool exists = await FolderExistsAsync("edusubmit", prefix);
+                    bool exists = await SupabaseFileExists($"{prefix}/ProgrammingLanguage.txt");
                     assignmentTypeDictionary[assignmentId] = exists;
                 }
             }
@@ -462,7 +464,7 @@ namespace EduSubmit.Controllers
                     int assignmentId = grade.Assignment.AssignmentId;
                     string prefix = $"CodingAssignments/{classId}_{assignmentId}/";
 
-                    bool folderExists = await FolderExistsAsync("edusubmit", prefix);
+                    bool folderExists = await SupabaseFileExists($"{prefix}/ProgrammingLanguage.txt");
                     codingAssignments.TryAdd(assignmentId, folderExists);
                 }
             }
@@ -499,37 +501,12 @@ namespace EduSubmit.Controllers
         }
 
         // Helper method
-        private async Task<bool> FolderExistsAsync(string bucket, string prefix)
+        private async Task<bool> SupabaseFileExists(string path)
         {
-            using var client = new HttpClient();
-
-            if (string.IsNullOrEmpty(supabaseUrl) || string.IsNullOrEmpty(supabaseServiceKey))
-            {
-                throw new InvalidOperationException("Missing Supabase configuration in environment variables.");
-            }
-
-            string url = $"{supabaseUrl}/storage/v1/object/list/{bucket}?prefix={Uri.EscapeDataString(prefix)}&limit=1";
-
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", supabaseServiceKey);
-            client.DefaultRequestHeaders.Add("apikey", supabaseServiceKey);
-
-            try
-            {
-                var response = await client.GetAsync(url);
-                if (!response.IsSuccessStatusCode)
-                {
-                    return false;
-                }
-
-                string content = await response.Content.ReadAsStringAsync();
-                var files = JsonConvert.DeserializeObject<List<dynamic>>(content);
-
-                return files != null && files.Count > 0;
-            }
-            catch
-            {
-                return false;
-            }
+            var request = new HttpRequestMessage(HttpMethod.Head, $"{supabaseUrl}/storage/v1/object/edusubmit/{path}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", supabaseServiceKey);
+            var response = await _httpClient.SendAsync(request);
+            return response.IsSuccessStatusCode;
         }
     }
 }
