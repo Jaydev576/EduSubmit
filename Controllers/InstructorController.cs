@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using System.Text;
+using Amazon.S3.Model;
+using System.Net;
 
 namespace EduSubmit.Controllers
 {
@@ -379,13 +381,14 @@ namespace EduSubmit.Controllers
                                                    .ToArray();
 
                 string jsonContent = JsonConvert.SerializeObject(testCasesArray, Formatting.Indented);
-
                 var bytes = Encoding.UTF8.GetBytes(jsonContent);
                 var content = new ByteArrayContent(bytes);
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+
+                // Use "application/json" if it's in allowed MIME types
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
                 string objectPath = $"{baseFolder}/TestCases.json";
-                await UploadFileToSupabase(httpClient, objectPath, content);
+                await UploadFileToSupabaseWithFallback(httpClient, objectPath, content);
             }
 
             // 2. Upload ProgrammingLanguage.txt
@@ -393,7 +396,7 @@ namespace EduSubmit.Controllers
             {
                 var langContent = new StringContent(programmingLanguage, Encoding.UTF8, "text/plain");
                 string objectPath = $"{baseFolder}/ProgrammingLanguage.txt";
-                await UploadFileToSupabase(httpClient, objectPath, langContent);
+                await UploadFileToSupabaseWithFallback(httpClient, objectPath, langContent);
             }
 
             // 3. Upload SampleSolution
@@ -404,20 +407,70 @@ namespace EduSubmit.Controllers
 
                 using var stream = sampleSolution.OpenReadStream();
                 var byteContent = new StreamContent(stream);
-                byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
 
-                await UploadFileToSupabase(httpClient, objectPath, byteContent);
+                // Assign appropriate content type if known, fallback to octet-stream
+                string mimeType = GetMimeTypeByExtension(extension);
+                byteContent.Headers.ContentType = new MediaTypeHeaderValue(mimeType ?? "application/octet-stream");
+
+                await UploadFileToSupabaseWithFallback(httpClient, objectPath, byteContent);
             }
         }
 
-        private async Task UploadFileToSupabase(HttpClient httpClient, string objectPath, HttpContent content)
+        private string GetMimeTypeByExtension(string extension)
         {
-            var uploadUrl = $"{supabaseUrl}/storage/v1/object/{supabaseBucket}/{objectPath}";
-            var response = await httpClient.PostAsync(uploadUrl, content);
+            return extension.ToLower() switch
+            {
+                ".pdf" => "application/pdf",
+                ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".gif" => "image/gif",
+                ".webp" => "image/webp",
+                ".svg" => "image/svg+xml",
+                ".py" => "text/x-python",
+                ".java" => "text/x-java-source",
+                ".cpp" => "text/x-c++",
+                ".cs" => "text/plain", // C# does not have an official MIME type; text/plain is a safe default
+                _ => "application/octet-stream"
+            };
+        }
+
+        private async Task UploadFileToSupabaseWithFallback(HttpClient httpClient, string objectPath, HttpContent content)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Put, $"{supabaseUrl}/storage/v1/object/{supabaseBucket}/{objectPath}")
+            {
+                Content = content
+            };
+
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", supabaseServiceKey);
+            request.Headers.Add("x-upsert", "true");
+
+            var response = await httpClient.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+                return;
+
+            // Fallback if 415 Unsupported Media Type
+            if (response.StatusCode == HttpStatusCode.UnsupportedMediaType)
+            {
+                Console.WriteLine("Unsupported MIME type. Retrying with fallback...");
+
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+
+                request = new HttpRequestMessage(HttpMethod.Put, $"{supabaseUrl}/storage/v1/object/{supabaseBucket}/{objectPath}")
+                {
+                    Content = content
+                };
+
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", supabaseServiceKey);
+                request.Headers.Add("x-upsert", "true");
+
+                response = await httpClient.SendAsync(request);
+            }
 
             if (!response.IsSuccessStatusCode)
             {
-                var error = await response.Content.ReadAsStringAsync();
+                string error = await response.Content.ReadAsStringAsync();
                 throw new Exception($"Upload failed ({objectPath}): {error}");
             }
         }
