@@ -434,15 +434,50 @@ namespace EduSubmit.Controllers
 
         private async Task UploadStringToSupabase(string path, string content, string contentType)
         {
+            var sanitizedContentType = contentType.Split(';')[0].Trim(); // Remove charset if present
+
+            // Fallback to application/octet-stream if not in allowed list
+            string[] allowedMimeTypes = new[]
+            {
+        "text/plain",
+        "application/json",
+        "text/x-python",
+        "text/x-java-source",
+        "text/x-c++",
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/gif",
+        "image/svg+xml",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    };
+
+            if (!allowedMimeTypes.Contains(sanitizedContentType))
+            {
+                sanitizedContentType = "application/octet-stream";
+            }
+
+            // Create ByteArrayContent manually to control Content-Type precisely
+            var bytes = Encoding.UTF8.GetBytes(content);
+            var byteContent = new ByteArrayContent(bytes);
+            byteContent.Headers.ContentType = new MediaTypeHeaderValue(sanitizedContentType);
+
             var request = new HttpRequestMessage(HttpMethod.Put, $"{_supabaseUrl}/storage/v1/object/{_bucket}/{path}")
             {
-                Content = new StringContent(content, Encoding.UTF8, contentType)
+                Content = byteContent
             };
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _supabaseKey);
-            var response = await _httpClient.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-        }
 
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _supabaseKey);
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorBody = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Upload failed ({path}): {errorBody}");
+            }
+        }
 
 
         private async Task<IActionResult> HandleNormalAssignmentSubmission(int studentId, int assignmentId, IFormFile file)

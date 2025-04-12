@@ -13,10 +13,16 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 ps-3 pe-3 gap-3">
         <h3 class="text-center text-md-start" style="font-size:2rem">Assignments</h3>
         <div class="d-flex flex-column flex-sm-row gap-2">
-            <a asp-controller="Instructor" asp-action="CreateAssignment" asp-route-isCoding="false" class="btn btn-primary w-100 w-sm-auto full-width-sm" style="line-height: 1.5; height: 50px;">+ Create Assignment</a>
-            <a asp-controller="Instructor" asp-action="CreateAssignment" asp-route-isCoding="true" class="btn btn-primary w-100 w-sm-auto full-width-sm" style="line-height: 1.5; height: 50px;">+ Create Coding Assignment</a>
+            <a asp-controller="Instructor" asp-action="CreateAssignment" asp-route-isCoding="false"
+               class="btn btn-primary w-100 w-sm-auto full-width-sm d-flex align-items-center justify-content-center text-center"
+               style="height: 50px;">+ Create Assignment</a>
+
+            <a asp-controller="Instructor" asp-action="CreateAssignment" asp-route-isCoding="true"
+               class="btn btn-primary w-100 w-sm-auto full-width-sm d-flex align-items-center justify-content-center text-center"
+               style="height: 50px;">+ Create Coding Assignment</a>
         </div>
     </div>
+
 
     <form id="filterForm" class="mb-4">
         <div class="row gy-3 gx-3">
