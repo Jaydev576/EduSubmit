@@ -379,7 +379,10 @@ namespace EduSubmit.Controllers
                                                    .ToArray();
 
                 string jsonContent = JsonConvert.SerializeObject(testCasesArray, Formatting.Indented);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                var bytes = Encoding.UTF8.GetBytes(jsonContent);
+                var content = new ByteArrayContent(bytes);
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
 
                 string objectPath = $"{baseFolder}/TestCases.json";
                 await UploadFileToSupabase(httpClient, objectPath, content);

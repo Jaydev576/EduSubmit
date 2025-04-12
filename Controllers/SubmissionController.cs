@@ -511,9 +511,29 @@ namespace EduSubmit.Controllers
                     return false;
                 }
 
+                // Infer MIME type from file extension if necessary
+                string extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                string contentType = extension switch
+                {
+                    ".pdf" => "application/pdf",
+                    ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    ".jpg" or ".jpeg" => "image/jpeg",
+                    ".png" => "image/png",
+                    ".webp" => "image/webp",
+                    ".gif" => "image/gif",
+                    ".svg" => "image/svg+xml",
+                    ".py" => "text/x-python",
+                    ".java" => "text/x-java-source",
+                    ".cpp" or ".cc" or ".cxx" => "text/x-c++",
+                    ".cs" => "text/plain", // C# files are not recognized with a unique MIME type in browsers
+                    ".txt" => "text/plain",
+                    ".json" => "application/json",
+                    _ => file.ContentType ?? "application/octet-stream"
+                };
+
                 using var stream = file.OpenReadStream();
                 using var content = new StreamContent(stream);
-                content.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType ?? "application/octet-stream");
+                content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
 
                 var request = new HttpRequestMessage(HttpMethod.Put, $"{_supabaseUrl}/storage/v1/object/{_bucket}/{path}")
                 {
