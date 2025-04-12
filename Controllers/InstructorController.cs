@@ -394,7 +394,10 @@ namespace EduSubmit.Controllers
             // 2. Upload ProgrammingLanguage.txt
             if (!string.IsNullOrWhiteSpace(programmingLanguage))
             {
-                var langContent = new StringContent(programmingLanguage, Encoding.UTF8, "text/plain");
+                var langBytes = Encoding.UTF8.GetBytes(programmingLanguage);
+                var langContent = new ByteArrayContent(langBytes);
+                langContent.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
+
                 string objectPath = $"{baseFolder}/ProgrammingLanguage.txt";
                 await UploadFileToSupabaseWithFallback(httpClient, objectPath, langContent);
             }
