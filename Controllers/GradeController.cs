@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using EduSubmit.Data;
 using EduSubmit.Models;
 using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace EduSubmit.Controllers
 {
@@ -175,28 +176,19 @@ namespace EduSubmit.Controllers
 
             // 🔸 Supabase Path Check for Coding Assignment
             string codingAssignmentPrefix = $"CodingAssignments/{grade.Student.ClassId}_{assignmentId}/";
-            bool isCodingAssignment = await SupabaseFolderExists(codingAssignmentPrefix);
+            bool isCodingAssignment = await SupabaseFileExists($"{codingAssignmentPrefix}/ProgrammingLanguage.txt");
 
             ViewBag.IsCodingAssignment = isCodingAssignment;
             return View(grade);
         }
 
         // Helper method
-        public async Task<bool> SupabaseFolderExists(string folderPrefix)
+        private async Task<bool> SupabaseFileExists(string path)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get,
-                $"{SUPABASE_URL}/storage/v1/object/list/edusubmit?prefix={folderPrefix}&limit=1");
-
-            request.Headers.Add("apikey", SUPABASE_SERVICE_KEY);
-            request.Headers.Add("Authorization", $"Bearer {SUPABASE_SERVICE_KEY}");
-
+            var request = new HttpRequestMessage(HttpMethod.Head, $"{SUPABASE_URL}/storage/v1/object/edusubmit/{path}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", SUPABASE_SERVICE_KEY);
             var response = await _httpClient.SendAsync(request);
-
-            if (!response.IsSuccessStatusCode)
-                return false;
-
-            var content = await response.Content.ReadAsStringAsync();
-            return content.Contains("name"); // optionally, parse as JSON for stricter validation
+            return response.IsSuccessStatusCode;
         }
     }
 }
