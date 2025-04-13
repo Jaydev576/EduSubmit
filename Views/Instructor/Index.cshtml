@@ -1,6 +1,4 @@
-﻿
-
-@{
+﻿@{
     Layout = "~/Views/Shared/_InstructorLayout.cshtml";
     ViewData["Title"] = "Dashboard";
     ViewData["ActivePage"] = "Index";
@@ -8,57 +6,57 @@
     var activeAssignments = ViewData["ActiveAssignments"] as Dictionary<string, List<dynamic>>;
 }
 
-<!-- Class Performance Section -->
-<section class="class-performance container">
-    <h2 class="section-title">📊 Class Performance</h2>
-    <div class="table-container table-responsive">
-        <table class="performance-table table table-bordered">
-            <thead>
-                <tr>
-                    <th>Class Name</th>
-                    <th>Total Assignments</th>
-                    <th>Average Grade</th>
-                    <th>Total Students</th>
-                    <th>Submission Rate</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in classPerformance)
-                {
+<div class="container">
+
+    <!-- Class Performance Section -->
+    <section class="class-performance">
+        <h2 class="section-title">📊 Class Performance</h2>
+        <div class="table-container table-responsive">
+            <table class="performance-table table table-bordered">
+                <thead>
                     <tr>
-                        <td>@item.Key</td>
-                        <td>@item.Value.Item1</td>
-                        <td>@item.Value.Item2.ToString("F1")</td>
-                        <td>@item.Value.Item3</td>
-                        <td>@item.Value.Item4%</td>
+                        <th>Class Name</th>
+                        <th>Total Assignments</th>
+                        <th>Average Grade</th>
+                        <th>Total Students</th>
+                        <th>Submission Rate</th>
                     </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-</section>
-
-<!-- Active Assignments Section -->
-<section class="active-assignments container-fluid">
-    <h2 class="section-title">📝 Active Assignments</h2>
-
-    @foreach (var classEntry in activeAssignments)
-    {
-        <h3 class="class-heading">@classEntry.Key</h3>
-
-        <div class="assignment-container d-flex flex-nowrap overflow-auto gap-3 pb-3">
-            @foreach (var assignment in classEntry.Value)
-            {
-                <div class="assignment-card flex-shrink-0">
-                    <h4>@assignment.Title</h4>
-                    <p><i class="fas fa-calendar-alt"></i> <strong>Due:</strong> @assignment.DueDate.ToString("dd MMM yyyy")</p>
-                    <p><i class="fas fa-file-upload"></i> <strong>Submissions:</strong> @assignment.SubmissionCount</p>
-                </div>
-            }
+                </thead>
+                <tbody>
+                    @foreach (var item in classPerformance) {
+                        <tr>
+                            <td>@item.Key</td>
+                            <td>@item.Value.Item1</td>
+                            <td>@item.Value.Item2.ToString("F1")</td>
+                            <td>@item.Value.Item3</td>
+                            <td>@item.Value.Item4%</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
-    }
-</section>
+    </section>
 
+    <!-- Active Assignments Section -->
+    <section class="active-assignments">
+        <h2 class="section-title">📝 Active Assignments</h2>
+
+        @foreach (var classEntry in activeAssignments) {
+            <h3 class="class-heading">@classEntry.Key</h3>
+
+            <div class="assignment-container d-flex flex-nowrap overflow-auto gap-3 pb-3">
+                @foreach (var assignment in classEntry.Value) {
+                    <div class="assignment-card flex-shrink-0">
+                        <h4>@assignment.Title</h4>
+                        <p><i class="fas fa-calendar-alt"></i> <strong>Due:</strong> @assignment.DueDate.ToString("dd MMM yyyy")</p>
+                        <p><i class="fas fa-file-upload"></i> <strong>Submissions:</strong> @assignment.SubmissionCount</p>
+                    </div>
+                }
+            </div>
+        }
+    </section>
+
+</div>
 
 <!-- Styles -->
 <style>
@@ -105,29 +103,29 @@
         box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
     }
 
-        .performance-table thead {
-            background: #6e8efb;
-            color: white;
-        }
+    .performance-table thead {
+        background: #6e8efb;
+        color: white;
+    }
 
-        .performance-table th, .performance-table td {
-            padding: 12px 15px;
-            text-align: center;
-            border-bottom: 1px solid #ddd;
-        }
+    .performance-table th, .performance-table td {
+        padding: 12px 15px;
+        text-align: center;
+        border-bottom: 1px solid #ddd;
+    }
 
-        .performance-table th {
-            font-size: 1.1rem;
-        }
+    .performance-table th {
+        font-size: 1.1rem;
+    }
 
-        .performance-table tbody tr:nth-child(even) {
-            background: #f9f9f9;
-        }
+    .performance-table tbody tr:nth-child(even) {
+        background: #f9f9f9;
+    }
 
-        .performance-table tbody tr:hover {
-            background: #e6e9ff;
-            transition: 0.3s ease-in-out;
-        }
+    .performance-table tbody tr:hover {
+        background: #e6e9ff;
+        transition: 0.3s ease-in-out;
+    }
 
     /* Active Assignments Section */
     .class-heading {
@@ -147,18 +145,18 @@
         scrollbar-color: #888 #f8f9fa;
     }
 
-        .assignment-container::-webkit-scrollbar {
-            height: 8px;
-        }
+    .assignment-container::-webkit-scrollbar {
+        height: 8px;
+    }
 
-        .assignment-container::-webkit-scrollbar-thumb {
-            background-color: #888;
-            border-radius: 4px;
-        }
+    .assignment-container::-webkit-scrollbar-thumb {
+        background-color: #888;
+        border-radius: 4px;
+    }
 
-        .assignment-container::-webkit-scrollbar-track {
-            background: #f8f9fa;
-        }
+    .assignment-container::-webkit-scrollbar-track {
+        background: #f8f9fa;
+    }
 
     .assignment-card {
         background: linear-gradient(135deg, #6e8efb, #a777e3);
@@ -170,26 +168,26 @@
         transition: transform 0.3s ease-in-out;
     }
 
-        .assignment-card:hover {
-            transform: scale(1.05);
-        }
+    .assignment-card:hover {
+        transform: scale(1.05);
+    }
 
-        .assignment-card h4 {
-            margin-bottom: 10px;
-            font-size: 1.2em;
-        }
+    .assignment-card h4 {
+        margin-bottom: 10px;
+        font-size: 1.2em;
+    }
 
-        .assignment-card p {
-            margin: 5px 0;
-            font-size: 0.95em;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+    .assignment-card p {
+        margin: 5px 0;
+        font-size: 0.95em;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
 
-        .assignment-card i {
-            font-size: 1.2em;
-        }
+    .assignment-card i {
+        font-size: 1.2em;
+    }
 </style>
 
 <!-- FontAwesome for icons -->
