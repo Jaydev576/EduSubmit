@@ -6,7 +6,7 @@
     Layout = "_StudentLayout";
 
     bool isCodingAssignment = ViewBag.IsCodingAssignment;
-    string resultFilePath = $"/CodingAssignments/{Model.Student.ClassId}_{Model.Assignment.AssignmentId}/Results/student_{Model.Student.StudentId}_result.json";
+    string resultFilePath = $"{ViewBag.BucketPath}/CodingAssignments/{Model.Student.ClassId}_{Model.Assignment.AssignmentId}/Results/student_{Model.Student.StudentId}_result.json";
 }
 
 <div class="container mt-4">

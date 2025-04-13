@@ -178,6 +178,7 @@ namespace EduSubmit.Controllers
             string codingAssignmentPrefix = $"CodingAssignments/{grade.Student.ClassId}_{assignmentId}/";
             bool isCodingAssignment = await SupabaseFileExists($"{codingAssignmentPrefix}/ProgrammingLanguage.txt");
 
+            ViewBag.BucketPath = $"{SUPABASE_URL}/storage/v1/object/edusubmit";
             ViewBag.IsCodingAssignment = isCodingAssignment;
             return View(grade);
         }
