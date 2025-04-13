@@ -4,59 +4,62 @@
     ViewData["ActivePage"] = "Index";
 }
 
-<h2 class="mb-4 text-center text-dark font-weight-bold">Dashboard Overview</h2>
+<div class="container mt-4">
 
-<div class="container">
-    <div class="row">
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card p-4 shadow-sm text-center card-hover">
-                <h5 class="text-primary">Total Students</h5>
-                <p class="fs-4 fw-bold">@ViewBag.TotalStudents</p>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card p-4 shadow-sm text-center card-hover">
-                <h5 class="text-success">Total Teachers </h5>
-                <p class="fs-4 fw-bold">@ViewBag.ActiveTeachers</p>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card p-4 shadow-sm text-center card-hover">
-                <h5 class="text-warning">Total Classes</h5>
-                <p class="fs-4 fw-bold">@ViewBag.TotalClasses</p>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card p-4 shadow-sm text-center card-hover">
-                <h5 class="text-danger">Submissions</h5>
-                <p class="fs-4 fw-bold">@ViewBag.Submissions</p>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="container">
-    <div class="box">
-        <div class="section student-management">
-            <h2>Student Management</h2>
-            <p>Monitor student enrollment, track academic progress, and manage student records efficiently.</p>
-        </div>
-        <div class="section teacher-management">
-            <h2>Teacher Management</h2>
-            <p>Oversee teaching staff, track class assignments, and manage faculty information.</p>
-        </div>
-    </div>
-    <div class="box">
-        <div class="section class-management">
-            <h2>Class Management</h2>
-            <p>Organize and monitor class schedules, track attendance, and manage course materials.</p>
-        </div>
-        <div class="section assignment-tracking">
-            <h2>Assignment Tracking</h2>
-            <p>Monitor submission deadlines, track completion rates, and manage academic assessments.</p>
-        </div>
-    </div>
-</div>
+    <h2 class="mb-4 text-center text-dark font-weight-bold">Dashboard Overview</h2>
 
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card p-4 shadow-sm text-center card-hover">
+                    <h5 class="text-primary">Total Students</h5>
+                    <p class="fs-4 fw-bold">@ViewBag.TotalStudents</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card p-4 shadow-sm text-center card-hover">
+                    <h5 class="text-success">Total Teachers </h5>
+                    <p class="fs-4 fw-bold">@ViewBag.ActiveTeachers</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card p-4 shadow-sm text-center card-hover">
+                    <h5 class="text-warning">Total Classes</h5>
+                    <p class="fs-4 fw-bold">@ViewBag.TotalClasses</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card p-4 shadow-sm text-center card-hover">
+                    <h5 class="text-danger">Submissions</h5>
+                    <p class="fs-4 fw-bold">@ViewBag.Submissions</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="box">
+            <div class="section student-management">
+                <h2>Student Management</h2>
+                <p>Monitor student enrollment, track academic progress, and manage student records efficiently.</p>
+            </div>
+            <div class="section teacher-management">
+                <h2>Teacher Management</h2>
+                <p>Oversee teaching staff, track class assignments, and manage faculty information.</p>
+            </div>
+        </div>
+        <div class="box">
+            <div class="section class-management">
+                <h2>Class Management</h2>
+                <p>Organize and monitor class schedules, track attendance, and manage course materials.</p>
+            </div>
+            <div class="section assignment-tracking">
+                <h2>Assignment Tracking</h2>
+                <p>Monitor submission deadlines, track completion rates, and manage academic assessments.</p>
+            </div>
+        </div>
+    </div>
+
+</div>
 
 <style>
     body {
