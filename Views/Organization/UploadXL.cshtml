@@ -1,14 +1,13 @@
-﻿
-
-@model Student
+﻿@model Student
 
 @{
     ViewData["Title"] = "Upload Students";
-    Layout = "~/Views/Shared/_Layout.cshtml"; // Explicitly specify the layout
+    ViewData["ActivePage"] = "ManageUsers";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
 <div class="container mt-4">
-    <div class="card shadow-sm">
+    <div class="card shadow-sm mb-5">
         <div class="card-header bg-primary text-white">
             <h2 class="mb-0">Upload Students</h2>
         </div>
@@ -25,7 +24,7 @@
                     <small class="form-text text-muted">Supported formats: .xls, .xlsx (Max 10MB)</small>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex justify-content-between align-items-center mb-4">
                     <button type="submit" class="btn btn-primary px-4">
                         <i class="bi bi-upload me-2"></i>Upload
                     </button>
@@ -34,15 +33,13 @@
 
                 <!-- Status messages -->
                 <div class="mt-4">
-                    @if (TempData["Success"] != null)
-                    {
+                    @if (TempData["Success"] != null) {
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
                             @TempData["Success"]
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     }
-                    @if (TempData["Error"] != null)
-                    {
+                    @if (TempData["Error"] != null) {
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             @TempData["Error"]
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -52,11 +49,71 @@
             </form>
         </div>
     </div>
+
+    <!-- Instructions and Dummy Table -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0">Instructions for Uploading Students</h4>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning" role="alert">
+                ⚠️ <strong>Important:</strong> Your Excel file must have the <u>exact</u> column headers as shown below.
+                Otherwise, the upload will fail.
+            </div>
+
+            <p>Please make sure your Excel file uses these column names exactly:</p>
+            <ul>
+                <li><strong>FirstName</strong> — Student's first name</li>
+                <li><strong>LastName</strong> — Student's last name</li>
+                <li><strong>EmailAddress</strong> — Student's email address</li>
+                <li><strong>DateOfBirth</strong> — Student's date of birth (format: yyyy-MM-dd)</li>
+                <li><strong>Password</strong> — Password (will be encrypted)</li>
+                <li><strong>ClassId</strong> — Class ID (numeric)</li>
+            </ul>
+
+            <p class="mt-4">Example of correct Excel format:</p>
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>FirstName</th>
+                            <th>LastName</th>
+                            <th>EmailAddress</th>
+                            <th>DateOfBirth</th>
+                            <th>Password</th>
+                            <th>ClassId</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Emma</td>
+                            <td>Johnson</td>
+                            <td>emma.johnson@example.com</td>
+                            <td>2005-03-15</td>
+                            <td>password123</td>
+                            <td>101</td>
+                        </tr>
+                        <tr>
+                            <td>Liam</td>
+                            <td>Williams</td>
+                            <td>liam.williams@example.com</td>
+                            <td>2006-07-22</td>
+                            <td>securepass456</td>
+                            <td>102</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="text-muted mt-3">🔒 Note: Passwords will be securely hashed during upload. Date of Birth must be a valid date (e.g., 2005-03-15).</p>
+        </div>
+    </div>
 </div>
 
 <style>
     .card {
-        max-width: 600px;
+        max-width: 700px;
         margin: 0 auto;
         border: none;
     }

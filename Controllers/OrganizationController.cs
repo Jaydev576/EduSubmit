@@ -169,9 +169,9 @@ namespace EduSubmit.Controllers
                             EmailAddress = worksheet.Cells[row, 3].Text,
                             DateOfBirth = DateTime.Parse(worksheet.Cells[row, 4].Text),
                             Password = HashPassword(worksheet.Cells[row, 5].Text),
-                            OrganizationId = int.Parse(worksheet.Cells[row, 6].Text),
-                            ClassId = int.Parse(worksheet.Cells[row, 7].Text)
+                            ClassId = int.Parse(worksheet.Cells[row, 6].Text)
                         };
+                        student.OrganizationId = GetLoggedInOrganizationId();
 
                         students.Add(student);
                     }
@@ -182,7 +182,7 @@ namespace EduSubmit.Controllers
             await _context.Students.AddRangeAsync(students);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Dashboard)); // Redirect after upload
+            return RedirectToAction(nameof(ManageUsers)); // Redirect after upload
         }
 
 
@@ -872,9 +872,9 @@ namespace EduSubmit.Controllers
                             LastName = worksheet.Cells[row, 2].Text,
                             EmailAddress = worksheet.Cells[row, 3].Text,
                             Password = HashPassword(worksheet.Cells[row, 4].Text), // Encrypt password
-                            OrganizationId = int.Parse(worksheet.Cells[row, 5].Text)
                         };
 
+                        instructor.OrganizationId = GetLoggedInOrganizationId();
                         instructors.Add(instructor);
                     }
                 }
@@ -884,7 +884,7 @@ namespace EduSubmit.Controllers
             await _context.Instructors.AddRangeAsync(instructors);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Dashboard)); // Redirect after upload
+            return RedirectToAction(nameof(ManageInstructors)); // Redirect after upload
         }
 
         

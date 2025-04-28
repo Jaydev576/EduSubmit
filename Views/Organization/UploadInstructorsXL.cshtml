@@ -1,29 +1,13 @@
-﻿@* @model Instructor *@
-
-@* @{ *@
-@*     ViewData["Title"] = "Upload Instructors"; *@
-@* } *@
-
-@* <h2>Upload Instructors</h2> *@
-
-@* <form asp-action="UploadInstructorsXL" asp-controller="Organization" method="post" enctype="multipart/form-data"> *@
-@*     <div class="form-group"> *@
-@*         <label for="file">Select Excel File:</label> *@
-@*         <input type="file" name="file" class="form-control" required /> *@
-@*     </div> *@
-@*     <button type="submit" class="btn btn-primary">Upload</button> *@
-@* </form> *@
-
-
-@model Instructor
+﻿@model Instructor
 
 @{
     ViewData["Title"] = "Upload Instructors";
-    Layout = "~/Views/Shared/_Layout.cshtml"; // Ensure the layout is specified
+    ViewData["ActivePage"] = "ManageInstructors";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
 <div class="container mt-5">
-    <div class="card shadow-sm">
+    <div class="card shadow-sm mb-5">
         <div class="card-header bg-primary text-white">
             <h2 class="mb-0">Upload Instructors</h2>
         </div>
@@ -40,7 +24,7 @@
                     <small class="form-text text-muted">Supported formats: .xls, .xlsx (Max 10MB)</small>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex justify-content-between align-items-center mb-4">
                     <button type="submit" class="btn btn-primary px-4">
                         <i class="bi bi-upload me-2"></i>Upload
                     </button>
@@ -49,15 +33,13 @@
 
                 <!-- Status messages -->
                 <div class="mt-4">
-                    @if (TempData["Success"] != null)
-                    {
+                    @if (TempData["Success"] != null) {
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
                             @TempData["Success"]
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     }
-                    @if (TempData["Error"] != null)
-                    {
+                    @if (TempData["Error"] != null) {
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             @TempData["Error"]
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -67,11 +49,63 @@
             </form>
         </div>
     </div>
+
+    <!-- Instructions and Dummy Table -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0">Instructions for Uploading</h4>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning" role="alert">
+                ⚠️ <strong>Important:</strong> Your Excel file must have the <u>exact</u> column headers as shown below.
+                Otherwise, the upload will fail.
+            </div>
+
+            <p>Please name the columns exactly as listed below:</p>
+            <ul>
+                <li><strong>FirstName</strong> — Instructor's first name</li>
+                <li><strong>LastName</strong> — Instructor's last name</li>
+                <li><strong>EmailAddress</strong> — Instructor's email address</li>
+                <li><strong>Password</strong> — Instructor's password (will be securely hashed)</li>
+            </ul>
+
+            <p class="mt-4">Example of correct Excel format:</p>
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>FirstName</th>
+                            <th>LastName</th>
+                            <th>EmailAddress</th>
+                            <th>Password</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>John</td>
+                            <td>Doe</td>
+                            <td>johndoe@example.com</td>
+                            <td>password123</td>
+                        </tr>
+                        <tr>
+                            <td>Jane</td>
+                            <td>Smith</td>
+                            <td>janesmith@example.com</td>
+                            <td>mypassword456</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="text-muted mt-3">🔒 Note: Passwords will be encrypted automatically during upload for enhanced security.</p>
+        </div>
+    </div>
 </div>
 
 <style>
     .card {
-        max-width: 600px;
+        max-width: 700px;
         margin: 0 auto;
         border: none;
     }
