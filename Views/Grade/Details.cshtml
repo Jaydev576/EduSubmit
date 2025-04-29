@@ -59,7 +59,8 @@
             </div>
         </div>
         <script>
-            fetch('@resultFilePath')
+            const resultFilePath = '@resultFilePath' + '?t=' + new Date().getTime();
+            fetch(resultFilePath)
                 .then(response => response.json())
                 .then(data => {
                     let total = data.length;
